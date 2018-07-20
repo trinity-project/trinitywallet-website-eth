@@ -8,6 +8,9 @@
         <h5>公钥为：{{ publicKey }}</h5>
         <h5 @click="publicKey2Address()">公钥转地址</h5>
         <h5>地址为：{{ address }}</h5>
+
+        <h5 @click="signData()">签名</h5>
+        <h5>签名后的数据：{{ signData1 }}</h5>
     </div>
   </div>
 </template>
@@ -18,21 +21,26 @@ export default {
   data () {
     return {
       privateKey: '',
-      publicKey:'',
-      address:''
+      publicKey: '',
+      address: '',
+      signData1: ''
     }
   },
   methods: {
-    createPrivateKey(){
+    createPrivateKey() {
       this.privateKey = createPrivateKey().toString('hex');
     },
-    privateKey2PublicKey(){
+    privateKey2PublicKey() {
       let _this = this;
       _this.publicKey = privateKey2PublicKey(_this.privateKey).toString('hex');
     },
-    publicKey2Address(){
+    publicKey2Address() {
       let _this = this;
       _this.address = publicKey2Address(_this.publicKey).toString('hex');
+    },
+    signData() {
+      let _this = this;
+      _this.signData1 = signData();
     }
   }
 }

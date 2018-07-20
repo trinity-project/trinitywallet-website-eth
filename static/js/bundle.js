@@ -7,6 +7,7 @@ var createKeccakHash = require('keccak');
 global.createPrivateKey = createPrivateKey;
 global.privateKey2PublicKey = privateKey2PublicKey;
 global.publicKey2Address = publicKey2Address;
+global.signData = signData;
 
 function ab2hexstring(arr) {
     var result = "";
@@ -55,12 +56,20 @@ function publicKey2Address(publicKey) {
     return address;
 }
 
-function string2Buffer(string) {
-    var buffer = Buffer.from(string);
-    console.log(buffer);
-    return buffer;
+function signData(txdata, publicKey) {
+    //签名
+    var testPrivHex = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"
+    //1.获取私钥
+    var key = crypto.HexToECDSA(testPrivHex);
+    //2.对message进行hash
+    var msg = crypto.Keccak256(["foo"])
+    //3.对hash进行签名,注意签名对象只能是hash,并且长度真是32个字节的hash
+    var sig = crypto.Sign(msg, key);
+    console.log(sig);
+    //sig:d155e94305af7e07dd8c32873e5c03cb95c9e05960ef85be9c07f671da58c73718c19adc397a211aa9e87e519e2038c5a3b658618db335f74f800b8e0cfeef4401
+    //签名结果长度和公钥长度相同
+    return sig;
 }
-
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 },{"buffer":110,"crypto":119,"keccak":40,"secp256k1/elliptic":50}],2:[function(require,module,exports){

@@ -1,6 +1,6 @@
 <template>
     <nav>
-        <h1 @click="storeLoginFlag()">菜单</h1>
+        <h1 @click="storeLoginFlag()">{{$t('navMenu.title')}}</h1>
         <el-row class="tac">
             <el-col :span="24">
                 <el-menu default-active="1" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
@@ -10,7 +10,7 @@
                     <span>钱包</span>
                     </template>
                     <el-menu-item-group>
-                        <el-menu-item @click="login()" index="1-1">
+                        <el-menu-item @click="toLoginForm()" index="1-1">
                             <i class="el-icon-menu"></i>
                             <span slot="title">首页</span>
                         </el-menu-item>
@@ -52,13 +52,13 @@
                     <span>设置</span>
                     </template>
                     <el-menu-item-group>
-                    <el-menu-item index="3-1">更改语言</el-menu-item>
+                    <el-menu-item @click="switchLang()" index="3-1">更改语言</el-menu-item>
                     <el-menu-item index="3-2">自定义主题</el-menu-item>
-                    <el-menu-item index="3-2">修改密码</el-menu-item>
+                    <el-menu-item index="3-3">修改密码</el-menu-item>
                     <router-link to="/backup">
-                        <el-menu-item index="3-3">备份</el-menu-item>
+                        <el-menu-item index="3-4">备份</el-menu-item>
                     </router-link>
-                    <el-menu-item index="3-4">退出</el-menu-item>
+                    <el-menu-item index="3-5">退出</el-menu-item>
                     </el-menu-item-group>
                 </el-submenu>
                 <el-submenu index="4">
@@ -92,7 +92,7 @@ export default {
   name: 'LeftNav',
   data () {
     return {
-      isLogin:false
+      isLogin:false,
     }
   },
   mounted() {
@@ -105,13 +105,18 @@ export default {
     })
   },
   methods: {
+    switchLang (){
+        // console.log(1);
+        this.$i18n.locale === 'cn' ? this.$i18n.locale ='en' : this.$i18n.locale ='cn';
+        this.save1("lang",this.$i18n.locale);
+    },
     handleOpen(key, keyPath) {
         console.log(key, keyPath);
     },
     handleClose(key, keyPath) {
         console.log(key, keyPath);
     },
-    login() {
+    toLoginForm() {
         if(this.$store.state.vuexStore.isLogin){
             this.$router.push('/')
         } else {

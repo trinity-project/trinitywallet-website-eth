@@ -31,7 +31,7 @@
                 <div>
                     <el-button @click="submitForm('ruleForm')">重置</el-button>
                     <div class="tipBox tipBox-white">
-                        <h3>收款地址</h3>
+                        <h3>收款码</h3>
                         <qriously :value="Address" level="H" :size="200" />
                         <p>{{ Address }}</p>
                     </div>
