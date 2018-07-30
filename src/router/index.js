@@ -1,7 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import index from '@/components/index'
-import loginForm from '@/components/loginForm'
+import startForm from '@/components/start'
+import createForm from '@/components/create'
+import loginByPrivateKeyForm from '@/components/loginByPrivateKey'
+import loginByKeyStoreForm from '@/components/loginByKeyStore'
 import BackupForm from '@/components/backup'
 import contactForm from '@/components/contact'
 import receiveForm from '@/components/receive'
@@ -35,9 +38,24 @@ export default new Router({
       component: receiveForm
     },
     {
-      path: '/login',
-      name: 'loginForm',
-      component: loginForm
+      path: '/start',
+      name: 'startForm',
+      component: startForm
+    },
+    {
+      path: '/create',
+      name: 'createForm',
+      component: createForm
+    },
+    {
+      path: '/loginByPrivateKey',
+      name: 'loginByPrivateKeyForm',
+      component: loginByPrivateKeyForm
+    },
+    {
+      path: '/loginByKeyStore',
+      name: 'loginByKeyStoreForm',
+      component: loginByKeyStoreForm
     },
     {
       path: '/addChannel',

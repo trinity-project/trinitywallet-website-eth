@@ -1,14 +1,23 @@
 <template>
-    <footer v-if="$route.path !='/login'" class="Footer">
-        <div class="container-fluid">
+    <footer v-if="$route.path !='/start'" class="footer">
+        <!-- <div class="container-fluid">
             <ul class="clearfloat">
-                <li @click="testfun()" :class="{ active: item.isActive }" v-for="(item,index) in FooterList" :key="index">
+                <li :class="{ active: item.isActive }" v-for="(item,index) in FooterList" :key="index">
                     <a @click="changeActive(index)" href="javascript:;">
+                        <span><i :class="[true, item.icon]"></i></span>
                         <span>{{ item.Name }}</span>
                     </a>
                 </li>
             </ul>
-        </div>
+        </div> -->
+        <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-demo" mode="horizontal">
+            <el-menu-item :index="item.index" v-for="(item,index) in FooterList" :key="index">
+                <router-link :to="item.router" href="javascript:;" class="clearfloat">
+                    <span><i :class="[true, item.icon]"></i></span>
+                    <span>{{ item.name }}</span>
+                </router-link>
+            </el-menu-item>
+        </el-menu>
     </footer>
 </template>
 
@@ -19,30 +28,31 @@ export default {
     return {
         FooterList:[
             {
-                class:"transfer",
-                isActive:true,
-                Icon:"#icon-zhuanzhang",
-                Name:"Transfer"
+                index: "1-1",
+                icon: "el-icon-ETH-geren1",
+                name: "Index",
+                router: "/"
             },
             {
-                class:"addchannel",
-                isActive:false,
-                Icon:"#icon-tianjia",
-                Name:"Add Channel"
+                index: "1-2",
+                icon: "el-icon-ETH-zhuanzhang",
+                name: "Receive",
+                router: "/receive"
             },
             {
-                class:"channellist",
-                isActive:false,
-                Icon:"#icon-list",
-                Name:"Channel List"
+                index: "1-3",
+                icon: "el-icon-ETH-list",
+                name: "Channel",
+                router: "/channelList"
             },
             {
-                class:"record",
-                isActive:false,
-                Icon:"#icon-dujiayuniconzhenggao-19",
-                Name:"Record"
+                index: "1-4",
+                icon: "el-icon-ETH-dujiayuniconzhenggao-19",
+                name: "Record",
+                router: "/record"
             }
-        ]
+        ],
+        navSelected: "1-1"
     }
   },
   mounted() {
@@ -50,18 +60,18 @@ export default {
 
     })
   },
+  watch: {
+    '$store.state.vuexStore.activeNavIndex': 'storeToFooter'            // 监测store中的activeNavIndex
+  },
   methods:{
-    changeActive (index){
-        // console.log(index);
-        var _this = this;
-        _this.FooterList.forEach(function(data,index){
-            data.isActive = false;
-        });
-        _this.FooterList[index].isActive = true;
+    selectItems(index){
+        this.$store.state.vuexStore.activeNavIndex = index;        //Nav选中之后设置store里的值为当前的index。
+        // console.log(this.$store.state.vuexStore.activeNavIndex);
     },
-    testfun (){
-        console.log(this.$route.path);
-    }
+    storeToFooter() {
+        this.navSelected = this.$store.state.vuexStore.activeNavIndex;
+        //store.state.adminleftnavnum里值变化的时候，设置navSelected
+    },
   }
 }
 </script>
@@ -71,6 +81,8 @@ export default {
 footer{
     width: calc(100% - 300px);
     height: 50px;
+    padding-bottom: 2px;
+    box-sizing: border-box;
     float: left;
     color: RGBA(124, 125, 129, 1.00);
     background: RGBA(248, 248, 248, 1.00);
@@ -82,20 +94,12 @@ ul {
   width: 100%;
   height: 100%;
   margin: 0;
+  box-sizing: border-box;
   /* border-top: 1px solid RGBA(183, 183, 184, 1.00); */
 }
 li {
-    display: inline-block;
-    /* margin: 0 10px; */
     width: 25%;
     height: 100%;
-    float: left;
-}
-.icon{
-    color: RGBA(117, 118, 122, 1.00);
-    font-size: 21px;
-    margin: 7px auto 0;
-    /* margin: 7px 28px 0; */
 }
 a{
     display: inline-block;
@@ -105,38 +109,20 @@ a{
     text-align: center;
     color: RGBA(117, 118, 122, 1.00);
     text-decoration: none;
+    box-sizing: border-box;
+    /* padding: 8px 0; */
 }
 span{
+  display: block;
   font-size: 10px;
+}
+[class^="el-icon-ETH"], [class*=" el-icon-ETH"] {
+    font-size: 21px;
 }
 .container-fluid{
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
-}
-.active a{
-    color: #EE5487;
-}
-.active .icon{
-    color: #EE5487;
-}
-@media (max-width: 992px){
-  .navbar{
-    margin-bottom: 0px;
-  }
-  .NavbarTitle{
-    font-size: 17px;
-    margin: 0;
-    line-height: 39px;
-    text-align: center;
-  }
-  .container-fluid{
-    text-align: center;
-  }
-  .navbar-right{
-    font-size: 14px;
-    margin: 0;
-  }
 }
 </style>

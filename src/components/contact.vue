@@ -1,12 +1,11 @@
 <template>
   <div class="contactBox">
-    <div class="headBox"></div>
     <div class="contentBox">
         <h2>我的联系人</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-button @click="centerDialogVisible = true" style="margin:10px 0;" type="primary" icon="el-icon-plus" plain>添加联系人</el-button>
         <!-- <h3>你还没有联系人</h3> -->
-        <el-table ref="multipleTable" :data="tableData3" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table ref="multipleTable" :data="$store.state.vuexStore.contactList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="60">
             </el-table-column>
             <el-table-column prop="name" label="姓名" width="120">
@@ -15,22 +14,22 @@
             </el-table-column>
         </el-table>
         <div style="margin-top: 20px">
-            <el-button type="success" plain @click="toggleSelection()">转账</el-button>
+            <el-button :disabled="multipleSelection.length != 1" type="success" plain @click="transfer()">转账</el-button>
             <el-button type="danger" plain @click="DeltableData()">删除</el-button>
             <el-button plain @click="toggleSelection()">取消选择</el-button>
         </div>
     </div>
     <el-dialog title="添加联系人" :visible.sync="centerDialogVisible" width="40%" center>
-      <el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2" label-width="50px" class="demo-ruleForm">
+      <el-form :model="addContactForm" status-icon :rules="addContactRules" ref="addContactForm" label-width="50px" class="demo-ruleForm">
         <el-form-item label="名称" prop="name">
-          <el-input v-model="ruleForm2.name" auto-complete="off"></el-input>
+          <el-input v-model="addContactForm.name" auto-complete="off"></el-input>
         </el-form-item>
         <el-form-item label="地址" prop="address">
-          <el-input v-model="ruleForm2.address"></el-input>
+          <el-input v-model="addContactForm.address"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm('ruleForm2')">提交</el-button>
+        <el-button type="primary" @click="addContact()">添加</el-button>
         <el-button @click="centerDialogVisible = false">取 消</el-button>
       </span>
     </el-dialog>
@@ -51,7 +50,7 @@ export default {
     var checkAddress = (rule, value, callback) => {
       let _this = this;
       let flag = false;
-      _this.tableData3.forEach(function(data,index){
+      _this.$store.state.vuexStore.contactList.forEach(function(data,index){
         if(data.address === value){
           flag = true;
         }
@@ -69,26 +68,26 @@ export default {
       }
     };
     return {
-      tableData3: [{
-        name: '王小虎',
-        address: '0xEcbA79761bcAEbc16ee45E5979376E471b28795E'
-      }, {
-        name: '王小虎',
-        address: '0xEcbA7976BbcAEb316ee45E5979376E471b28795E'
-      }, {
-        name: '王小虎',
-        address: '0xEcbA7976BbcAEbc16ee45E1979376E471b28795E'
-      }, {
-        name: '王小虎',
-        address: '0xEBbA7976BbcAEbc16ee45E5979376E471b28795E'
-      }],
+      // contactList: [{
+      //   name: '王小虎',
+      //   address: '0xEcbA79761bcAEbc16ee45E5979376E471b28795E'
+      // }, {
+      //   name: '王小虎',
+      //   address: '0xEcbA7976BbcAEb316ee45E5979376E471b28795E'
+      // }, {
+      //   name: '王小虎',
+      //   address: '0xEcbA7976BbcAEbc16ee45E1979376E471b28795E'
+      // }, {
+      //   name: '王小虎',
+      //   address: '0xEBbA7976BbcAEbc16ee45E5979376E471b28795E'
+      // }],
       multipleSelection: [],
       centerDialogVisible: false,
-      ruleForm2: {
+      addContactForm: {
         name: '',
         address: ''
       },
-      rules2: {
+      addContactRules: {
         name: [
           { validator: checkName, trigger: 'blur' }
         ],
@@ -111,14 +110,15 @@ export default {
     handleSelectionChange(val) {
         this.multipleSelection = val;
     },
-    submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
+    addContact() {    //添加联系人
+      this.$refs['addContactForm'].validate((valid) => {
         if (valid) {
           let message = {
-            name: this.ruleForm2.name,
-            address: this.ruleForm2.address
+            name: this.addContactForm.name,
+            address: this.addContactForm.address
           };
-          this.tableData3.push(message);
+          this.$store.state.vuexStore.contactList.push(message);
+          this.saveAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList",this.$store.state.vuexStore.contactList);
           this.centerDialogVisible = false;
           this.$message({
             showClose: true,
@@ -131,15 +131,24 @@ export default {
         }
       });
     },
-    DeltableData() { 
+    DeltableData() {    //删除选中的数据
       let _this = this;
       _this.multipleSelection.forEach(function(data,index1){
-        _this.tableData3.forEach(function(val,index2){
+        _this.$store.state.vuexStore.contactList.forEach(function(val,index2){
           if(val.address === data.address){
-            _this.tableData3.splice(index2,1);
+            _this.$store.state.vuexStore.contactList.splice(index2,1);
           }
         })
       })
+    },
+    transfer() {    //传递address参数到index页面
+      let address = this.multipleSelection[0].address;
+      this.$store.state.vuexStore.activeNavIndex = '1-1';     //将activeNavIndex转到index页面
+      this.$router.push({name: 'index', params: {address: address}});
+    },
+    saveAsArray:function(key,items){    //以数组，json，boolean等数据格式储存localStorage
+      let KEY1 = key.toString();
+      window.localStorage.setItem(KEY1,JSON.stringify(items))
     },
   }
 }
@@ -149,7 +158,7 @@ export default {
 <style scoped>
 .contactBox{
     float: left;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 106px);
     width: calc(100% - 300px);
     overflow: hidden;
 }

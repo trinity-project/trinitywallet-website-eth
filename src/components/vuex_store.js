@@ -1,10 +1,41 @@
 export default {
   state: { //state
-    isLogin: true
+    isLogin: false,        //登录标志
+    isNightMode: false,     //夜间模式
+    activeNavIndex: '1-1',    //当前active Nav
+    Magic: "",
+    walletInfo: {
+      keyStore: "",
+      publicKey: "",
+      address: ""
+    },
+    balanceData: {
+      Chain: {
+        "TNC": 0,
+        "ETH": 0
+      },
+      Channel: {
+        "TNC": 0,
+        "ETH": 0
+      }
+    },
+    channelList: [],
+    contactList: {
+
+    },
+    FoundertxDataSign: ""       //暂存签名后的FoundertxData
   },
   getters: {
-    not_show(state) { //这里的state对应着上面这个state
-      return !state.show;
+    switchLogin(state) { //这里的state对应着上面这个state
+      return !state.isLogin;
+    },
+    signOut(state) {
+      state.walletInfo = {
+        privateKey: "",
+        publicKey: "",
+        address: ""
+      }
+      return state.walletInfo;
     }
   },
   mutations: {

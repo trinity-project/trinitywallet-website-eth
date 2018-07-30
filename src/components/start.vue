@@ -1,19 +1,18 @@
 <template>
-  <div class="loginForm">
-    <div class="headBox"></div>
+  <div class="startForm">
     <div class="contentBox">
         <h2>欢迎</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <div class="clooseLoginBox clooseLoginBox-blue">
+        <div @click="toOtherForm('./create')" class="clooseLoginBox clooseLoginBox-blue">
             <h3>创建新钱包</h3>
             <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
         </div>
-        <div class="clooseLoginBox clooseLoginBox-green">
+        <div @click="toOtherForm('./loginByPrivateKey')" class="clooseLoginBox clooseLoginBox-green">
             <h3>从私钥导入</h3>
             <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
         </div>
-        <div class="clooseLoginBox clooseLoginBox-gray">
-            <h3>创建新钱包</h3>
+        <div @click="toOtherForm('./loginByKeyStore')" class="clooseLoginBox clooseLoginBox-gray">
+            <h3>从备份文件恢复</h3>
             <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
         </div>
     </div>
@@ -22,23 +21,25 @@
 
 <script>
 export default {
-  name: 'loginForm',
+  name: 'startForm',
   data () {
     return {
 
     }
   },
   methods: {
-
+      toOtherForm(router) {
+          this.$router.push(router);
+      }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.loginForm{
+.startForm{
     float: left;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 106px);
     width: calc(100% - 300px);
     overflow: hidden;
 }
@@ -73,7 +74,6 @@ h2{
 .clooseLoginBox-gray{
     background-color: #f4f4f5;
     border-left: 5px solid #909399;
-    cursor: not-allowed;
 }
 .clooseLoginBox h3{
     display: inline-block;

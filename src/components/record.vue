@@ -1,6 +1,5 @@
 <template>
   <div class="recordForm">
-    <div class="headBox"></div>
     <div class="contentBox">
         <h2>交易记录</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -59,7 +58,7 @@ export default {
 <style scoped>
 .recordForm{
     float: left;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 106px);
     width: calc(100% - 300px);
     overflow: hidden;
 }

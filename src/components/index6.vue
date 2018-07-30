@@ -1,6 +1,5 @@
 <template>
   <div class="indexForm">
-    <div class="headBox"></div>
     <div class="contentBox">
         <h5 @click="createPrivateKey()">创建私钥</h5>
         <h5>私钥为：{{ privateKey }}</h5>
@@ -8,9 +7,6 @@
         <h5>公钥为：{{ publicKey }}</h5>
         <h5 @click="publicKey2Address()">公钥转地址</h5>
         <h5>地址为：{{ address }}</h5>
-
-        <h5 @click="signData()">签名</h5>
-        <h5>签名后的数据：{{ signData1 }}</h5>
     </div>
   </div>
 </template>
@@ -37,10 +33,6 @@ export default {
     publicKey2Address() {
       let _this = this;
       _this.address = publicKey2Address(_this.publicKey).toString('hex');
-    },
-    signData() {
-      let _this = this;
-      _this.signData1 = signData();
     }
   }
 }
@@ -53,7 +45,7 @@ h1, h2 {
 }
 .indexForm{
     float: left;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 106px);
     width: calc(100% - 300px);
     overflow: hidden;
 }

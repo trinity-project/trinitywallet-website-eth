@@ -7,6 +7,7 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import vuex from 'vuex';
 import i18n from './i18n/i18n';
+import './assets/icon/iconfont.css'
 
 Vue.use(ElementUI);
 Vue.use(vuex);

@@ -1,10 +1,9 @@
 <template>
-  <div class="BackupForm">
-    <div class="headBox"></div>
+  <div class="backupForm">
     <div class="contentBox">
         <h2>备份</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <el-button style="margin:10px 0;" type="primary" icon="el-icon-edit" plain>备份钱包</el-button>
+        <el-button @click="backup()" style="margin:10px 0;" type="primary" icon="el-icon-edit" plain>备份钱包</el-button>
         <div class="tipBox tipBox-red">
             <h3>'贴心提示'</h3>
             <p>点击“备份当前钱包”按钮后，浏览器会生成一个钱包备份文件，当您清空浏览器数据库、或者更换浏览器、重装系统后，可以使用钱包备份文件恢复当前钱包。请将该文件保存到安全的地方，并牢记钱包密码，钱包文件丢失或钱包密码遗忘可能会导致您的资产丢失。</p>
@@ -15,23 +14,37 @@
 
 <script>
 export default {
-  name: 'BackupForm',
+  name: 'backupForm',
   data () {
     return {
 
     }
   },
   methods: {
-
+      backup() {
+          console.log(this.$store.state.vuexStore.walletInfo.keyStore);
+          if(this.$store.state.vuexStore.walletInfo.keyStore){
+            var content = JSON.stringify(this.$store.state.vuexStore.walletInfo.keyStore);
+            var blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+            saveAs(blob, this.$store.state.vuexStore.walletInfo.keyStore.id + ".json");//saveAs(blob,filename)
+          } else {
+            this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '备份失败，请确认正确导入钱包',
+                duration: 3000
+            });
+          }
+      }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.BackupForm{
+.backupForm{
     float: left;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 106px);
     width: calc(100% - 300px);
     overflow: hidden;
 }
