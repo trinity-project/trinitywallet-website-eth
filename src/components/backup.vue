@@ -1,5 +1,5 @@
 <template>
-  <div class="backupForm">
+  <div class="backupForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h2>备份</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -45,7 +45,7 @@ export default {
 .backupForm{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -78,5 +78,8 @@ h2{
     font-weight: 400;
     color: #f56c6c;
     /* border-bottom: 1px solid #CCCCCC; */
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

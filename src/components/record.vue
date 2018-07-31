@@ -1,5 +1,5 @@
 <template>
-  <div class="recordForm">
+  <div class="recordForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h2>交易记录</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -59,7 +59,7 @@ export default {
 .recordForm{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -85,7 +85,11 @@ ul li{
     border-bottom:1px solid #ebeef5;
     position: relative;
     padding: 12px;
+    /* cursor: pointer; */
 }
+/* ul li:hover{
+    background: #f5f7fa;
+} */
 ul li p{
     display: inline-block;
     margin: 0;
@@ -96,5 +100,8 @@ ul li span{
     right: 20px;
     top: 50%;
     margin-top: -20px;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="indexForm">
+  <div class="indexForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h5 @click="createPrivateKey()">创建私钥</h5>
         <h5>私钥为：{{ privateKey }}</h5>
@@ -46,7 +46,7 @@ h1, h2 {
 .indexForm{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -59,5 +59,8 @@ h1, h2 {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

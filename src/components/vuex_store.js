@@ -3,6 +3,7 @@ export default {
     isLogin: false,        //登录标志
     isNightMode: false,     //夜间模式
     activeNavIndex: '1-1',    //当前active Nav
+    isNavShow: true,
     Magic: "",
     walletInfo: {
       keyStore: "",

@@ -1,10 +1,15 @@
 <template>
-    <div class="headBox"></div>
+    <div class="headBox">
+      <i @click="$store.state.vuexStore.isNavShow = !$store.state.vuexStore.isNavShow" class="listIcon el-icon-ETH-liebiao"></i>
+      <el-badge :value="3" :max="99" class="item" style="float: right;">
+        <i class="notificationIcon el-icon-ETH-xiaoxi"></i>
+      </el-badge>
+    </div>
 </template>
 
 <script>
 export default {
-  name: 'footerBox',
+  name: 'headBox',
   data () {
     return {
 
@@ -26,7 +31,20 @@ export default {
 .headBox{
     float: left;
     height: 56px;
-    width: calc(100% - 300px);
+    width: 100%;
     background-color: rgb(67, 74, 80);
+    padding: 15px 20px;
+    box-sizing: border-box;
+}
+.listIcon{
+    font-size: 26px;
+    color: #FFFFFF;
+    float: left;
+    cursor: pointer;
+}
+.notificationIcon{
+    font-size: 26px;
+    color: #FFFFFF;
+    cursor: pointer;
 }
 </style>

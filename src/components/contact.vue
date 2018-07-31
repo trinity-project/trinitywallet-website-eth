@@ -1,11 +1,11 @@
 <template>
-  <div class="contactBox">
+  <div class="contactBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h2>我的联系人</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-button @click="centerDialogVisible = true" style="margin:10px 0;" type="primary" icon="el-icon-plus" plain>添加联系人</el-button>
         <!-- <h3>你还没有联系人</h3> -->
-        <el-table ref="multipleTable" :data="$store.state.vuexStore.contactList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table ref="multipleTable" :data="contactList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="60">
             </el-table-column>
             <el-table-column prop="name" label="姓名" width="120">
@@ -68,19 +68,7 @@ export default {
       }
     };
     return {
-      // contactList: [{
-      //   name: '王小虎',
-      //   address: '0xEcbA79761bcAEbc16ee45E5979376E471b28795E'
-      // }, {
-      //   name: '王小虎',
-      //   address: '0xEcbA7976BbcAEb316ee45E5979376E471b28795E'
-      // }, {
-      //   name: '王小虎',
-      //   address: '0xEcbA7976BbcAEbc16ee45E1979376E471b28795E'
-      // }, {
-      //   name: '王小虎',
-      //   address: '0xEBbA7976BbcAEbc16ee45E5979376E471b28795E'
-      // }],
+      contactList: [],
       multipleSelection: [],
       centerDialogVisible: false,
       addContactForm: {
@@ -96,6 +84,15 @@ export default {
         ]
       }
     }
+  },
+  mounted() {
+    this.$nextTick(function(){
+      if(!this.$store.state.vuexStore.isLogin){
+        this.$router.push('/start');
+      } else {
+        this.contactList = this.$store.state.vuexStore.contactList;
+      }
+    })
   },
   methods: {
     toggleSelection(rows) {
@@ -159,7 +156,7 @@ export default {
 .contactBox{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -179,5 +176,7 @@ h2{
 h3{
     text-align: center;
 }
-
+.fullPage{
+    width: 100% !important;
+}
 </style>

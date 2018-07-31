@@ -156,7 +156,7 @@ export default {
         console.log("当前登陆状态为：" + _this.$store.state.vuexStore.isLogin);
         // console.log(!_this.$store.state.vuexStore.isLogin);
         _this.isNightMode = _this.$parent.fetchAsString("isNightMode");
-        if(!_this.$store.state.vuexStore.isLogin){
+        if(!_this.$store.state.vuexStore.isLogin || _this.$store.state.vuexStore.isLogin == ""){
             _this.$router.push('/start');
         }
     })
@@ -180,10 +180,10 @@ export default {
         this.$store.state.vuexStore.activeNavIndex = index;        
     },
     toOtherForm(router) {        //跳转页面时判断是否登录
-        if(this.$store.state.vuexStore.isLogin){
-            this.$router.push(router);
-        } else {
+        if(!this.$store.state.vuexStore.isLogin || this.$store.state.vuexStore.isLogin == ""){
             this.$router.push('/start');
+        } else {
+            this.$router.push(router);
         }
     },
     storeLoginFlag() {      //切换登录状态并保存，用于测试
@@ -200,8 +200,8 @@ export default {
         return result;
     },
     getAddressInfo() {      // 监测store中的address,出现变化时获取相关信息
-        this.getBalance();
-        this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");
+        this.getBalance();          //获取总的余额
+        this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");           //获取联系人列表
     },
     getBalance() {      //获取总的余额
       this.getEthBalance();
@@ -250,6 +250,9 @@ nav{
     user-select:none;
     overflow-x: hidden;
     background-color: rgb(84, 92, 100);
+    position: absolute;
+    left: 0;
+    z-index:1;
 }
 nav h1{
     font-size: 20px;

@@ -1,15 +1,19 @@
 <template>
-  <div id="app" class="clearfloat">
-    <head-nav/>
-    <head-box/>
-    <router-view/>
-    <footer-box/>
+  <div id="app" class="clearfloat" mode="in-out">
+      <head-nav/>
+      <div class="rightBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+          <head-box/>
+          <router-view/>
+          <message-box/>
+          <footer-box/>
+      </div>
   </div>
 </template>
 
 <script>
 import headNav from './components/common/headNav'
 import headBox from './components/common/headBox'
+import messageBox from './components/common/messageBox'
 import footerBox from './components/common/footer'
 
 export default {
@@ -17,9 +21,13 @@ export default {
   components: {
     headNav,
     headBox,
-    footerBox
+    footerBox,
+    messageBox
   },
   methods: {
+    backToStart() {
+      this.$router.push('/start');
+    },
     fetchAsArray:function(key){     //获取localStorage的数组，json，boolean等数据
       let KEY1 = key.toString();
       return JSON.parse(window.localStorage.getItem(KEY1) || '[]')
@@ -69,14 +77,15 @@ export default {
 html,body{
   margin: 0;
   padding: 0;
+  height: 100vh;
 }
 #app {
   font-family: Helvetica Neue,Helvetica,PingFang SC,Hiragino Sans GB,Microsoft YaHei,SimSun,sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* text-align: center; */
   color: #2c3e50;
-  /* margin-top: 60px; */
+  width: 100%;
+  height: 100vh;
 }
 .clearfloat:after{
   display: block;
@@ -96,11 +105,32 @@ ul,li{
   margin:0;
   list-style:none
 }
+.rightBox{
+  width: calc(100% - 300px);
+  height: 100vh;
+  background: #FFFFFF;
+  transition:ease 0.7s;
+  position: absolute;
+  right: 0;
+  z-index: 2;
+}
+.fullPage{
+  width: 100% !important;
+}
+.backToStartBtn{
+  font-size: 14px;
+  color: #606266;
+  cursor: pointer;
+  text-decoration: underline;
+}
 nav .el-menu-item-group__title {
-    padding: 0;
+  padding: 0;
 }
 nav .el-menu {
-    border-right: 0;
+  border-right: 0;
+}
+.headBox .el-badge__content {
+  border: 0;       /* 去除角标边框 */
 }
 .el-dialog{
   min-width: 300px;

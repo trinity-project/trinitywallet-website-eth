@@ -1,16 +1,16 @@
 <template>
-  <div class="receiveForm">
+  <div class="receiveForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h2>收款</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-tabs type="border-card" style="width: 100%;max-width: 440px;">
             <el-tab-pane label="链上">
-                <div class="tipBox tipBox-white">
+                <div class="QRCodeBox QRCodeBox-white">
                     <h3>收款地址</h3>
                     <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
                     <p v-text="this.$store.state.vuexStore.walletInfo.address"></p>
                 </div>
-                <el-input id="receiveAddress" placeholder="Address" v-model="this.$store.state.vuexStore.walletInfo.address">
+                <el-input id="receiveAddress" placeholder="Address" v-model="this.$store.state.vuexStore.walletInfo.address" readonly=readonly>
                     <el-button class="btncopy" data-clipboard-target="#receiveAddress" @click="copyfun()" slot="append" icon="el-icon-share">Copy</el-button>
                 </el-input>
             </el-tab-pane>
@@ -29,7 +29,7 @@
                 </el-form>
                 <div v-if="isPaymentCodeBoxShow">
                     <el-button @click="resetForm('ruleForm')">重置</el-button>
-                    <div class="tipBox tipBox-white">
+                    <div class="QRCodeBox QRCodeBox-white">
                         <h3>收款码</h3>
                         <qriously :value="paymentCodeForm.Code" level="H" :size="210" />
                         <p style="width: 378px;text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">{{ paymentCodeForm.Code }}</p>
@@ -161,7 +161,7 @@ export default {
 .receiveForm{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -178,23 +178,25 @@ export default {
 h2{
     margin: 0;
 }
-.tipBox{
+.QRCodeBox{
     padding: 8px 16px;
     border-radius: 4px;
     margin: 20px 0;
-    cursor: pointer;
     width: 100%;
     text-align: center;
     box-sizing: border-box;
 }
-.tipBox-white{
+.QRCodeBox-white{
     background-color: #F2F6FC;
 }
-.tipBox h3{
+.QRCodeBox h3{
     display: inline-block;
     /* margin: 14px 0 0 0; */
     font-weight: 400;
     /* color: #f56c6c; */
     /* border-bottom: 1px solid #CCCCCC; */
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

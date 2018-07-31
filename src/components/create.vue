@@ -1,5 +1,5 @@
 <template>
-  <div class="createForm">
+  <div class="createForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h2>创建钱包</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -14,6 +14,7 @@
                 <el-button type="primary" @click="toLoginForm()" style="margin-left:-40px;width: 120px;">提交</el-button>
             </el-form-item>
         </el-form>
+        <a @click="$parent.backToStart()" class="backToStartBtn">返回开始界面</a>
     </div>
   </div>
 </template>
@@ -105,7 +106,7 @@ export default {
 .createForm{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .contentBox{
@@ -142,5 +143,8 @@ h2{
     color: #5e6d82;
     line-height: 1.5em;
     font-weight: 400;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

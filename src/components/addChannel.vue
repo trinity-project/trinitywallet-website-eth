@@ -138,11 +138,13 @@ export default {
       let _this = this;
       _this.$refs['addChannelForm'].validate((valid) => {
         if (valid) {
-          let Ip = uri2Ip(_this.addChannelForm.uri,8766);
+          let Ip = this.uri2Ip(_this.addChannelForm.uri,8766);
           const wsuri = "ws://" + Ip + "/";               //建立websocket连接
           var l = _this.$store.state.vuexStore.channelList.length;      //获取channelList长度
+          let date = new Date().getTime();
+          let ChannelName = md5encode(date + _this.addChannelForm.uri);       //生成ChannelName
           var channelInfo = { 
-            "channelName": "4dd7696759de3efe32be1285f3b5ea9a",
+            "channelName": ChannelName,
             "websock":new WebSocket(wsuri)
           }
           _this.$store.state.vuexStore.channelList.push(channelInfo);
@@ -150,8 +152,6 @@ export default {
           _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.websocketClose;
 
           let SelfUri = _this.$store.state.vuexStore.walletInfo.address + Ip;
-          let date = new Date().getTime();
-          let ChannelName = md5encode(date + _this.addChannelForm.uri);
           var Message = {
             "MessageType": "RegisterChannel",
             "Sender": SelfUri,
@@ -166,16 +166,16 @@ export default {
           _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
 
           _this.$store.state.vuexStore.channelList[l].ChannelName = ChannelName;
-          _this.$store.state.vuexStore.channelList[l].Alice = alice;
+          _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;
           _this.$store.state.vuexStore.channelList[l].State = 2;
           _this.$store.state.vuexStore.channelList[l].isConnect = true;
-          _this.$store.state.vuexStore.channelList[l].SelfBalance = Message.MessageBody.Deposit;      //本端余额
-          _this.$store.state.vuexStore.channelList[l].OtherBalance = Message.MessageBody.Deposit;     //对端余额
+          _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfdeposit;      //本端余额
+          _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit;     //对端余额
           _this.$store.state.vuexStore.channelList[l].BalanceInfo = {};
           _this.$store.state.vuexStore.channelList[l].BalanceInfo[SendUrl] = {};
           _this.$store.state.vuexStore.channelList[l].BalanceInfo[_this.addChannelForm.uri] = {};
-          _this.$store.state.vuexStore.channelList[l].BalanceInfo[SendUrl][assets] = Message.MessageBody.Deposit;
-          _this.$store.state.vuexStore.channelList[l].BalanceInfo[_this.addChannelForm.uri][assets] = Message.MessageBody.Deposit;
+          _this.$store.state.vuexStore.channelList[l].BalanceInfo[SendUrl][assets] = _this.addChannelForm.selfdeposit; 
+          _this.$store.state.vuexStore.channelList[l].BalanceInfo[_this.addChannelForm.uri][assets] = _this.addChannelForm.otherDeposit;
           _this.$store.state.vuexStore.channelList[l].isTestNet = true;
           _this.$store.state.vuexStore.channelList[l].SelfUri = SendUri;
           _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;
@@ -253,6 +253,9 @@ export default {
         break;
       case "ChannelInfo":
         _this.OnMesChannelInfo(redata);
+        break;
+      case "SyncBlock":
+        console.log(1);
         break;
       default:
       
@@ -1426,7 +1429,7 @@ export default {
       });
     },
     uri2Ip(uri,port) {      //URI转化Ip
-      let ip = val.split("@")[1];
+      let ip = uri.split("@")[1];
       if(port == null){
         ip = ip.split(":")[0];
       } else {
@@ -1457,7 +1460,7 @@ export default {
 .addChannelBox{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -1477,5 +1480,8 @@ export default {
 }
 h2{
     margin: 0;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="indexBox">
+  <div class="indexBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="assetBox">
       <h1>{{ $store.state.vuexStore.balanceData.Chain.TNC }} TNC</h1>
       <el-collapse-transition>
@@ -315,7 +315,7 @@ export default {
 .indexBox{
   float: left;
   height: calc(100vh - 106px);
-  width: calc(100% - 300px);
+  width: 100%;
   overflow: hidden;
 }
 .assetBox{
@@ -386,5 +386,8 @@ h2{
 .transferBtn{
   width: 100%;
   max-width: 300px;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

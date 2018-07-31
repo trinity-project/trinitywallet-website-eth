@@ -39,17 +39,12 @@ export default {
 <style scoped>
 .startForm{
     float: left;
-    height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    height: calc(100vh - 56px);
+    width: 100%;
     overflow: hidden;
 }
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
-}
 .contentBox{
-    height: calc(100vh - 106px);
+    height: calc(100vh - 56px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
@@ -86,5 +81,19 @@ h2{
     color: #5e6d82;
     line-height: 1.5em;
     font-weight: 400;
+}
+.fullPage{
+    width: 100% !important;
+}
+.fade-in-out-enter-active, .fade-in-out-leave-active {
+  transition: 10s;
+}
+.fade-in-out-enter, .fade-in-out-leave-to {
+  width: calc(100% - 300px);
+  opacity: 1;
+}
+.fade-in-out-leave, .fade-in-out-enter-to {
+  width: 100%;
+  opacity: 1;
 }
 </style>

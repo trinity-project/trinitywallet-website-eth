@@ -16,6 +16,10 @@ import index6 from '@/components/index6'
 Vue.use(Router)
 
 export default new Router({
+  base: '///Users/mean/Documents/工作/Trinity/ETH/Wallet/dist/', //添加根目录
+    scrollBehavior: () => ({
+      y: 0
+  }),
   routes: [
     {
       path: '/',
@@ -78,5 +82,5 @@ export default new Router({
       component: recordForm
     },
   ],
-  mode: "history" //消除链接上的#号
+  mode: 'hash' //消除链接上的#号
 })

@@ -1,5 +1,5 @@
 <template>
-  <div class="channelListForm">
+  <div class="channelListForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <div>
             <router-link to="/addChannel" style="float:right">
@@ -129,7 +129,7 @@ export default {
 .channelListForm{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -155,12 +155,16 @@ ul li{
     border-bottom:1px solid #ebeef5;
     position: relative;
     padding: 12px;
+    cursor: pointer;
+}
+ul li:hover{
+    background: #f5f7fa;
 }
 ul li p{
     display: inline-block;
     margin: 0;
     width: 20%;
-    min-width: 140px;
+    min-width: 100px;
 }
 ul li span{
     position: absolute;
@@ -175,5 +179,8 @@ ul li span{
 .channelInfoBox span{
     display: block;
     margin: 10px 0;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

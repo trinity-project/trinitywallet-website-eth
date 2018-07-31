@@ -1,5 +1,5 @@
 <template>
-  <div class="loginByKeyStoreForm">
+  <div class="loginByKeyStoreForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox loginByKeyStoreContentBox">
         <h2>从备份文件恢复</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -14,6 +14,7 @@
                 <el-button @click="login()" type="primary" style="width:120px;">导入</el-button>
             </el-form-item>
         </el-form>
+        <a @click="$parent.backToStart()" class="backToStartBtn">返回开始界面</a>
     </div>
   </div>
 </template>
@@ -152,7 +153,7 @@ export default {
 .loginByKeyStoreForm{
     float: left;
     height: calc(100vh - 106px);
-    width: calc(100% - 300px);
+    width: 100%;
     overflow: hidden;
 }
 .headBox{
@@ -171,5 +172,8 @@ h2{
 }
 .upload-demo{
     height: 78px;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>

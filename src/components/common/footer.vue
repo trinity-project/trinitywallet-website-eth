@@ -1,5 +1,5 @@
 <template>
-    <footer v-if="$route.path !='/start'" class="footer">
+    <footer v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'" class="footer">
         <!-- <div class="container-fluid">
             <ul class="clearfloat">
                 <li :class="{ active: item.isActive }" v-for="(item,index) in FooterList" :key="index">
@@ -79,7 +79,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 footer{
-    width: calc(100% - 300px);
+    width: 100%;
     height: 50px;
     padding-bottom: 2px;
     box-sizing: border-box;
@@ -124,5 +124,8 @@ span{
     height: 100%;
     margin: 0;
     padding: 0;
+}
+.fullPage{
+    width: 100% !important;
 }
 </style>
