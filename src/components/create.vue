@@ -75,7 +75,7 @@ export default {
                 if(web3.utils.checkAddressChecksum(address)){
                     this.$store.state.vuexStore.walletInfo.keyStore = keyStore;
                     // console.log(this.$store.state.vuexStore.walletInfo.keyStore);
-                    this.$store.state.vuexStore.walletInfo.publicKey = privateKey2PublicKey(privateKey).toString('hex');   //存入publicKey
+                    // this.$store.state.vuexStore.walletInfo.publicKey = privateKey2PublicKey(privateKey).toString('hex');   //存入publicKey
                     // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
                     this.$store.state.vuexStore.walletInfo.address = address;       //存入地址
                     // console.log(this.$store.state.vuexStore.walletInfo.address);

@@ -3,7 +3,7 @@
     <div class="contentBox">
         <h2>收款</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <el-tabs type="border-card" style="width: 100%;max-width: 440px;">
+        <el-tabs type="border-card" style="width: 100%;max-width: 440px;" :stretch='true'>
             <el-tab-pane label="链上">
                 <div class="QRCodeBox QRCodeBox-white">
                     <h3>收款地址</h3>
@@ -130,6 +130,8 @@ export default {
             console.log('submit!');
             this.paymentCodeForm.R = createR();
             this.paymentCodeForm.Hr = createHr(this.paymentCodeForm.R);
+            // this.paymentCodeForm.R = web3.utils.randomHex(32);
+            // this.paymentCodeForm.Hr = web3.eth.accounts.hashMessage(web3.utils.utf8ToHex(this.paymentCodeForm.R));
             let PaymentCode = this.paymentCodeForm.selfUrl + "&" + this.paymentCodeForm.Hr + "&" + this.paymentCodeForm.assetType + "&" + this.paymentCodeForm.Amount + "&" + this.paymentCodeForm.Amount + this.paymentCodeForm.assetType;
             console.log(PaymentCode);
             this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);

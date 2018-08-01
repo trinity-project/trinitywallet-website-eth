@@ -4,13 +4,24 @@
         <h2>交易记录</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <ul>
-            <li v-for="(data,index) in tableData" :key="index">
+            <li @click="showRecordInfo(data)" v-for="(data,index) in tableData" :key="index">
                 <h3>{{ data.name }}</h3><br>
-                <p>{{ data.date }}</p>
-                <span>{{ data.Amount }}</span>
+                <p>{{ data.date | formatDateTime }}</p>
+                <p>State：Success</p>
+                <span>{{ data.isPay | formatIsPay }}{{ data.Amount }}<sup>{{ data.assetType }}</sup></span>
             </li>
         </ul>
     </div>
+    <el-dialog class="recordInfoBox" title="通道信息" :visible.sync="isRecordInfoBoxShow" width="30%" center :modal-append-to-body='false'>
+        <span>对端地址：{{ activeInfo.name }}</span>
+        <span>交易时间：{{ activeInfo.date | formatDateTime }}</span>
+        <span>交易金额：{{ activeInfo.Amount }}{{ activeInfo.assetType }}</span>
+        <span>transactionHash:</span>
+        <span>blockHash:</span>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="isRecordInfoBoxShow = false;"> 关闭 </el-button>
+        </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -20,36 +31,70 @@ export default {
   data () {
     return {
         tableData: [{
-          date: '2016-05-02',
+          date: '1495157126',
           name: '王小虎',
-          Amount: '-87',
+          Amount: '87',
+          assetType: 'TNC',
           isPay: true
         }, {
-          date: '2016-05-04',
+          date: '1495157126',
           name: '王小虎',
-          Amount: '-87',
+          Amount: '87',
+          assetType: 'TNC',
           isPay: true
         }, {
-          date: '2016-05-01',
+          date: '1495157126',
           name: '王小虎',
-          Amount: '+127',
-          isPay: true
+          Amount: '127',
+          assetType: 'ETH',
+          isPay: false
         }, {
-          date: '2016-05-03',
+          date: '1495157126',
           name: '王小虎',
-          Amount: '-87',
+          Amount: '87',
+          assetType: 'TNC',
           isPay: true
         }],
-        currentRow: null
+        isRecordInfoBoxShow: false,
+        activeInfo:{
+          date: '',
+          name: '',
+          Amount: '',
+          assetType: '',
+          isPay: true
+        },
+    }
+  },
+  filters:{
+      formatIsPay:function(val){
+        var symbol;
+        if(val){
+            symbol = "-";
+        } else {
+            symbol = "+";
+        }
+        return symbol;
+    },
+    formatDateTime:function(val) {
+        var date = new Date();
+        date.setTime(val * 1000);
+        var yy = date.getFullYear();    
+        var mm = date.getMonth() + 1;    
+        mm = mm < 10 ? ('0' + mm) : mm;    
+        var dd = date.getDate();    
+        dd = dd < 10 ? ('0' + dd) : dd;   
+        return yy + '-' + mm + '-' + dd;    
     }
   },
   methods: {
-      setCurrent(row) {
-        this.$refs.singleTable.setCurrentRow(row);
-      },
-      handleCurrentChange(val) {
-        this.currentRow = val;
-      }
+    showRecordInfo(data) {
+        this.isRecordInfoBoxShow = true;
+        this.activeInfo = data;
+        console.log(data);
+    },
+    showConfirmCloseChannelData() {
+        this.isConfirmCloseChannel = true;
+    },
   }
 }
 </script>
@@ -85,23 +130,34 @@ ul li{
     border-bottom:1px solid #ebeef5;
     position: relative;
     padding: 12px;
-    /* cursor: pointer; */
+    cursor: pointer;
 }
-/* ul li:hover{
+ul li:hover{
     background: #f5f7fa;
-} */
+}
 ul li p{
     display: inline-block;
     margin: 0;
+    width: 20%;
+    min-width: 100px;
 }
 ul li span{
     position: absolute;
     font-size: 36px;
-    right: 20px;
+    right: 30px;
     top: 50%;
     margin-top: -20px;
 }
-.fullPage{
-    width: 100% !important;
+ul li span sup {
+    top: .2em;
+    position: absolute;
+    font-size: 34%;
+}
+.recordInfoBox{
+    min-width: 420px;
+}
+.recordInfoBox span{
+    display: block;
+    margin: 10px 0;
 }
 </style>

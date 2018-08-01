@@ -48,7 +48,7 @@
           </el-form-item>
         </el-form>
     </div>
-    <el-dialog class="txOnChainBox" title="链上转账" :visible.sync="ShowTxOnChainBox" width="40%" center>
+    <el-dialog class="txOnChainBox" title="链上转账" :visible.sync="ShowTxOnChainBox" width="30%" center :modal-append-to-body='false'>
       <el-form :model="txOnChainInfo" status-icon :rules="txOnChainRules" ref="txOnChainInfo" label-width="70px" class="demo-ruleForm">
         <el-form-item label="地址" prop="address">
           <el-input v-model="txOnChainInfo.address" readonly="readonly" auto-complete="off"></el-input>
@@ -171,7 +171,15 @@ export default {
     },
     decryptPaymentCode() {    //解析Payment Code
       let _this = this;
-      if (_this.paymentCode.length === 42) {       //判断paymentCode是否为地址
+      if (_this.paymentCode.length == "") {       //判断paymentCode是否为空
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '付款码/地址不能为空',
+            duration: 3000
+          });
+          return;
+      } else if (_this.paymentCode.length === 42) {       //判断paymentCode是否为地址
         if (_this.paymentCode === _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
           _this.$notify.error({
             title: '警告',
@@ -186,7 +194,17 @@ export default {
           return;
         }
       } else {
-        console.log("进入通道交易");
+        if(_this.paymentCode.substr(0,2) == "TN"){
+          console.log("进入通道交易");
+        } else {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '付款码错误，请确认',
+            duration: 3000
+          });
+          return;
+        }
       }
     },
     contactChange() {
@@ -229,23 +247,24 @@ export default {
               }
               console.log(txData);
 
-              let result1 = signData(txData,decryptPK.privateKey);
-              console.log(result1);
+              let signedData = signData(txData,decryptPK.privateKey);
+              console.log(signedData);
 
-              web3.eth.sendSignedTransaction('0x' + result1, function(err, hash) {
+              web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
                   if (!err) {
                       console.log(hash);
-                      this.$notify({
+                      _this.$notify({
                           title: '成功',
                           dangerouslyUseHTMLString: true,
-                          message: '转账成功',
+                          message: '上链成功，请交易确认',
                           duration: 3000,
                           type: 'success'
                       });
                       _this.ShowTxOnChainBox = false;
                       _this.clearTxData();
+                      _this.$parent.cycleGetTransactionReceipt(hash);
                   } else {
-                      console.log(err)
+                      _console.log(err)
                   }
               });
           })   
@@ -275,23 +294,24 @@ export default {
           };
           console.log(txData);
 
-          let result1 = signData(txData,decryptPK.privateKey);
-          console.log(result1);
+          let signedData = signData(txData,decryptPK.privateKey);
+          console.log(signedData);
 
-          web3.eth.sendSignedTransaction('0x' + result1, function(err, hash) {
+          web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
               if (!err) {
                   console.log(hash);
-                  this.$notify({
+                  _this.$notify({
                       title: '成功',
                       dangerouslyUseHTMLString: true,
-                      message: '转账成功',
+                      message: '上链成功，请交易确认',
                       duration: 3000,
                       type: 'success'
                   });
                   _this.ShowTxOnChainBox = false;
                   _this.clearTxData();
+                  _this.$parent.cycleGetTransactionReceipt(hash);
               } else {
-                  console.log(err)
+                  _console.log(err)
               }
           });
         })   
@@ -300,7 +320,7 @@ export default {
     clearTxData() {       //清空链上转账信息
       this.txOnChainInfo = {
         "address": '',
-        "assets": '',
+        "assetType": '',
         "amount": '',
         "keyStorePass": ''
       };

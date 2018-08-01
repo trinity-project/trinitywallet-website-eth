@@ -63,7 +63,7 @@
                     </el-menu-item>
                     <el-menu-item @click="toOtherForm('/backup')" index="3-5">
                         <i class="el-icon-ETH-fuzhi"></i>
-                        <span>{{$t('navMenu.setting.backUp')}}</span>
+                        <span>{{$t('navMenu.setting.backup')}}</span>
                     </el-menu-item>
                     <el-menu-item index="3-6">
                         <i class="el-icon-ETH-tuichu"></i>
@@ -71,7 +71,11 @@
                     </el-menu-item>
                     </el-menu-item-group>
                 </el-submenu>
-                <el-submenu index="4">
+                <el-menu-item @click="toOtherForm('/about')" index="4">
+                    <i class="el-icon-ETH-xinxi"></i>
+                    <span slot="title">{{ $t('navMenu.about') }}</span>
+                </el-menu-item>
+                <!-- <el-submenu index="4">
                     <template slot="title">
                     <i class="el-icon-location"></i>
                     <span>测试功能</span>
@@ -114,7 +118,7 @@
                             </el-menu-item>
                         </router-link>
                     </el-menu-item-group>
-                </el-submenu>
+                </el-submenu> -->
                 </el-menu>
             </el-col>
         </el-row>
@@ -153,7 +157,7 @@ export default {
     this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式
         let _this = this;
         _this.$store.state.vuexStore.isLogin = _this.$parent.fetchAsArray("isLogin");
-        console.log("当前登陆状态为：" + _this.$store.state.vuexStore.isLogin);
+        console.log("当前登陆状态为" + _this.$store.state.vuexStore.isLogin);
         // console.log(!_this.$store.state.vuexStore.isLogin);
         _this.isNightMode = _this.$parent.fetchAsString("isNightMode");
         if(!_this.$store.state.vuexStore.isLogin || _this.$store.state.vuexStore.isLogin == ""){
@@ -187,8 +191,7 @@ export default {
         }
     },
     storeLoginFlag() {      //切换登录状态并保存，用于测试
-        this.$store.state.vuexStore.isLogin = !this.$store.state.vuexStore.isLogin;
-        this.$parent.saveAsString("isLogin",this.$store.state.vuexStore.isLogin);
+        this.$parent.cycleGetTransactionReceipt('0x8592982c7b0ee2207f83a44b68465d3f49a2fefaffaab0b21a8d6c0e0edbb3dc');
     },
     keepDecimalPlaces(num,a) {    //将num保留a位小数
         let result;
@@ -252,7 +255,7 @@ nav{
     background-color: rgb(84, 92, 100);
     position: absolute;
     left: 0;
-    z-index:1;
+    z-index: 1;
 }
 nav h1{
     font-size: 20px;

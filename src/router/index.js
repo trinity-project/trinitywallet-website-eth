@@ -11,15 +11,15 @@ import receiveForm from '@/components/receive'
 import addChannelForm from '@/components/addChannel'
 import channelListForm from '@/components/channelList'
 import recordForm from '@/components/record'
-import index6 from '@/components/index6'
+import aboutForm from '@/components/about'
 
 Vue.use(Router)
 
 export default new Router({
-  base: '///Users/mean/Documents/工作/Trinity/ETH/Wallet/dist/', //添加根目录
-    scrollBehavior: () => ({
-      y: 0
-  }),
+  // base: '///Users/mean/Documents/工作/Trinity/ETH/Wallet/dist/', //添加根目录
+  //   scrollBehavior: () => ({
+  //     y: 0
+  // }),
   routes: [
     {
       path: '/',
@@ -67,9 +67,9 @@ export default new Router({
       component: addChannelForm
     },
     {
-      path: '/index6',
-      name: 'index6',
-      component: index6
+      path: '/about',
+      name: 'aboutForm',
+      component: aboutForm
     },
     {
       path: '/channelList',

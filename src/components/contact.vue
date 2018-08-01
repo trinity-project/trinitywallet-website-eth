@@ -19,7 +19,7 @@
             <el-button plain @click="toggleSelection()">取消选择</el-button>
         </div>
     </div>
-    <el-dialog title="添加联系人" :visible.sync="centerDialogVisible" width="40%" center>
+    <el-dialog title="添加联系人" :visible.sync="centerDialogVisible" width="40%" center :modal-append-to-body='false'>
       <el-form :model="addContactForm" status-icon :rules="addContactRules" ref="addContactForm" label-width="50px" class="demo-ruleForm">
         <el-form-item label="名称" prop="name">
           <el-input v-model="addContactForm.name" auto-complete="off"></el-input>
@@ -136,6 +136,7 @@ export default {
             _this.$store.state.vuexStore.contactList.splice(index2,1);
           }
         })
+        _this.saveAsArray(_this.$store.state.vuexStore.walletInfo.address + "@contactList",_this.$store.state.vuexStore.contactList);
       })
     },
     transfer() {    //传递address参数到index页面

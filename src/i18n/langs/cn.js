@@ -17,9 +17,15 @@ const cn = {
             'switchNet': '选择网络',
             'nightMode': '夜间模式',
             'changePass': '修改密码',
-            'backUp': '备份',
+            'backup': '备份',
             'signOut': '退出'
-        }
+        },
+        'about': '关于我们'
+    },
+    backup: {
+        'title': '备份',
+        'backupBtn': '备份钱包',
+        'tips': '温馨提醒'
     }
 }
 

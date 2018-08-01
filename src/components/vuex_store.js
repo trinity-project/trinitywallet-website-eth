@@ -1,9 +1,11 @@
 export default {
   state: { //state
+    version: '0.0.1',
     isLogin: false,        //登录标志
     isNightMode: false,     //夜间模式
     activeNavIndex: '1-1',    //当前active Nav
-    isNavShow: true,
+    isNavShow: true,        //Nav显示
+    isMessageBoxShow: false,    //MessageBox显示
     Magic: "",
     walletInfo: {
       keyStore: "",

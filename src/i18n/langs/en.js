@@ -17,9 +17,15 @@ const en = {
             'switchNet': 'Switch Net',
             'nightMode': 'Night Mode',
             'changePass': 'Change Pass',
-            'backUp': 'Backup',
+            'backup': 'Backup',
             'signOut': 'Sign Out'
-        }
+        },
+        'about': 'About Us'
+    },
+    backup: {
+        'title': 'Backup',
+        'backupBtn': 'Backup Wallet',
+        'tips': 'Tips'
     }
 }
 

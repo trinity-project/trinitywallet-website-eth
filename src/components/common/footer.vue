@@ -12,7 +12,7 @@
         </div> -->
         <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-demo" mode="horizontal">
             <el-menu-item :index="item.index" v-for="(item,index) in FooterList" :key="index">
-                <router-link :to="item.router" href="javascript:;" class="clearfloat">
+                <router-link :to="item.router" class="clearfloat">
                     <span><i :class="[true, item.icon]"></i></span>
                     <span>{{ item.name }}</span>
                 </router-link>

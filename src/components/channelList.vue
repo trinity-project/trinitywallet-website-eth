@@ -13,11 +13,11 @@
                 <h3>{{ data.name }}</h3><br>
                 <p>{{ data.date | formatDateTime }}</p>
                 <p>State：Open</p>
-                <span>{{ data.balance }}</span>
+                <span>{{ data.balance }}<sup>{{ data.assetType }}</sup></span>
             </li>
         </ul>
     </div>
-    <el-dialog class="channelInfoBox" title="通道信息" :visible.sync="isChannelInfoBoxShow" width="40%" center>
+    <el-dialog class="channelInfoBox" title="通道信息" :visible.sync="isChannelInfoBoxShow" width="30%" center :modal-append-to-body='false'>
         <span>通道名称：{{ activeInfo.name }}</span>
         <span>开通时间：{{ activeInfo.date | formatDateTime }}</span>
         <span>余额：{{ activeInfo.balance }}</span>
@@ -44,24 +44,28 @@ export default {
           date: '1495157126',
           name: '王小虎',
           balance: '100',
+          assetType: 'TNC',
           state: 'Open',
           isPay: true
         }, {
           date: '1495157126',
           name: '王小虎',
           balance: '38',
+          assetType: 'ETH',
           state: 'Open',
           isPay: true
         }, {
           date: '1495157126',
           name: '王小虎',
           balance: '27',
+          assetType: 'TNC',
           state: 'Open',
           isPay: true
         }, {
           date: '1495157126',
           name: '王小虎',
           balance: '87',
+          assetType: 'TNC',
           state: 'Open',
           isPay: true
         }],
@@ -118,7 +122,7 @@ export default {
     closeChannel() {
         console.log('关闭通道');
         this.isChannelInfoBoxShow = false;
-        this.isConfirmCloseChannel = false
+        this.isConfirmCloseChannel = false;
     }
   }
 }
@@ -169,9 +173,14 @@ ul li p{
 ul li span{
     position: absolute;
     font-size: 36px;
-    right: 20px;
+    right: 30px;
     top: 50%;
     margin-top: -20px;
+}
+ul li span sup {
+    top: .2em;
+    position: absolute;
+    font-size: 34%;
 }
 .channelInfoBox{
     min-width: 420px;
@@ -179,8 +188,5 @@ ul li span{
 .channelInfoBox span{
     display: block;
     margin: 10px 0;
-}
-.fullPage{
-    width: 100% !important;
 }
 </style>
