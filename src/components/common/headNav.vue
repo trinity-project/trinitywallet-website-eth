@@ -154,7 +154,7 @@ export default {
     '$store.state.vuexStore.walletInfo.address': 'getAddressInfo'            // 监测store中的address,出现变化时获取相关信息
   },
   mounted() {
-    this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式
+    this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
         let _this = this;
         _this.$store.state.vuexStore.isLogin = _this.$parent.fetchAsArray("isLogin");
         console.log("当前登陆状态为" + _this.$store.state.vuexStore.isLogin);
@@ -191,7 +191,28 @@ export default {
         }
     },
     storeLoginFlag() {      //切换登录状态并保存，用于测试
-        this.$parent.cycleGetTransactionReceipt('0x8592982c7b0ee2207f83a44b68465d3f49a2fefaffaab0b21a8d6c0e0edbb3dc');
+        let functionSign = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');
+        console.log(functionSign);
+
+        let result = web3.eth.abi.encodeParameters(['bytes32','uint256','address','address','uint256','uint256','bytes32','bytes','bytes','bytes32'], ['0x03551F38BA2AE9C4FC302564863277ACAE4A50968FC5B0374497967D9A21F8D2','1', '23cca051BfedB5e17d3AAD2038Ba0a5155d1B1b7', '16f5e798Bf25f2fcad8Ffd89bd26ED4f5CD2d39A', '2', '3', '0x6183b6ef31ac8b0d70eb7ad902fc05cf0875aeba3196fbbdd0479c9987fad9f9', '0xc720fc1c21773f97e33574bd32a18a48858ca78dfd280edf5f5b3dc89c83882d20042888ce3f9ede2aa96bbf498cdcc59e77a38e07cb397c189dc0c516e48f3f00','0xa99cef5b1d792303ba61158391db12822fe998bba777804dd579b4003605b6d54acc332a02045d772ac8d38c71dbbd2d59315068bc1079b7d62cd6e10452051601','0xf2ee7b0466feb5d6c50d655885c8387ddcf1739929c17bbda3977e330eca895c']);
+        console.log(result);
+            // var a1 = web3.utils.padLeft(_this.$store.state.vuexStore.addChannelInfo.channelName, 64);
+            // console.log(a1);
+            // var a2 = web3.utils.padLeft(web3.utils.toHex(0).substr(2), 64);
+            // console.log(a2);
+            // var a3 = web3.utils.padLeft(_this.$store.state.vuexStore.walletInfo.address.slice(2), 64);
+            // console.log(a3);
+            // var a4 = web3.utils.padLeft(web3.utils.toHex(_this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7).substr(2), 64);
+            // console.log(a4);
+            // var a5 = web3.utils.padLeft(_this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0].slice(2), 64);
+            // console.log(a5);
+            // var a6 = web3.utils.padLeft(web3.utils.toHex(_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7).substr(2), 64);
+            // console.log(a6);
+            // var a7 = web3.utils.hexToBytes(_this.$store.state.vuexStore.addChannelInfo.selfSignedData);
+            // console.log(a7);
+            // var a8 = web3.utils.hexToBytes(redata.MessageBody.Commitment);
+            // console.log(a8);
+
     },
     keepDecimalPlaces(num,a) {    //将num保留a位小数
         let result;
@@ -204,6 +225,11 @@ export default {
     },
     getAddressInfo() {      // 监测store中的address,出现变化时获取相关信息
         this.getBalance();          //获取总的余额
+        let Message = {
+            "messageType":"init", 
+            "walletAddress":this.$store.state.vuexStore.walletInfo.address
+        }
+        this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
         this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");           //获取联系人列表
     },
     getBalance() {      //获取总的余额

@@ -24,7 +24,28 @@ export default {
     footerBox,
     messageBox
   },
+  mounted() {
+    this.$nextTick(function(){      //首次加载时连接至全节点
+        let _this = this;
+        _this.connectWebSocketForNodeUri();         //连接至全节点
+    })
+  },
   methods: {
+    connectWebSocketForNodeUri() {          //连接至全节点
+        let _this = this;
+        _this.$notify.closeAll();
+        const wsuri = "ws://47.104.81.20:9000/";               //建立websocket连接
+        _this.$store.state.vuexStore.NodeUriWebSocket = new WebSocket(wsuri);
+        _this.$store.state.vuexStore.NodeUriWebSocket.onmessage = _this.$parent.nodeUriWebsocketOnMessage;
+        _this.$store.state.vuexStore.NodeUriWebSocket.onclose = _this.$parent.nodeUriWebsocketClose;
+        _this.$notify({
+            title: '成功',
+            dangerouslyUseHTMLString: true,
+            message: '已连接到Trinity网络',
+            duration: 3000,
+            type: 'success'
+        });
+    },
     backToStart() {
       this.$router.push('/start');
     },
@@ -44,7 +65,8 @@ export default {
       let KEY1 = key.toString();
       window.localStorage.setItem(KEY1,items);
     },
-    decryptPrivateKey (keyStore,password) {
+    decryptPrivateKey (keyStore,password) {       //解锁钱包
+      let _this = this;
       let decryptPrivateKey;
       try {
           decryptPrivateKey = web3.eth.accounts.decrypt(keyStore, password);
@@ -101,7 +123,41 @@ export default {
         })
      }, 4000);
     },
-    websocketOnmessage(e){ 		//数据接收
+    nodeUriWebsocketOnMessage(e) {        //全节点websocket接收消息
+      let _this = this;
+      if(e.data === 'connected to server'){
+
+      } else {
+        let redata = JSON.parse(e.data);
+        let type = redata.MessageType;
+        console.log(redata);
+
+        switch(type)
+        {
+        case "Founder":
+          _this.OnMesFounder(redata);
+          break;
+        case "SyncBlock":
+          console.log(1);
+          break;
+        default:
+        
+        }
+      }
+    },
+    nodeUriWebsocketClose(val) {         //全节点websocket断开
+      console.log("已断开websocket");
+      console.log(val);
+      this.$notify({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: '与Trinity网络断开连接,点击进行重连',
+          duration: 4000,
+          type: 'error',
+          onClick: this.connectWebSocketForNodeUri
+      });
+    },
+    websocketOnmessage(e){ 		//gateway websocket接收消息
       let _this = this;
       let redata = JSON.parse(e.data);
       let type = redata.MessageType;
@@ -245,60 +301,81 @@ export default {
         _this.StoreFounder();
     },
     OnMesFounderSign:function(redata){
-       var _this = this;
-       let i;
-       _this.websock.forEach(function(val,index){   //遍历
-         if(val.ChannelName === redata.ChannelName){
-              i = index;
-              return false;
-          }
-       })
-       let MessageBody = redata.MessageBody;
-       let witness1 = MessageBody.Founder.originalData.witness.split("{signOther}")[1];
-       let witness = MessageBody.Founder.originalData.txData + MessageBody.Founder.originalData.witness.split("{signOther}")[0] +  MessageBody.Founder.txDataSign + witness1.split("{signSelf}")[0] +  this.FoundertxDataSign + witness1.split("{signSelf}")[1];
-       let ip = _this.UriToIp(redata.Sender,20556);
-      //  console.log(redata.Comments);
-       if(redata.Comments !== "retry"){
-         axios({
-           method: 'post',
-           url: this.SendrawUrl,
-           headers: {
-             'Content-Type': 'application/json;charset=UTF-8'
-           },
-           data: JSON.stringify({
-             "jsonrpc": "2.0",
-             "method": "sendrawtransaction",
-             "params": [witness],
-             "id": 1
-           })
-         }).then(function(res){
-           if(res.data.result == true){
-             swal({
-                title: "Success!",
-                text: "Channel has been created, please wait for it to open.",
-                type: "success",
-                showCancelButton: false
-             });
-             _this.ChannelItems.forEach(function(val,index){   //遍历
-              if(val.ChannelName === redata.ChannelName){
-                   _this.$set(val,'Flag',3);
-               }
-            })
-          } else {
-            let Message = {
-                "MessageType": "FounderFail",
-                "Sender": redata.Receiver,
-                "Receiver": redata.Sender,
-                "ChannelName": redata.ChannelName,
-                "TxNonce": 0,
-                "MessageBody": redata.MessageBody,
-                "Error": "SendFounderRawTransactionFail",
-                "Comments":"retry"
-             }
-            _this.$store.state.vuexStore.channelList.websock[i].data.send(JSON.stringify(Message));
-          }
-         });
-       }
+      // 收到的消息体
+      // {
+      //   ChannelName:"0xf21a712999ee0e477065df49433b0ea1a6f55c77a28b4a621dae0431d67b35e6"
+      //   MessageBody:{
+      //   AssetType: "TNC"
+      //   Commitment: "0x4b2eb00ceba91f3b413fede38d79da4a207c731780248421aa8e5d36131b9fec6cda84872bcd8a93dccb7ce2bb58b995f276ca5243c56982b6ff21c5d005732901"
+      //   MessageType: "FounderSign"
+      //   NetMagic: "191919191919"
+      //   Receiver: "0xBF9905c03Ce89fc1666d3701B88a87b647b074af@106.15.91.150:8766"
+      //   Sender: "0xD65Af7686F87e04C1e1578A1076b60f2B6D8a66D@106.15.91.150:8089"
+      //   Status:"RESPONSE_OK"
+      //   TxNonce:0
+      // }
+      var _this = this;
+      if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，上链并提交给全节点监控
+        let contractAddress = "0x47EFb4f6F40837973fD41657c44F04903f5E8De9";
+        web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
+          console.log(gasPrice);
+        var myContract = new web3.eth.Contract(TrinityContractAbi, contractAddress, {
+            from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
+            gasPrice: gasPrice        //Gas价格
+        });
+      let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.addChannelInfo.keyStorePass);
+      web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
+        // 获取交易次数
+          console.log(nonce);
+
+          let functionSig = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
+          console.log(functionSig);
+
+          let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.addChannelInfo.channelName,'0', _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0],_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
+          console.log(data);
+
+          var txData = {        //组成txData数据
+              nonce: web3.utils.toHex(nonce++),
+              gasPrice: web3.utils.toHex(gasPrice), 
+              gasLimit: web3.utils.toHex(4500000),
+              to: contractAddress,
+              from: _this.$store.state.vuexStore.walletInfo.address, 
+              value: '0x00', 
+              data: functionSig + data.substr(2)
+          };
+          console.log(txData);
+
+          let signedData = signData(txData,decryptPK.privateKey);
+          console.log(signedData);
+
+          web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
+              if (!err) {
+                  console.log(hash);
+                  _this.$notify({
+                      title: '成功',
+                      dangerouslyUseHTMLString: true,
+                      message: '上链成功，请交易确认',
+                      duration: 3000,
+                      type: 'success'
+                  });
+                  _this.cycleGetTransactionReceipt(hash);
+              } else {
+                  _console.log(err)
+              }
+          });
+        // let Message = {
+        //   'messageType': 'monitorDeposit',
+        //   "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
+        //   'chainType': redata.MessageBody.AssetType,
+        //   'playload': redata.ChannelName,
+        //   'comments': ''
+        // };
+        // _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
+        })
+        })
+      } else {
+        console.log("Status异常");
+      }
     },
     OnMesRegisterChannel:function(redata){
        var _this = this;
@@ -1316,6 +1393,40 @@ export default {
           }
         })
       }
+    },
+    websocketClose() {        //断开websocket
+      console.log("已断开websocket");
+      // console.log(val);
+      let Ip = val.currentTarget.url.split('/')[2].split(':')[0];
+      console.log(Ip);
+      let ChannelName;
+      //2console.log("------------");
+      //console.log(this.ChannelItems);
+      var _this = this;
+      _this.ChannelItems.forEach(function(data,index){
+        console.log(data.Ip);
+        if(data.Ip === Ip){
+          ChannelName = data.ChannelName;
+          console.log("断开时oldFlag:" + data.oldFlag);
+          let c = data.Flag
+          // data.oldFlag = ;
+          _this.$set(data,'oldFlag',c);
+          console.log("断开时oldFlag:" + data.oldFlag);
+          _this.$set(data,'Flag',5);
+        }
+        return;
+      });
+      _this.websock.forEach(function(data,index){
+         if(data.ChannelName === ChannelName){
+          //  console.log(index);
+           _this.websock.splice(index,1);
+           return;
+         }
+       })
+       let ip = Ip + ":8766"
+       setTimeout(function () {
+          let t = _this.ConnectWebsocket(ip,ChannelName);
+       }, 2000);
     }
   }
 }

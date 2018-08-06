@@ -2,7 +2,6 @@
 (function (global,Buffer){
 var crypto = require('crypto');
 var CryptoJS = require('crypto-js');
-var md5 = crypto.createHash('md5');
 // var sign = crypto.createSign('SHA256');
 // var secp256k1 = require('secp256k1/elliptic');
 // var createKeccakHash = require('keccak');
@@ -50,11 +49,18 @@ function base58encode(data) {
 }
 
 function md5encode(data){
+    var md5 = crypto.createHash('md5');
     var CryptedData = md5.update(data).digest('hex');
-    return CryptedData
+    return CryptedData;
 }
 
+function md5encode1(data1, data2) {
+  var md5 = crypto.createHash('md5');
+  var CryptedData = md5.update(data1).update(data2.toString()).digest('hex');
+  return CryptedData;
+}
 
+// md5encode("hello",123);
 // function ab2hexstring(arr) {
 //     var result = "";
 //     for (i = 0; i < arr.length; i++) {
@@ -105,6 +111,7 @@ function md5encode(data){
 
 function signData(rawTx, privateKey) {
     var tx = new Tx(rawTx);
+    console.log(tx);
     var privateKey1 = privateKey.slice(2);
     const privateKeyBuffer = Buffer.from(privateKey1.toString(), 'hex');
     tx.sign(privateKeyBuffer);
@@ -112,6 +119,20 @@ function signData(rawTx, privateKey) {
     var serializedTx = tx.serialize().toString('hex');
     return serializedTx;
 }
+// let rawTx = {
+//     "data":"",
+//     "from":"0xBF9905c03Ce89fc1666d3701B88a87b647b074af",
+//     "gasLimit":"0x44aa20",
+//     "gasPrice":"0x12c",
+//     "nonce":"0x25",
+//     "to":"0xcB0b40355Df0ecAf7172DfDc8eCDe43134EC3B8b",
+//     "value":"0x9184e72a000"
+// }
+// signData(rawTx, '0x015693f1ebc0d1ff42cd150de5d81bfee7eba4dc18cdd381329d10a3364f9643');
+
+// function testSign(hash, privateKey) {
+
+// }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 },{"base-x":70,"buffer":153,"crypto":162,"crypto-js":79,"ethereumjs-tx":24}],2:[function(require,module,exports){
 // Reference https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki

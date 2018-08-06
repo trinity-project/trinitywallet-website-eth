@@ -3,26 +3,34 @@
     <div class="contentBox">
         <div>
             <router-link to="/addChannel" style="float:right">
-                <el-button size="mini" icon="el-icon-plus">添加通道</el-button>
+                <el-button size="mini" icon="el-icon-plus" type="primary">添加通道</el-button>
             </router-link>
             <h2>通道列表</h2>
         </div>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <ul>
-            <li @click="showChannelInfo(data)" v-for="(data,index) in channelList" :key="index">
-                <h3>{{ data.name }}</h3><br>
+        <ul v-if="$store.state.vuexStore.channelList.length">
+            <li @click="showChannelInfo(data)" v-for="(data,index) in $store.state.vuexStore.channelList" :key="index">
+                <h3>{{ data.Alice }}</h3><br>
                 <p>{{ data.date | formatDateTime }}</p>
-                <p>State：Open</p>
-                <span>{{ data.balance }}<sup>{{ data.assetType }}</sup></span>
+                <p>State：{{ data.State | formatStatus }}</p>
+                <span>{{ data.SelfBalance }}<sup>{{ data.assetType }}</sup></span>
             </li>
         </ul>
+        <p v-if="!$store.state.vuexStore.channelList.length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
+            还没有通道，立即去添加
+        </p>
     </div>
     <el-dialog class="channelInfoBox" title="通道信息" :visible.sync="isChannelInfoBoxShow" width="30%" center :modal-append-to-body='false'>
-        <span>通道名称：{{ activeInfo.name }}</span>
+        <h1>{{ activeInfo.Alice }}</h1>
+        <span>通道名称：{{ activeInfo.ChannelName }}</span>
         <span>开通时间：{{ activeInfo.date | formatDateTime }}</span>
-        <span>余额：{{ activeInfo.balance }}</span>
-        <span>通道状态：{{ activeInfo.state }}</span>
-        <span>对端地址：{{ activeInfo.name }}</span>
+        <span>本端地址：{{ activeInfo.SelfUri }}</span>
+        <span>本端余额：{{ activeInfo.SelfBalance }}{{ activeInfo.assetType }}</span>
+        <span>对端地址：{{ activeInfo.OtherUri }}</span>
+        <span>对端余额：{{ activeInfo.OtherBalance }}{{ activeInfo.assetType }}</span>
+        <span>通道状态：{{ activeInfo.State | formatStatus }}</span>
+        <span>是否连接：{{ activeInfo.isConnect }}</span>
+        <span>网络：{{ activeInfo.isTestNet }}</span>
         <span v-if="!isConfirmCloseChannel" slot="footer" class="dialog-footer">
             <el-button @click="showConfirmCloseChannelData()" type="danger"> 关闭通道 </el-button>
         </span>
@@ -42,40 +50,42 @@ export default {
     return {
         channelList: [{
           date: '1495157126',
-          name: '王小虎',
+          ChannelName: '王小虎',
           balance: '100',
           assetType: 'TNC',
-          state: 'Open',
-          isPay: true
+          State: 'Open'
         }, {
           date: '1495157126',
-          name: '王小虎',
+          ChannelName: '王小虎',
           balance: '38',
           assetType: 'ETH',
-          state: 'Open',
-          isPay: true
+          State: 'Open'
         }, {
           date: '1495157126',
-          name: '王小虎',
+          ChannelName: '王小虎',
           balance: '27',
           assetType: 'TNC',
-          state: 'Open',
-          isPay: true
+          State: 'Open'
         }, {
           date: '1495157126',
-          name: '王小虎',
+          ChannelName: '王小虎',
           balance: '87',
           assetType: 'TNC',
-          state: 'Open',
-          isPay: true
+          State: 'Open'
         }],
         isChannelInfoBoxShow: false,
         activeInfo:{
+          Alice: '',
           date: '',
-          name: '',
-          balance: '',
-          state: '',
-          isPay: true
+          ChannelName: '',
+          SelfUri: '',
+          SelfBalance: '',
+          OtherUri: '',
+          OtherBalance: '',
+          assetType: '',
+          isConnect: '',
+          isTestNet: '',
+          State: ''
         },
         isConfirmCloseChannel: false
     }
@@ -101,7 +111,7 @@ export default {
     },
     formatDateTime:function(val) {
         var date = new Date();
-        date.setTime(val * 1000);
+        date.setTime(val);
         var yy = date.getFullYear();    
         var mm = date.getMonth() + 1;    
         mm = mm < 10 ? ('0' + mm) : mm;    
@@ -188,5 +198,6 @@ ul li span sup {
 .channelInfoBox span{
     display: block;
     margin: 10px 0;
+    word-break: break-all;
 }
 </style>

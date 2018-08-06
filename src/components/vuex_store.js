@@ -4,9 +4,11 @@ export default {
     isLogin: false,        //登录标志
     isNightMode: false,     //夜间模式
     activeNavIndex: '1-1',    //当前active Nav
-    isNavShow: true,        //Nav显示
-    isMessageBoxShow: false,    //MessageBox显示
-    Magic: "",
+    isNavShow: true,          //Nav显示
+    isMessageBoxShow: false,      //MessageBox显示
+    NetMagic: "195378745719990331",     //网络magic
+    NodeUriWebSocket: "",
+    rpcIp: "",          //全节点调用ip
     walletInfo: {
       keyStore: "",
       publicKey: "",
@@ -23,6 +25,7 @@ export default {
       }
     },
     channelList: [],
+    addChannelInfo: [],
     contactList: {
 
     },
