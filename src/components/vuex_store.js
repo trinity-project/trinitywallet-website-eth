@@ -9,12 +9,12 @@ export default {
     NetMagic: "195378745719990331",     //网络magic
     NodeUriWebSocket: "",
     rpcIp: "",          //全节点调用ip
-    walletInfo: {
+    walletInfo: {         //钱包信息
       keyStore: "",
       publicKey: "",
       address: ""
     },
-    balanceData: {
+    balanceData: {        //余额信息
       Chain: {
         "TNC": 0,
         "ETH": 0
@@ -24,11 +24,10 @@ export default {
         "ETH": 0
       }
     },
-    channelList: [],
-    addChannelInfo: [],
-    contactList: {
-
-    },
+    channelList: [],        //通道列表
+    addChannelInfo: [],       //添加通道信息
+    closeChannelInfo: [],       //关闭通道信息
+    contactList: {},            //联系人列表
     FoundertxDataSign: ""       //暂存签名后的FoundertxData
   },
   getters: {

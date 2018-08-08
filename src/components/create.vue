@@ -23,7 +23,7 @@
 export default {
   name: 'createForm',
   data () {
-    var validatePass = (rule, value, callback) => {
+    var validatePass = (rule, value, callback) => {         //create 密码输入规则
       if (value === '') {
         callback(new Error('请输入密码'));
       } else {
@@ -33,7 +33,7 @@ export default {
         callback();
       }
     };
-    var validatePass2 = (rule, value, callback) => {
+    var validatePass2 = (rule, value, callback) => {      //create 重复密码输入规则
       if (value === '') {
         callback(new Error('请再次输入密码'));
       } else if (value !== this.createForm.pass) {
@@ -47,7 +47,7 @@ export default {
           pass: '',
           checkPass: ''
         },
-        createRules: {
+        createRules: {        //create 输入规则
           pass: [
             { validator: validatePass, trigger: 'blur' }
           ],
@@ -63,7 +63,7 @@ export default {
     })
   },
   methods: {
-    toLoginForm() {
+    toLoginForm() {       //切换到登录窗口
         this.$refs['createForm'].validate((valid) => {
             if (valid) {
                 let privateKey = web3.eth.accounts.create().privateKey.slice(2);

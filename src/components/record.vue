@@ -55,8 +55,8 @@ export default {
           assetType: 'TNC',
           isPay: true
         }],
-        isRecordInfoBoxShow: false,
-        activeInfo:{
+        isRecordInfoBoxShow: false,         //显示交易记录详情
+        activeInfo:{                    //当前显示的交易记录信息
           date: '',
           name: '',
           Amount: '',
@@ -66,7 +66,7 @@ export default {
     }
   },
   filters:{
-      formatIsPay:function(val){
+      formatIsPay:function(val){            //是否为支付
         var symbol;
         if(val){
             symbol = "-";
@@ -75,7 +75,7 @@ export default {
         }
         return symbol;
     },
-    formatDateTime:function(val) {
+    formatDateTime:function(val) {              //格式化时间戳
         var date = new Date();
         date.setTime(val * 1000);
         var yy = date.getFullYear();    
@@ -87,14 +87,11 @@ export default {
     }
   },
   methods: {
-    showRecordInfo(data) {
+    showRecordInfo(data) {              //显示交易记录详情
         this.isRecordInfoBoxShow = true;
         this.activeInfo = data;
         console.log(data);
-    },
-    showConfirmCloseChannelData() {
-        this.isConfirmCloseChannel = true;
-    },
+    }
   }
 }
 </script>

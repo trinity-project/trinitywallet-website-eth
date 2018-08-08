@@ -1,6 +1,6 @@
 <template>
     <nav>
-        <h1 @click="storeLoginFlag()">{{$t('navMenu.title')}}</h1>
+        <h1 @click="testFun()">{{$t('navMenu.title')}}</h1>
         <el-row class="tac">
             <el-col :span="24">
                 <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-vertical-demo" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
@@ -190,12 +190,11 @@ export default {
             this.$router.push(router);
         }
     },
-    storeLoginFlag() {      //切换登录状态并保存，用于测试
-        let functionSign = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');
-        console.log(functionSign);
-
-        let result = web3.eth.abi.encodeParameters(['bytes32','uint256','address','address','uint256','uint256','bytes32','bytes','bytes','bytes32'], ['0x03551F38BA2AE9C4FC302564863277ACAE4A50968FC5B0374497967D9A21F8D2','1', '23cca051BfedB5e17d3AAD2038Ba0a5155d1B1b7', '16f5e798Bf25f2fcad8Ffd89bd26ED4f5CD2d39A', '2', '3', '0x6183b6ef31ac8b0d70eb7ad902fc05cf0875aeba3196fbbdd0479c9987fad9f9', '0xc720fc1c21773f97e33574bd32a18a48858ca78dfd280edf5f5b3dc89c83882d20042888ce3f9ede2aa96bbf498cdcc59e77a38e07cb397c189dc0c516e48f3f00','0xa99cef5b1d792303ba61158391db12822fe998bba777804dd579b4003605b6d54acc332a02045d772ac8d38c71dbbd2d59315068bc1079b7d62cd6e10452051601','0xf2ee7b0466feb5d6c50d655885c8387ddcf1739929c17bbda3977e330eca895c']);
-        console.log(result);
+    testFun() {      //切换登录状态并保存，用于测试
+        web3.eth.personal.ecRecover("0x6c30d0d54827fa7a9bd23db64a90be9c7b37911e55dc9e5dd3a3cd386117d0f5", "0x4fd8916ff00456f06204b080de93cedbf6cecba1f134ad9d1afc20f54b6dcbae7096d51312d75a2b7f5c7d6df1839759ff71cc4e074952ccba5eee0205d0409f01").then(console.log);
+        console.log('0xBF9905c03Ce89fc1666d3701B88a87b647b074af');
+        web3.eth.personal.ecRecover("0x6c30d0d54827fa7a9bd23db64a90be9c7b37911e55dc9e5dd3a3cd386117d0f5", "0x24efed27667b8daacecd2af91ec7545a6a0da5d87791a39d2e73abf6058b4fe462c616db71054cb01ec77c0a4dcf0f0812ad211cab6127591e5e56cd6864882400").then(console.log);
+        console.log('0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf');
             // var a1 = web3.utils.padLeft(_this.$store.state.vuexStore.addChannelInfo.channelName, 64);
             // console.log(a1);
             // var a2 = web3.utils.padLeft(web3.utils.toHex(0).substr(2), 64);

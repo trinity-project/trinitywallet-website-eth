@@ -24,9 +24,9 @@ export default {
   name: 'loginByKeyStoreForm',
   data () {
     return {
-        fileList: [],
-        keyStoreContent: '',
-        keyStorePass: ""
+        fileList: [],           //当前文件
+        keyStoreContent: '',        //KeyStore内容
+        keyStorePass: ""            //KeyStore密码
     }
   },
   mounted() {
@@ -54,7 +54,7 @@ export default {
             reader.readAsText(file.raw,'gb2312');
         }
     },
-    login() {
+    login() {                     //登录方法
         if(this.keyStoreContent == ''){
             this.$notify.error({
                 title: '警告',
@@ -85,7 +85,7 @@ export default {
             loading.close();
         }, 2000);
     },
-    loginByKeyStore() {
+    loginByKeyStore() {              //解锁Ketstore
         let decryptPK;
         try {
             decryptPK = web3.eth.accounts.decrypt(this.keyStoreContent, this.keyStorePass);

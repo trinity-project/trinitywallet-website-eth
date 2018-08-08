@@ -21,52 +21,14 @@ export default {
   name: 'aboutForm',
   data () {
     return {
-        tableData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          Amount: '87',
-          assetType: 'TNC',
-          isPay: true
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          Amount: '87',
-          assetType: 'TNC',
-          isPay: true
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          Amount: '127',
-          assetType: 'TNC',
-          isPay: false
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          Amount: '87',
-          assetType: 'TNC',
-          isPay: true
-        }],
-        currentRow: null
+
     }
   },
   filters:{
-      formatIsPay:function(val){
-        var symbol;
-        if(val){
-            symbol = "-";
-        } else {
-            symbol = "+";
-        }
-        return symbol;
-    }
+
   },
   methods: {
-      setCurrent(row) {
-        this.$refs.singleTable.setCurrentRow(row);
-      },
-      handleCurrentChange(val) {
-        this.currentRow = val;
-      }
+
   }
 }
 </script>

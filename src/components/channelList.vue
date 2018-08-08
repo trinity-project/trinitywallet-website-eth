@@ -20,8 +20,7 @@
             还没有通道，立即去添加
         </p>
     </div>
-    <el-dialog class="channelInfoBox" title="通道信息" :visible.sync="isChannelInfoBoxShow" width="30%" center :modal-append-to-body='false'>
-        <h1>{{ activeInfo.Alice }}</h1>
+    <el-dialog class="channelInfoBox" :title="activeInfo.Alice" :visible.sync="isChannelInfoBoxShow" width="30%" center :modal-append-to-body='false'>
         <span>通道名称：{{ activeInfo.ChannelName }}</span>
         <span>开通时间：{{ activeInfo.date | formatDateTime }}</span>
         <span>本端地址：{{ activeInfo.SelfUri }}</span>
@@ -35,9 +34,15 @@
             <el-button @click="showConfirmCloseChannelData()" type="danger"> 关闭通道 </el-button>
         </span>
         <span v-if="isConfirmCloseChannel" slot="footer" class="dialog-footer">
-            <span v-if="isConfirmCloseChannel" style="color:#F56C6C">确定关闭通道吗</span>
-            <el-button @click="closeChannel()" type="danger"> 确定 </el-button>
-            <el-button @click="isChannelInfoBoxShow = false;isConfirmCloseChannel = false;"> 取消 </el-button>
+            <el-form :model="activeInfo" status-icon :rules="confirmCloseRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
+                <el-form-item label="密码" prop="keyStorePass">
+                    <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+                </el-form-item>
+                <el-form-item style="text-align:center;margin-left: -80px;">
+                    <el-button @click="closeChannel()" type="danger"> 确定 </el-button>
+                    <el-button @click="isChannelInfoBoxShow = false;isConfirmCloseChannel = false;"> 取消 </el-button>
+                </el-form-item>
+            </el-form>            
         </span>
     </el-dialog>
   </div>
@@ -47,6 +52,20 @@
 export default {
   name: 'channelListForm',
   data () {
+    var validatePass = (rule, value, callback) => {         //create 密码输入规则
+      if (!value) {
+        return callback(new Error('钱包密码不能为空，否则将无法交易'));
+      } else {
+        let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore,this.activeInfo.keyStorePass);
+        setTimeout(() => {
+            if(PrivateKey){
+            callback();
+            } else {
+            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+            }
+        }, 2000);
+      }
+    };
     return {
         channelList: [{
           date: '1495157126',
@@ -73,8 +92,8 @@ export default {
           assetType: 'TNC',
           State: 'Open'
         }],
-        isChannelInfoBoxShow: false,
-        activeInfo:{
+        isChannelInfoBoxShow: false,        //显示通道信息
+        activeInfo:{                    //当前显示通道信息内容
           Alice: '',
           date: '',
           ChannelName: '',
@@ -85,13 +104,19 @@ export default {
           assetType: '',
           isConnect: '',
           isTestNet: '',
-          State: ''
+          State: '',
+          keyStorePass: ''
         },
-        isConfirmCloseChannel: false
+        isConfirmCloseChannel: false,            //显示确认关闭通道
+        confirmCloseRules: {        //create 输入规则
+          keyStorePass: [
+            { validator: validatePass, trigger: 'blur' }
+          ]
+        }
     }
   },
   filters:{
-    formatStatus:function(val){
+    formatStatus:function(val){         //格式化Channel状态
       var x;
       switch (val)
       {
@@ -109,7 +134,7 @@ export default {
       }
       return x;
     },
-    formatDateTime:function(val) {
+    formatDateTime:function(val) {          //格式化时间戳
         var date = new Date();
         date.setTime(val);
         var yy = date.getFullYear();    
@@ -121,18 +146,60 @@ export default {
     }
   },
   methods: {
-    showChannelInfo(data) {
+    showChannelInfo(data) {             //查看通道信息
         this.isChannelInfoBoxShow = true;
         this.activeInfo = data;
         console.log(data);
     },
-    showConfirmCloseChannelData() {
+    showConfirmCloseChannelData() {         //显示确认关闭通道
         this.isConfirmCloseChannel = true;
     },
-    closeChannel() {
-        console.log('关闭通道');
-        this.isChannelInfoBoxShow = false;
-        this.isConfirmCloseChannel = false;
+    closeChannel() {                //关闭通道时间
+        let _this = this;
+        _this.$refs['activeInfo'].validate((valid) => {
+            if (valid) {
+            let l = this.$parent.getChannelSerial('ChannelName',_this.activeInfo.ChannelName);
+            console.log(l);
+            if(l === null){             //如果未检测到通道,给出提醒
+                _this.$notify.error({
+                    title: '警告',
+                    dangerouslyUseHTMLString: true,
+                    message: '未找到该通道,请重试一次',
+                    duration: 3000
+                });
+                return;
+            } else {
+                if(_this.$store.state.vuexStore.channelList[l].isConnect == true){          //如果为连接状态,进入快速拆通道
+                    let Message = {
+                        "MessageType":"Settle",
+                        "Sender": _this.activeInfo.SelfUri,
+                        "Receiver": _this.activeInfo.OtherUri,
+                        "TxNonce": -1,
+                        "ChannelName": _this.activeInfo.ChannelName,
+                        "AssetType": _this.activeInfo.assetType,
+                        "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                        "MessageBody": {
+                            "Commitment":"",
+                            "SenderBalance": _this.activeInfo.SelfBalance * 10e7,
+                            "ReceiverBalance": _this.activeInfo.OtherBalance * 10e7
+                        },
+                        "Comments": {}
+                    }
+                    _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
+                    _this.$store.state.vuexStore.closeChannelInfo = _this.activeInfo;
+                    console.log(_this.$store.state.vuexStore.closeChannelInfo);22
+                    _this.isChannelInfoBoxShow = false;
+                    _this.isConfirmCloseChannel = false;
+                } else {            //如果为未连接状态,进入强制拆通道
+                    console.log('进入强制拆通道');
+                }
+            }
+        } else {
+            console.log('error submit!!');
+            return false;
+        }
+        this.activeInfo.keyStorePass = '';
+        })
     }
   }
 }

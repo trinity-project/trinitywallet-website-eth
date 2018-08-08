@@ -26,7 +26,7 @@
 export default {
   name: 'loginByPrivateKeyForm',
   data () {
-    var checkPrivateKey = (rule, value, callback) => {
+    var checkPrivateKey = (rule, value, callback) => {      //loginByPrivateKey  私钥规则
       if (!value) {
         return callback(new Error('私钥不能为空'));
       }
@@ -36,7 +36,7 @@ export default {
           callback();
       }
     };
-    var validatePass = (rule, value, callback) => {
+    var validatePass = (rule, value, callback) => {         //loginByPrivateKey  密码规则
       if (value === '') {
         callback(new Error('请输入密码'));
       } else {
@@ -46,7 +46,7 @@ export default {
         callback();
       }
     };
-    var validatePass2 = (rule, value, callback) => {
+    var validatePass2 = (rule, value, callback) => {        //loginByPrivateKey  重复密码规则
       if (value === '') {
         callback(new Error('请再次输入密码'));
       } else if (value !== this.loginByPrivateKeyForm.pass) {
@@ -61,7 +61,7 @@ export default {
           pass: '',
           checkPass: ''
         },
-        loginByPrivateKeyRules: {
+        loginByPrivateKeyRules: {       //loginByPrivateKey  输入规则
           privateKey: [
             { validator: checkPrivateKey, trigger: 'blur' }
           ],
@@ -80,7 +80,7 @@ export default {
     })
   },
   methods: {
-      Login() {
+      Login() {           //登录方法
         let _this = this;
         this.$refs['loginByPrivateKeyForm'].validate((valid) => {
           if (valid) {

@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="clearfloat" mode="in-out">
+  <div id="app" class="clearfloat appBox" mode="in-out">
       <div class="rightBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
           <head-box/>
           <router-view/>
@@ -65,6 +65,18 @@ export default {
       let KEY1 = key.toString();
       window.localStorage.setItem(KEY1,items);
     },
+    showLoading:function (){
+      loading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)',
+          target: document.querySelector('.appBox')
+      });
+    },
+    closeLoading:function (){
+      loading.close();
+    },
     decryptPrivateKey (keyStore,password) {       //解锁钱包
       let _this = this;
       let decryptPrivateKey;
@@ -90,6 +102,26 @@ export default {
           }
       }
       return decryptPrivateKey;
+    },
+    uri2Ip(uri,port) {      //URI转化Ip
+      let ip = uri.split("@")[1];
+      if(port == null){
+        ip = ip.split(":")[0];
+      } else {
+        ip = ip.split(":")[0]+":" + port;
+      }
+      return ip;
+    },
+    getChannelSerial(type,value) {      //获取所需的channel在List的位置
+        let _this = this;
+        let i;
+        _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
+         if(data[type] === value){
+              i = index;
+              return;
+          }
+       })
+       return i;
     },
     cycleGetTransactionReceipt(hash) {      //循环查询交易直至确认
       let _this = this;
@@ -323,55 +355,62 @@ export default {
             from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
             gasPrice: gasPrice        //Gas价格
         });
-      let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.addChannelInfo.keyStorePass);
-      web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
-        // 获取交易次数
-          console.log(nonce);
+        let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.addChannelInfo.keyStorePass);
+        web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
+          // 获取交易次数
+            console.log(nonce);
 
-          let functionSig = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
-          console.log(functionSig);
+            let functionSig = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
+            console.log(functionSig);
+            console.log(_this.$store.state.vuexStore.addChannelInfo.channelName);
+            console.log('0');
+            console.log(_this.$store.state.vuexStore.walletInfo.address);
+            console.log(_this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7);
+            console.log(_this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0]);
+            console.log(_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7);
+            console.log(_this.$store.state.vuexStore.addChannelInfo.selfSignedData);
+            console.log(redata.MessageBody.Commitment);
+            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.addChannelInfo.channelName,'0', _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0],_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
+            console.log(data);
 
-          let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.addChannelInfo.channelName,'0', _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0],_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
-          console.log(data);
+            var txData = {        //组成txData数据
+                nonce: web3.utils.toHex(nonce++),
+                gasPrice: web3.utils.toHex(gasPrice), 
+                gasLimit: web3.utils.toHex(4500000),
+                to: contractAddress,
+                from: _this.$store.state.vuexStore.walletInfo.address, 
+                value: '0x00', 
+                data: functionSig + data.substr(2)
+            };
+            console.log(txData);
 
-          var txData = {        //组成txData数据
-              nonce: web3.utils.toHex(nonce++),
-              gasPrice: web3.utils.toHex(gasPrice), 
-              gasLimit: web3.utils.toHex(4500000),
-              to: contractAddress,
-              from: _this.$store.state.vuexStore.walletInfo.address, 
-              value: '0x00', 
-              data: functionSig + data.substr(2)
-          };
-          console.log(txData);
+            let signedData = signData(txData,decryptPK.privateKey);
+            console.log(signedData);
 
-          let signedData = signData(txData,decryptPK.privateKey);
-          console.log(signedData);
-
-          web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
-              if (!err) {
-                  console.log(hash);
-                  _this.$notify({
-                      title: '成功',
-                      dangerouslyUseHTMLString: true,
-                      message: '上链成功，请交易确认',
-                      duration: 3000,
-                      type: 'success'
-                  });
-                  _this.cycleGetTransactionReceipt(hash);
-              } else {
-                  _console.log(err)
-              }
-          });
-        // let Message = {
-        //   'messageType': 'monitorDeposit',
-        //   "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
-        //   'chainType': redata.MessageBody.AssetType,
-        //   'playload': redata.ChannelName,
-        //   'comments': ''
-        // };
-        // _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
-        })
+            web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
+                if (!err) {
+                    console.log(hash);
+                    _this.$notify({
+                        title: '成功',
+                        dangerouslyUseHTMLString: true,
+                        message: '上链成功，请交易确认',
+                        duration: 3000,
+                        type: 'success'
+                    });
+                    _this.cycleGetTransactionReceipt(hash);
+                } else {
+                    _console.log(err)
+                }
+            });
+          // let Message = {
+          //   'messageType': 'monitorDeposit',
+          //   "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
+          //   'chainType': redata.MessageBody.AssetType,
+          //   'playload': redata.ChannelName,
+          //   'comments': ''
+          // };
+          // _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
+          })
         })
       } else {
         console.log("Status异常");
@@ -1223,49 +1262,81 @@ export default {
       }
     },
     OnMesSettleSign:function(redata){
-      //  console.log("收到type为" + type + "的消息");
-       var _this = this;
-       let witness1 = _this.SettleInfo.witness.split("{signSelf}")[1];
-       let witness = _this.SettleInfo.txData + _this.SettleInfo.witness.split("{signSelf}")[0] +  _this.SettleInfo.signSelf + witness1.split("{signOther}")[0] +  redata.MessageBody.Settlement.txDataSign + witness1.split("{signOther}")[1];
-       axios({
-         method: 'post',
-         url: this.SendrawUrl,
-         headers: {
-           'Content-Type': 'application/json;charset=UTF-8'
-         },
-         data: JSON.stringify({
-           "jsonrpc": "2.0",
-           "method": "sendrawtransaction",
-           "params": [witness],
-           "id": 1
-         })
-       }).then(function(res){
-        //  console.log(res);
-         if(res.data.result === true){
-            // console.log( _this.ChannelItems);
-            _this.ChannelItems.forEach(function(val,index){
-            //  console.log(val.ChannelName);
-            //  console.log(redata.ChannelName);
-             if(val.ChannelName === redata.ChannelName){
-                  // console.log(redata.ChannelName);
-                  _this.$set(val,'Flag',1);
-              }
-           })
-           swal({
-              title: "Success!",
-              text: "Channel is closed, please wait for settlement",
-              type: "success",
-              showCancelButton: false
-           });
-         } else {
-           swal({
-              title: "Error",
-              text: "Failed to close channel, please try again later",
-              type: "error",
-              showCancelButton: false
-           });
-         }
-       })
+      // 收到的消息体
+      // {
+      //   ChannelName:"0xf21a712999ee0e477065df49433b0ea1a6f55c77a28b4a621dae0431d67b35e6"
+      //   MessageBody:{
+      //   AssetType: "TNC"
+      //   Commitment: "0x4b2eb00ceba91f3b413fede38d79da4a207c731780248421aa8e5d36131b9fec6cda84872bcd8a93dccb7ce2bb58b995f276ca5243c56982b6ff21c5d005732901"
+      //   MessageType: "FounderSign"
+      //   NetMagic: "191919191919"
+      //   Receiver: "0xBF9905c03Ce89fc1666d3701B88a87b647b074af@106.15.91.150:8766"
+      //   Sender: "0xD65Af7686F87e04C1e1578A1076b60f2B6D8a66D@106.15.91.150:8089"
+      //   Status:"RESPONSE_OK"
+      //   TxNonce:0
+      // }
+      var _this = this;
+      if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，上链并提交给全节点监控
+        let contractAddress = "0x47EFb4f6F40837973fD41657c44F04903f5E8De9";         //Trinity状态通道合约地址
+        web3.eth.getGasPrice().then(function(gasPrice){             // 获取GAS价格
+          console.log(gasPrice);
+          var myContract = new web3.eth.Contract(TrinityContractAbi, contractAddress, {       //声明合约
+              from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
+              gasPrice: gasPrice        //Gas价格
+          });
+          let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.closeChannelInfo.keyStorePass);             //解锁KeyStore
+          web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
+          // 获取交易次数
+            console.log(nonce);
+
+            let functionSig = web3.eth.abi.encodeFunctionSignature('quickCloseChannel(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
+            console.log(functionSig);
+
+            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.closeChannelInfo.channelName,'0', _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.closeChannelInfo.selfDeposit * 10e7, _this.$store.state.vuexStore.closeChannelInfo.uri.split("@")[0],_this.$store.state.vuexStore.closeChannelInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.closeChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
+            console.log(data);
+
+            var txData = {        //组成txData数据
+                nonce: web3.utils.toHex(nonce++),
+                gasPrice: web3.utils.toHex(gasPrice), 
+                gasLimit: web3.utils.toHex(4500000),
+                to: contractAddress,
+                from: _this.$store.state.vuexStore.walletInfo.address, 
+                value: '0x00', 
+                data: functionSig + data.substr(2)
+            };
+            console.log(txData);
+
+            let signedData = signData(txData,decryptPK.privateKey);
+            console.log(signedData);
+
+            web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
+                if (!err) {
+                    console.log(hash);
+                    _this.$notify({
+                        title: '成功',
+                        dangerouslyUseHTMLString: true,
+                        message: '上链成功，请交易确认',
+                        duration: 3000,
+                        type: 'success'
+                    });
+                    _this.cycleGetTransactionReceipt(hash);
+                } else {
+                    _console.log(err)
+                }
+            });
+          // let Message = {
+          //   'messageType': 'monitorDeposit',
+          //   "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
+          //   'chainType': redata.MessageBody.AssetType,
+          //   'playload': redata.ChannelName,
+          //   'comments': ''
+          // };
+          // _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
+          })
+        })
+      } else {
+        console.log("Status异常");
+      }
     },
     OnMesUpdateChannel:function(redata){
         // console.log("收到type为" + type + "的消息");

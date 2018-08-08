@@ -207,7 +207,7 @@ export default {
         }
       }
     },
-    contactChange() {
+    contactChange() {       //当选中联系人时将值赋给payment code
       this.paymentCode = this.contact;
     },
     txOnChain() {     //链上转账方法 总

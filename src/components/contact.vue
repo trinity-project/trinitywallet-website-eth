@@ -4,7 +4,6 @@
         <h2>我的联系人</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-button @click="centerDialogVisible = true" style="margin:10px 0;" type="primary" icon="el-icon-plus" plain>添加联系人</el-button>
-        <!-- <h3>你还没有联系人</h3> -->
         <el-table ref="multipleTable" :data="contactList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="60">
             </el-table-column>
@@ -40,14 +39,14 @@
 export default {
   name: 'contactBox',
   data () {
-    var checkName = (rule, value, callback) => {
+    var checkName = (rule, value, callback) => {      //contact 名字输入规则
       if (value === '') {
         return callback(new Error('姓名不能为空'));
       } else {
         callback();
       }
     };
-    var checkAddress = (rule, value, callback) => {
+    var checkAddress = (rule, value, callback) => {     //contact 地址输入规则
       let _this = this;
       let flag = false;
       _this.$store.state.vuexStore.contactList.forEach(function(data,index){
@@ -75,7 +74,7 @@ export default {
         name: '',
         address: ''
       },
-      addContactRules: {
+      addContactRules: {      //contact 输入规则
         name: [
           { validator: checkName, trigger: 'blur' }
         ],
@@ -86,7 +85,7 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(function(){
+    this.$nextTick(function(){        //加载时判断是否登录,如登录则获取contactList
       if(!this.$store.state.vuexStore.isLogin){
         this.$router.push('/start');
       } else {
@@ -95,7 +94,7 @@ export default {
     })
   },
   methods: {
-    toggleSelection(rows) {
+    toggleSelection(rows) {       //取消选择
         if (rows) {
           rows.forEach(row => {
             this.$refs.multipleTable.toggleRowSelection(row);
@@ -104,7 +103,7 @@ export default {
           this.$refs.multipleTable.clearSelection();
         }
     },
-    handleSelectionChange(val) {
+    handleSelectionChange(val) {      //选中改变事件
         this.multipleSelection = val;
     },
     addContact() {    //添加联系人

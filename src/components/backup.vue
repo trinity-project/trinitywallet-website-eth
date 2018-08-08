@@ -21,7 +21,7 @@ export default {
     }
   },
   methods: {
-      backup() {
+      backup() {            //备份事件,生成json文件
           console.log(this.$store.state.vuexStore.walletInfo.keyStore);
           if(this.$store.state.vuexStore.walletInfo.keyStore){
             var content = JSON.stringify(this.$store.state.vuexStore.walletInfo.keyStore);
