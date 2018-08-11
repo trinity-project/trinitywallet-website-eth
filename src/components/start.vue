@@ -39,12 +39,12 @@ export default {
 <style scoped>
 .startForm{
     float: left;
-    height: calc(100vh - 56px);
+    height: calc(100% - 56px);
     width: 100%;
     overflow: hidden;
 }
 .contentBox{
-    height: calc(100vh - 56px);
+    height: calc(100% - 56px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

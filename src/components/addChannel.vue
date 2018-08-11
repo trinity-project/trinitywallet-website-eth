@@ -20,7 +20,7 @@
             <el-input v-model.number="addChannelForm.selfDeposit"  auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="对端押金" prop="otherDeposit">
-            <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" show-input ></el-slider>
+            <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" step="0.00000001" show-input ></el-slider>
           </el-form-item>
           <el-form-item label="通道名称" prop="alice">
             <el-input v-model="addChannelForm.alice" auto-complete="off"></el-input>
@@ -76,8 +76,18 @@ export default {
         } else {
           if(value > this.$store.state.vuexStore.balanceData.Chain[this.addChannelForm.assetType]){
             callback(new Error('押金数量不能大于钱包余额'));
-          } else{
-            callback();
+          } else {
+            if(String(value).indexOf(".") > -1){              //判断是否为小数,若为小数,则限制小数长度为8位
+              let length = String(value).indexOf(".") + 1;//获取小数点的位置
+              var num = String(value).length - length;//获取小数点后的个数
+              if(num > 8){
+                  callback(new Error('本端押金小数最多为8位'));
+              } else {
+                  callback();
+              }
+            } else {      //若不为小数则通过
+              callback();
+            }
           }
         }
       }
@@ -104,7 +114,7 @@ export default {
       if (!value) {
         return callback(new Error('钱包密码不能为空，否则将无法交易'));
       } else {
-        let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore,this.addChannelForm.keyStorePass);
+        let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, value);
         setTimeout(() => {
             if(PrivateKey){
             callback();
@@ -163,10 +173,9 @@ export default {
         if (valid) {
           _this.$parent.showLoading();
 
-          let contractAddress = "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218";
           web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
             console.log(gasPrice);
-          var myContract = new web3.eth.Contract(contractAbi, contractAddress, {
+          var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
               gasPrice: gasPrice        //Gas价格
           });
@@ -175,110 +184,112 @@ export default {
             // 获取交易次数
               console.log(nonce);
 
+              // approve押金金额
               let functionSig = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)');     //获取functionSig
               console.log(functionSig);
 
-              let data = web3.eth.abi.encodeParameters(['address','uint256'], [ _this.$store.state.vuexStore.walletInfo.address, _this.addChannelForm.selfDeposit * 10e7]);        //abi加密参数
+              let data = web3.eth.abi.encodeParameters(['address','uint256'], [ _this.$store.state.vuexStore.trinityContractAddress, _this.addChannelForm.selfDeposit * 10e7]);        //abi加密参数
               console.log(data);
 
               var txData = {        //组成txData数据
                   nonce: web3.utils.toHex(nonce++),
                   gasPrice: web3.utils.toHex(gasPrice), 
                   gasLimit: web3.utils.toHex(4500000),
-                  to: contractAddress,
+                  to: _this.$store.state.vuexStore.tncContractAddress,
                   from: _this.$store.state.vuexStore.walletInfo.address, 
                   value: '0x00', 
                   data: functionSig + data.substr(2)
               };
               console.log(txData);
 
-              let signedData = signData(txData,decryptPK.privateKey);
+              let signedData = signData(txData,decryptPK.privateKey);     //签名
               console.log(signedData);
 
-                  web3.eth.sendSignedTransaction('0x' + signedData)
-                  .on('transactionHash', function(hash){
-                      console.log(hash);
-                  })
-                  .on('receipt', function(receipt){
-                    console.log(receipt);
-                    let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8766);       //截取对端Uri的Ip
-                    const wsuri = "ws://" + Ip + "/";               //建立websocket连接
-                    var l = _this.$store.state.vuexStore.channelList.length;      //获取channelList长度
-                    console.log(l);
-                    let SelfUri = _this.$store.state.vuexStore.walletInfo.address + "@" + Ip;     //得到本端URI
-                    let OtherAddress = _this.addChannelForm.uri.split('@')[0];      //截取对端URI得到对端地址
-                    let date = new Date().getTime();        //获取当前时间戳
-                    let ChannelNamePart1 = md5encode(_this.addChannelForm.uri, date);
-                    let ChannelNamePart2 = md5encode(SelfUri, date);
-                    _this.addChannelForm.channelName = "0x" + ChannelNamePart1 + ChannelNamePart2;       //生成ChannelName
-                    console.log(_this.addChannelForm.channelName);
+              web3.eth.sendSignedTransaction('0x' + signedData)         //上链
+              .on('transactionHash', function(hash){      //收到hash时
+                  console.log(hash);
+              })
+              .on('receipt', function(receipt){           //块确认后
+                console.log(receipt);
+                let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8766);       //截取对端Uri的Ip
+                const wsuri = "ws://" + Ip + "/";               //建立websocket连接
+                var l = _this.$store.state.vuexStore.channelList.length;      //获取channelList长度
+                console.log(l);
+                let SelfUri = _this.$store.state.vuexStore.walletInfo.address + "@" + Ip;     //得到本端URI
+                let OtherAddress = _this.addChannelForm.uri.split('@')[0];      //截取对端URI得到对端地址
+                let date = new Date().getTime();        //获取当前时间戳
+                let ChannelNamePart1 = md5encode(_this.addChannelForm.uri, date);
+                let ChannelNamePart2 = md5encode(SelfUri, date);
+                _this.addChannelForm.channelName = "0x" + ChannelNamePart1 + ChannelNamePart2;       //生成ChannelName
+                console.log(_this.addChannelForm.channelName);
 
-                    var channelInfo = {
-                      "websock":new WebSocket(wsuri)
-                    }
-                    console.log(channelInfo);
-                    _this.$store.state.vuexStore.channelList.push(channelInfo);
-                    _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.$parent.websocketOnmessage;
-                    _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.$parent.websocketClose;
+                var channelInfo = {
+                  "websock":new WebSocket(wsuri)
+                }
+                console.log(channelInfo);
+                _this.$store.state.vuexStore.channelList.push(channelInfo);
+                _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.$parent.websocketOnmessage;
+                _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.$parent.websocketClose;
 
-                    let txData = web3.utils.soliditySha3(         //生成代签名交易数据
-                      {t: 'bytes32', v: _this.addChannelForm.channelName},    //通道名称
-                      {t: 'uint256', v: 0},                                   //TXnonce
-                      {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
-                      {t: 'uint256', v: _this.addChannelForm.selfDeposit * 10e7},       //本端押金
-                      {t: 'address', v: OtherAddress},                                  //对端地址
-                      {t: 'uint256', v: _this.addChannelForm.otherDeposit * 10e7}       //对端押金
-                    );
-                    console.log(txData);
+                let txData = web3.utils.soliditySha3(         //生成代签名交易数据
+                  {t: 'bytes32', v: _this.addChannelForm.channelName},    //通道名称
+                  {t: 'uint256', v: 0},                                   //TXnonce
+                  {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
+                  {t: 'uint256', v: _this.addChannelForm.selfDeposit * 10e7},       //本端押金
+                  {t: 'address', v: OtherAddress},                                  //对端地址
+                  {t: 'uint256', v: _this.addChannelForm.otherDeposit * 10e7}       //对端押金
+                );
+                console.log(txData);
 
-                    let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);        //解锁钱包用于签名          
-                    let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
-                    console.log(selfSignedData); 
-                    _this.addChannelForm.selfSignedData = selfSignedData;
-                    // return false;
+                let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);        //解锁钱包用于签名          
+                let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
+                console.log(selfSignedData); 
+                _this.addChannelForm.selfSignedData = selfSignedData;
+                // return false;
 
-                    var Message = {         //创建通道消息体
-                      "MessageType": "Founder",
-                      "Sender": SelfUri,
-                      "Receiver": _this.addChannelForm.uri,
-                      "TxNonce": 0,
-                      "ChannelName": _this.addChannelForm.channelName,
-                      "NetMagic": _this.$store.state.vuexStore.NetMagic,
-                      "MessageBody": {
-                          "FounderDeposit": parseInt(_this.addChannelForm.selfDeposit * 10e7) / 10e7,
-                          "PartnerDeposit": parseInt(_this.addChannelForm.otherDeposit * 10e7) / 10e7,
-                          "Commitment": _this.addChannelForm.selfSignedData,
-                          "AssetType" : _this.addChannelForm.assetType
-                      }
-                    }
-                    setTimeout(function (){
-                        _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
-                    }, 2000);
-                    
-                    _this.$store.state.vuexStore.addChannelInfo = _this.addChannelForm;     //保存信息,用于后续信息来回传输
-                    console.log(_this.$store.state.vuexStore.addChannelInfo);
+                var Message = {         //创建通道消息体
+                  "MessageType": "Founder",
+                  "Sender": SelfUri,
+                  "Receiver": _this.addChannelForm.uri,
+                  "TxNonce": 0,
+                  "ChannelName": _this.addChannelForm.channelName,
+                  "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                  "MessageBody": {
+                      "FounderDeposit": parseInt(_this.addChannelForm.selfDeposit * 10e7) / 10e7,
+                      "PartnerDeposit": parseInt(_this.addChannelForm.otherDeposit * 10e7) / 10e7,
+                      "Commitment": _this.addChannelForm.selfSignedData,
+                      "AssetType" : _this.addChannelForm.assetType
+                  }
+                }
+                setTimeout(function (){
+                    _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+                }, 2000);
+                
+                _this.$store.state.vuexStore.addChannelInfo = _this.addChannelForm;     //保存信息,用于后续信息来回传输
+                console.log(_this.$store.state.vuexStore.addChannelInfo);
 
-                    _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
-                    _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
-                    _this.$store.state.vuexStore.channelList[l].State = 2;            //通道初始状态
-                    _this.$store.state.vuexStore.channelList[l].isConnect = true;         //是否连接上websocket
-                    _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit;      //本端余额
-                    _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit;     //对端余额
-                    _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
-                    _this.$store.state.vuexStore.channelList[l].isTestNet = true;             //是否为测试网
-                    _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
-                    _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
-                    _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
-                    _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
+                _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
+                _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
+                _this.$store.state.vuexStore.channelList[l].State = 2;            //通道初始状态
+                _this.$store.state.vuexStore.channelList[l].isConnect = true;         //是否连接上websocket
+                _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit * 10e7;      //本端余额
+                _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit * 10e7;     //对端余额
+                _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
+                _this.$store.state.vuexStore.channelList[l].isTestNet = true;             //是否为测试网
+                _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
+                _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
+                _this.$store.state.vuexStore.channelList[l].TxNonce = 0;                  //交易次数
+                _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
+                _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
 
-                    _this.StoreChannel();         //储存通道信息
-                    _this.$router.push('/channelList');       //跳转到channelList页面
-                    _this.$parent.closeLoading();
-                  })
-                  .on('confirmation', function(confirmationNumber, receipt){
-                    // console.log(confirmationNumber);
-                  })
-                  .on('error', console.error);
+                _this.$parent.StoreChannel();         //储存通道信息
+                _this.$router.push('/channelList');       //跳转到channelList页面
+                _this.$parent.closeLoading();
+              })
+              .on('confirmation', function(confirmationNumber, receipt){
+                // console.log(confirmationNumber);
+              })
+              .on('error', console.error);
             })
           })
         } else {
@@ -286,10 +297,6 @@ export default {
           return false;
         }
       });
-    },
-    StoreChannel() {
-      console.log(this.$store.state.vuexStore.channelList);
-      this.$parent.saveAsArray(this.$store.state.vuexStore.walletInfo.address + "@channelList",this.$store.state.vuexStore.channelList);
     },
     CreateFounder() {
 
@@ -306,7 +313,7 @@ export default {
 <style scoped>
 .addChannelBox{
     float: left;
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     overflow: hidden;
 }
@@ -316,7 +323,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

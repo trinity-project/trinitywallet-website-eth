@@ -49,13 +49,13 @@ function base58encode(data) {
     return CryptedData;
 }
 
-function md5encode(data){
+function md5encode1(data){
     var md5 = crypto.createHash('md5');
     var CryptedData = md5.update(data).digest('hex');
     return CryptedData;
 }
 
-function md5encode1(data1, data2) {
+function md5encode(data1, data2) {
   var md5 = crypto.createHash('md5');
   var CryptedData = md5.update(data1).update(data2.toString()).digest('hex');
   return CryptedData;

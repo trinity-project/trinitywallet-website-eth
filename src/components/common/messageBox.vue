@@ -34,7 +34,10 @@ export default {
   },
   methods:{
       clearAll() {
-          console.log("清除全部");
+        console.log("清除全部");
+        this.$store.state.vuexStore.channelList = [];
+        this.$parent.StoreChannel();
+        return false;
       }
   }
 }

@@ -191,10 +191,47 @@ export default {
         }
     },
     testFun() {      //切换登录状态并保存，用于测试
-        web3.eth.personal.ecRecover("0x6c30d0d54827fa7a9bd23db64a90be9c7b37911e55dc9e5dd3a3cd386117d0f5", "0x4fd8916ff00456f06204b080de93cedbf6cecba1f134ad9d1afc20f54b6dcbae7096d51312d75a2b7f5c7d6df1839759ff71cc4e074952ccba5eee0205d0409f01").then(console.log);
-        console.log('0xBF9905c03Ce89fc1666d3701B88a87b647b074af');
-        web3.eth.personal.ecRecover("0x6c30d0d54827fa7a9bd23db64a90be9c7b37911e55dc9e5dd3a3cd386117d0f5", "0x24efed27667b8daacecd2af91ec7545a6a0da5d87791a39d2e73abf6058b4fe462c616db71054cb01ec77c0a4dcf0f0812ad211cab6127591e5e56cd6864882400").then(console.log);
-        console.log('0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf');
+        // this.$store.state.vuexStore.channelList = [];
+        // this.$parent.StoreChannel();
+        // return false;
+        let _this = this;
+        let txData = web3.utils.soliditySha3(         //生成代签名交易数据
+            {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[0].ChannelName},    //通道名称
+            {t: 'uint256', v: 1},                                   //TXnonce
+            {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
+            {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].SelfBalance - (0.2 * 10e7)},       //本端押金
+            {t: 'address', v: _this.$store.state.vuexStore.channelList[0].OtherUri.split("@")[0]},                       //对端地址
+            {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].OtherBalance + (0.2 * 10e7)}       //对端押金
+        );
+        console.log(txData);
+
+        let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,"123");        //解锁钱包用于签名          
+        let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
+        console.log(selfSignedData); 
+
+        let Message = {
+            "MessageType":"Rsmc",
+            "Sender": _this.$store.state.vuexStore.channelList[0].SelfUri,
+            "Receiver": _this.$store.state.vuexStore.channelList[0].OtherUri,
+            "TxNonce": 1,
+            "ChannelName": _this.$store.state.vuexStore.channelList[0].ChannelName,
+            "NetMagic": _this.$store.state.vuexStore.NetMagic,
+            "MessageBody": {
+                "AssetType": "TNC",
+                "PaymentCount": 0.2,
+                "SenderBalance": (_this.$store.state.vuexStore.channelList[0].SelfBalance - (0.2 * 10e7)) / 10e7,
+                "ReceiverBalance": (_this.$store.state.vuexStore.channelList[0].OtherBalance + (0.2 * 10e7)) / 10e7,
+                "Commitment": selfSignedData,
+            },
+            "Comments": {}
+        }
+        _this.$store.state.vuexStore.channelList[0].websock.send(JSON.stringify(Message));
+
+
+        // this.$store.state.vuexStore.channelList = [];
+        // this.$parent.StoreChannel();         //储存通道信息
+        // this.$store.state.vuexStore.channelList[0].State = 3;
+        // console.log(this.$store.state.vuexStore.channelList[0]);
             // var a1 = web3.utils.padLeft(_this.$store.state.vuexStore.addChannelInfo.channelName, 64);
             // console.log(a1);
             // var a2 = web3.utils.padLeft(web3.utils.toHex(0).substr(2), 64);
@@ -230,6 +267,8 @@ export default {
         }
         this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
         this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");           //获取联系人列表
+        this.$store.state.vuexStore.channelList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@channelList");           //获取通道列表
+        this.cycleReconnectWebsocket();
     },
     getBalance() {      //获取总的余额
       this.getEthBalance();
@@ -251,7 +290,7 @@ export default {
     getTncBalance() {       //获取TNC余额
       let _this = this;
       let contractAddress = "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218";       //TNC合约地址
-      var myContract = new web3.eth.Contract(contractAbi, contractAddress, {
+      var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
           from: _this.$store.state.vuexStore.walletInfo.address, // default from address
           gasPrice: '10000000000' // default gas price in wei, 10 gwei in this case
       });
@@ -263,6 +302,12 @@ export default {
               console.log(error);
           }
       });
+    },
+    cycleReconnectWebsocket() {
+        var _this = this;
+        _this.$store.state.vuexStore.channelList.forEach(function(val,index){           //遍历channelList
+            _this.$parent.reconnectWebsocket(val.Ip + ":8766",val.ChannelName);
+        })
     }
   }
 }
@@ -273,7 +318,7 @@ export default {
 nav{
     width: 100%;
     max-width: 300px;
-    height: 100vh;
+    height: 100%;
     float: left;
     user-select:none;
     overflow-x: hidden;

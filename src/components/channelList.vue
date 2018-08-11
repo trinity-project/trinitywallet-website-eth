@@ -8,15 +8,16 @@
             <h2>通道列表</h2>
         </div>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <ul v-if="$store.state.vuexStore.channelList.length">
-            <li @click="showChannelInfo(data)" v-for="(data,index) in $store.state.vuexStore.channelList" :key="index">
+        <ul v-if="channelList.length">
+            <li @click="showChannelInfo(data,index)" v-for="(data,index) in channelList" :key="index">
                 <h3>{{ data.Alice }}</h3><br>
                 <p>{{ data.date | formatDateTime }}</p>
-                <p>State：{{ data.State | formatStatus }}</p>
-                <span>{{ data.SelfBalance }}<sup>{{ data.assetType }}</sup></span>
+                <p v-if="data.isConnect">State：{{ data.State | formatStatus }}</p>
+                <p v-if="!data.isConnect">State：NotConnect</p>
+                <span>{{ data.SelfBalance | formatBalance }}<sup>{{ data.assetType }}</sup></span>
             </li>
         </ul>
-        <p v-if="!$store.state.vuexStore.channelList.length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
+        <p v-if="!channelList.length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
             还没有通道，立即去添加
         </p>
     </div>
@@ -24,12 +25,12 @@
         <span>通道名称：{{ activeInfo.ChannelName }}</span>
         <span>开通时间：{{ activeInfo.date | formatDateTime }}</span>
         <span>本端地址：{{ activeInfo.SelfUri }}</span>
-        <span>本端余额：{{ activeInfo.SelfBalance }}{{ activeInfo.assetType }}</span>
+        <span>本端余额：{{ activeInfo.SelfBalance | formatBalance }}{{ activeInfo.assetType }}</span>
         <span>对端地址：{{ activeInfo.OtherUri }}</span>
-        <span>对端余额：{{ activeInfo.OtherBalance }}{{ activeInfo.assetType }}</span>
+        <span>对端余额：{{ activeInfo.OtherBalance | formatBalance }}{{ activeInfo.assetType }}</span>
         <span>通道状态：{{ activeInfo.State | formatStatus }}</span>
-        <span>是否连接：{{ activeInfo.isConnect }}</span>
-        <span>网络：{{ activeInfo.isTestNet }}</span>
+        <span>是否连接：{{ activeInfo.isConnect | formatConnect }}</span>
+        <span>网络：{{ activeInfo.isTestNet | formatNet}}</span>
         <span v-if="!isConfirmCloseChannel" slot="footer" class="dialog-footer">
             <el-button @click="showConfirmCloseChannelData()" type="danger"> 关闭通道 </el-button>
         </span>
@@ -67,31 +68,6 @@ export default {
       }
     };
     return {
-        channelList: [{
-          date: '1495157126',
-          ChannelName: '王小虎',
-          balance: '100',
-          assetType: 'TNC',
-          State: 'Open'
-        }, {
-          date: '1495157126',
-          ChannelName: '王小虎',
-          balance: '38',
-          assetType: 'ETH',
-          State: 'Open'
-        }, {
-          date: '1495157126',
-          ChannelName: '王小虎',
-          balance: '27',
-          assetType: 'TNC',
-          State: 'Open'
-        }, {
-          date: '1495157126',
-          ChannelName: '王小虎',
-          balance: '87',
-          assetType: 'TNC',
-          State: 'Open'
-        }],
         isChannelInfoBoxShow: false,        //显示通道信息
         activeInfo:{                    //当前显示通道信息内容
           Alice: '',
@@ -115,9 +91,14 @@ export default {
         }
     }
   },
+  computed:{
+      channelList() {
+          return this.$store.state.vuexStore.channelList;
+      }
+  },
   filters:{
     formatStatus:function(val){         //格式化Channel状态
-      var x;
+      let x;
       switch (val)
       {
       case 1:
@@ -134,21 +115,60 @@ export default {
       }
       return x;
     },
+    formatBalance:function(val) {          //格式化余额
+        let result;
+        if(val < 0 || isNaN(val)){
+            result = "error"; 
+        } else {
+            result = val / 10e7;
+        }
+        return result;
+    },
     formatDateTime:function(val) {          //格式化时间戳
-        var date = new Date();
+        let date = new Date();
         date.setTime(val);
-        var yy = date.getFullYear();    
-        var mm = date.getMonth() + 1;    
+        let yy = date.getFullYear();    
+        let mm = date.getMonth() + 1;    
         mm = mm < 10 ? ('0' + mm) : mm;    
-        var dd = date.getDate();    
+        let dd = date.getDate();    
         dd = dd < 10 ? ('0' + dd) : dd;   
         return yy + '-' + mm + '-' + dd;    
+    },
+    formatConnect:function(val) {          //格式化连接状态
+        let result;
+        if(val){
+            result = "已连接";
+        } else {
+            result = "未连接";
+        }
+        return result;
+    },
+    formatNet:function(val) {          //格式化网络
+        let result;
+        if(val){
+            result = "测试网";
+        } else {
+            result = "主网";
+        }
+        return result;
     }
   },
+  mounted() {
+    this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
+        if(this.$store.state.vuexStore.channelList.length == 0){
+            this.$router.push('/addChannel');
+        }
+    })
+  },
+  watch: {
+    '$store.state.vuexStore.walletInfo.channelList': 'getAddressInfo'            // 监测store中的channelList,出现变化时获取相关信息
+  },
   methods: {
-    showChannelInfo(data) {             //查看通道信息
+    showChannelInfo(data,index) {             //查看通道信息
         this.isChannelInfoBoxShow = true;
         this.activeInfo = data;
+        this.activeInfo.keyStorePass = "";
+        console.log(index);
         console.log(data);
     },
     showConfirmCloseChannelData() {         //显示确认关闭通道
@@ -169,25 +189,42 @@ export default {
                 });
                 return;
             } else {
+                console.log(_this.$store.state.vuexStore.channelList[l].isConnect);
                 if(_this.$store.state.vuexStore.channelList[l].isConnect == true){          //如果为连接状态,进入快速拆通道
+                    let txData = web3.utils.soliditySha3(         //生成代签名交易数据
+                    {t: 'bytes32', v: _this.activeInfo.ChannelName},    //通道名称
+                    {t: 'uint256', v: 4294967295},                                   //TXnonce
+                    {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
+                    {t: 'uint256', v: _this.activeInfo.SelfBalance},       //本端押金
+                    {t: 'address', v: _this.activeInfo.OtherUri.split("@")[0]},                                  //对端地址
+                    {t: 'uint256', v: _this.activeInfo.OtherBalance}       //对端押金
+                    );
+                    console.log(txData);
+
+                    let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.activeInfo.keyStorePass);        //解锁钱包用于签名          
+                    let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
+                    console.log(selfSignedData); 
+
                     let Message = {
                         "MessageType":"Settle",
                         "Sender": _this.activeInfo.SelfUri,
                         "Receiver": _this.activeInfo.OtherUri,
-                        "TxNonce": -1,
+                        "TxNonce": 4294967295,              //0xFFFFFFFF,暂用
                         "ChannelName": _this.activeInfo.ChannelName,
                         "AssetType": _this.activeInfo.assetType,
                         "NetMagic": _this.$store.state.vuexStore.NetMagic,
                         "MessageBody": {
-                            "Commitment":"",
-                            "SenderBalance": _this.activeInfo.SelfBalance * 10e7,
-                            "ReceiverBalance": _this.activeInfo.OtherBalance * 10e7
+                            "Commitment": selfSignedData,
+                            "SenderBalance": _this.activeInfo.SelfBalance / 10e7,
+                            "ReceiverBalance": _this.activeInfo.OtherBalance /10e7
                         },
                         "Comments": {}
                     }
                     _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
                     _this.$store.state.vuexStore.closeChannelInfo = _this.activeInfo;
-                    console.log(_this.$store.state.vuexStore.closeChannelInfo);22
+                    console.log(_this.$store.state.vuexStore.closeChannelInfo.keyStorePass);
+                    _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
+                    _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
                     _this.isChannelInfoBoxShow = false;
                     _this.isConfirmCloseChannel = false;
                 } else {            //如果为未连接状态,进入强制拆通道
@@ -198,7 +235,6 @@ export default {
             console.log('error submit!!');
             return false;
         }
-        this.activeInfo.keyStorePass = '';
         })
     }
   }
@@ -209,7 +245,7 @@ export default {
 <style scoped>
 .channelListForm{
     float: left;
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     overflow: hidden;
 }
@@ -219,7 +255,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

@@ -1,5 +1,6 @@
 <template>
   <div id="app" class="clearfloat appBox" mode="in-out">
+    <div style="position: relative;margin: 0 auto;width: 100%;max-width: 1400px;height: 100%;">
       <div class="rightBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
           <head-box/>
           <router-view/>
@@ -7,10 +8,12 @@
           <footer-box/>
       </div>
       <head-nav/>
+    </div>
   </div>
 </template>
 
 <script>
+import Vue from 'Vue'
 import headNav from './components/common/headNav'
 import headBox from './components/common/headBox'
 import messageBox from './components/common/messageBox'
@@ -36,14 +39,12 @@ export default {
         _this.$notify.closeAll();
         const wsuri = "ws://47.104.81.20:9000/";               //建立websocket连接
         _this.$store.state.vuexStore.NodeUriWebSocket = new WebSocket(wsuri);
-        _this.$store.state.vuexStore.NodeUriWebSocket.onmessage = _this.$parent.nodeUriWebsocketOnMessage;
-        _this.$store.state.vuexStore.NodeUriWebSocket.onclose = _this.$parent.nodeUriWebsocketClose;
-        _this.$notify({
-            title: '成功',
-            dangerouslyUseHTMLString: true,
-            message: '已连接到Trinity网络',
-            duration: 3000,
-            type: 'success'
+        _this.$store.state.vuexStore.NodeUriWebSocket.onmessage = _this.nodeUriWebsocketOnMessage;
+        _this.$store.state.vuexStore.NodeUriWebSocket.onclose = _this.nodeUriWebsocketClose;
+        _this.$notify.info({
+          title: '消息',
+          duration: 2000,
+          message: '正在连接至Trinity网络'
         });
     },
     backToStart() {
@@ -112,16 +113,88 @@ export default {
       }
       return ip;
     },
-    getChannelSerial(type,value) {      //获取所需的channel在List的位置
+    assetContractAddress2AssetType(assetContractAddress) {
+      let assetType = "";
+      console.log(this.$store.state.vuexStore.isTestNet);
+      if(this.$store.state.vuexStore.isTestNet){
+        console.log(1);
+        switch(assetContractAddress)
+        {
+        case "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218":
+          assetType = "TNC";
+          break;
+        case "ETH":
+          assetType = "ETH";
+          break;
+        default:
+          assetType = Error;
+        }
+      } else {
+        switch(assetContractAddress)
+        {
+        case "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218":
+          assetType = "TNC";
+          break;
+        case "ETH":
+          assetType = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
+          break;
+        default:
+          assetType = Error;
+        }
+      }
+      console.log(assetType);
+      return assetType;
+    },
+    AssetType2AssetContractAddress(assetType) {
+      let assetContractAddress = "";
+      if(this.$store.state.vuexStore.isTestNet){
+        switch(assetType)
+        {
+        case "TNC":
+          assetContractAddress = this.$store.state.vuexStore.tncContractAddress;
+          break;
+        case "ETH":
+          assetContractAddress = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
+          break;
+        default:
+          assetContractAddress = Error;
+        }
+      } else {
+        switch(assetType)
+        {
+        case "TNC":
+          assetContractAddress = "08e8c4400f1af2c20c28e0018f29535eb85d15b6";
+          break;
+        case "ETH":
+          assetContractAddress = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
+          break;
+        default:
+          assetContractAddress = Error;
+        }
+      }
+      return assetContractAddress;
+    },
+    getChannelSerial(type,value,open) {      //获取所需的channel在List的位置,参数为key,value,是否为open状态
         let _this = this;
         let i;
         _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
          if(data[type] === value){
-              i = index;
-              return;
+              if(open == null){
+                i = index;
+                return;
+              } else if (open == 'open'){
+                if(data.State == 3 && data.isConnect == true){
+                  i = index;
+                  return;
+                } else {
+                  i = -2;
+                }
+              }
+          } else {
+            i = -1;
           }
        })
-       return i;
+       return i;      //返回-1为未建通道,返回-2为通道未Open或者未连接上websocket
     },
     cycleGetTransactionReceipt(hash) {      //循环查询交易直至确认
       let _this = this;
@@ -158,23 +231,113 @@ export default {
     nodeUriWebsocketOnMessage(e) {        //全节点websocket接收消息
       let _this = this;
       if(e.data === 'connected to server'){
-
+        _this.$notify.closeAll();
+        _this.$notify({
+            title: '成功',
+            dangerouslyUseHTMLString: true,
+            message: '已连接到Trinity网络',
+            duration: 3000,
+            type: 'success'
+        });
       } else {
         let redata = JSON.parse(e.data);
-        let type = redata.MessageType;
+        let type = redata.messageType;
         console.log(redata);
 
         switch(type)
         {
-        case "Founder":
-          _this.OnMesFounder(redata);
+        case "monitorDeposit":
+          _this.OnMesMonitorDeposit(redata);
           break;
-        case "SyncBlock":
-          console.log(1);
+        case "monitorQuickCloseChannel":
+          _this.OnMesMonitorQuickCloseChannel(redata);
           break;
         default:
         
         }
+      }
+    },
+    OnMesMonitorDeposit(redata) {
+      // 收到的消息体
+      // {
+      //   "amount": 9400000000,
+      //   "channelId": "0xa2e7c253258f3a85694a27907e17acf4b96a0673bf5b8108c89eb571f77e0db9",
+      //   "messageType": "monitorDeposit",
+      //   "partnerA": "0xbf9905c03ce89fc1666d3701b88a87b647b074af",
+      //   "partnerB": "0xdd1c2c608047bd98962abf15f9f074620f9d44bf"
+      // }
+      console.log(redata);
+      let _this = this;
+      let l = _this.getChannelSerial('ChannelName', redata.channelId);
+      console.log(l);
+      if(l === null){             //如果未检测到通道,给出提醒
+          _this.$notify.error({
+              title: '警告',
+              dangerouslyUseHTMLString: true,
+              message: '未找到该通道,请重试一次',
+              duration: 3000
+          });
+          return;
+      } else {
+          console.log(redata.amount);
+          console.log(_this.$store.state.vuexStore.channelList[l].SelfBalance + _this.$store.state.vuexStore.channelList[l].OtherBalance);
+          if(redata.amount == _this.$store.state.vuexStore.channelList[l].SelfBalance + _this.$store.state.vuexStore.channelList[l].OtherBalance){
+            _this.$notify({
+                title: '成功',
+                dangerouslyUseHTMLString: true,
+                message: '通道已开通',
+                duration: 3000,
+                type: 'success'
+            });
+            let channelInfo = _this.$store.state.vuexStore.channelList[l];
+            console.log(channelInfo);
+            channelInfo.State = 3;
+            console.log(channelInfo);
+            Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);
+            console.log(_this.$store.state.vuexStore.channelList[l]);
+            _this.StoreChannel();
+          }
+      }
+    },
+    OnMesMonitorQuickCloseChannel(redata) {
+      // 收到的消息体
+      // {
+      //   "amountA":1000000000
+      //   "amountB":700000000
+      //   "channelId":"0x3abdbf65f582e38ca78b64a155c585e5d6b72b88134e91958c8758d26bc6eafd"
+      //   "messageType":"monitorQuickCloseChannel"
+      //   "partnerA":"0xbf9905c03ce89fc1666d3701b88a87b647b074af"
+      //   "partnerB":"0xdd1c2c608047bd98962abf15f9f074620f9d44bf"
+      // }
+      let _this = this;
+      let l = _this.getChannelSerial('ChannelName', redata.channelId);
+      console.log(l);
+      if(l === null){             //如果未检测到通道,给出提醒
+          _this.$notify.error({
+              title: '警告',
+              dangerouslyUseHTMLString: true,
+              message: '未找到该通道,请重试一次',
+              duration: 3000
+          });
+          return;
+      } else {
+          console.log(redata.amountA);
+          console.log(redata.amountB);
+          console.log(_this.$store.state.vuexStore.channelList[l].SelfBalance);
+          console.log(_this.$store.state.vuexStore.channelList[l].OtherBalance);
+          if(redata.amountA == _this.$store.state.vuexStore.channelList[l].SelfBalance && redata.amountB ==_this.$store.state.vuexStore.channelList[l].OtherBalance){
+            _this.$notify({
+                title: '成功',
+                dangerouslyUseHTMLString: true,
+                message: '通道已关闭',
+                duration: 3000,
+                type: 'success'
+            });
+            _this.$store.state.vuexStore.channelList.splice(l,1);
+
+            _this.StoreChannel();
+            // _this.StoreRecordList(_this.RecordList);
+          }
       }
     },
     nodeUriWebsocketClose(val) {         //全节点websocket断开
@@ -184,7 +347,7 @@ export default {
           title: '警告',
           dangerouslyUseHTMLString: true,
           message: '与Trinity网络断开连接,点击进行重连',
-          duration: 4000,
+          duration: 0,
           type: 'error',
           onClick: this.connectWebSocketForNodeUri
       });
@@ -348,17 +511,15 @@ export default {
       // }
       var _this = this;
       if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，上链并提交给全节点监控
-        let contractAddress = "0x47EFb4f6F40837973fD41657c44F04903f5E8De9";
         web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
           console.log(gasPrice);
-        var myContract = new web3.eth.Contract(TrinityContractAbi, contractAddress, {
+        var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.trinityContractAbi, _this.$store.state.vuexStore.trinityContractAddress, {
             from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
             gasPrice: gasPrice        //Gas价格
         });
         let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.addChannelInfo.keyStorePass);
         web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
           // 获取交易次数
-            console.log(nonce);
 
             let functionSig = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
             console.log(functionSig);
@@ -377,7 +538,7 @@ export default {
                 nonce: web3.utils.toHex(nonce++),
                 gasPrice: web3.utils.toHex(gasPrice), 
                 gasLimit: web3.utils.toHex(4500000),
-                to: contractAddress,
+                to: _this.$store.state.vuexStore.trinityContractAddress,
                 from: _this.$store.state.vuexStore.walletInfo.address, 
                 value: '0x00', 
                 data: functionSig + data.substr(2)
@@ -387,30 +548,48 @@ export default {
             let signedData = signData(txData,decryptPK.privateKey);
             console.log(signedData);
 
-            web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
-                if (!err) {
-                    console.log(hash);
-                    _this.$notify({
-                        title: '成功',
+            web3.eth.sendSignedTransaction('0x' + signedData)
+                  .on('transactionHash', function(hash){
+                      console.log(hash);
+                      _this.$notify({
+                          title: '成功',
+                          dangerouslyUseHTMLString: true,
+                          message: '上链成功，请交易确认',
+                          duration: 3000,
+                          type: 'success'
+                      });
+                  })
+                  .on('receipt', function(receipt){
+                      console.log(receipt);
+                      _this.$notify({
+                          title: '成功',
+                          dangerouslyUseHTMLString: true,
+                          message: '交易已确认',
+                          duration: 3000,
+                          type: 'success'
+                      });
+                  })
+                  .on('confirmation', function(confirmationNumber, receipt){
+                    // console.log(confirmationNumber);
+                  })
+                  .on('error', function(error){
+                      _this.$notify.error({
+                        title: '警告',
                         dangerouslyUseHTMLString: true,
-                        message: '上链成功，请交易确认',
-                        duration: 3000,
-                        type: 'success'
-                    });
-                    _this.cycleGetTransactionReceipt(hash);
-                } else {
-                    _console.log(err)
-                }
+                        message: error,
+                        duration: 3000
+                      });
+                      return;
+                  })
             });
-          // let Message = {
-          //   'messageType': 'monitorDeposit',
-          //   "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
-          //   'chainType': redata.MessageBody.AssetType,
-          //   'playload': redata.ChannelName,
-          //   'comments': ''
-          // };
-          // _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
-          })
+          let Message = {
+            'messageType': 'monitorDeposit',
+            "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
+            'chainType': redata.MessageBody.AssetType,
+            'playload': redata.ChannelName,
+            'comments': ''
+          };
+          _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
         })
       } else {
         console.log("Status异常");
@@ -750,12 +929,61 @@ export default {
         }
     },
     OnMesRsmcSign:function(redata){
+      //收到的消息体
+      // {
+      //   "MessageType":"RsmcSign",
+      //   "Sender": receiver,
+      //   "Receiver": sender,
+      //   "TxNonce": nonce,
+      //   "ChannelName":channel_name,
+      //   "NetMagic": RsmcMessage.get_magic(),
+      //   "MessageBody": {
+      //     "AssetType":asset_type.upper(),
+      //     "PaymentCount": payment,
+      //     "SenderBalance": this_receiver_balance,
+      //     "ReceiverBalance": this_sender_balance,
+      //     "Commitment": commitment,
+      //   },
+      //   "Comments": {},
+      //   "Status": RESPONSE_OK,
+      // }
       let _this = this;
-      _this.TxNonceList.forEach(function(data,index){
-        if(data.ChannelName === redata.ChannelName){
-          data.TxNonce ++;
-        } 
-      })
+      if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，更新通道信息,并保存签名数据
+        let l = _this.getChannelSerial("ChannelName",redata.ChannelName);
+        console.log(l);
+        if(l === null){             //如果未检测到通道,给出提醒
+            _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '未找到该通道更新状态',
+                duration: 3000
+            });
+            return;
+        } else {
+          let channelInfo = _this.$store.state.vuexStore.channelList[l];
+          channelInfo.SelfBalance -= redata.MessageBody.PaymentCount * 10e7;     //本端余额更新
+          channelInfo.OtherBalance += redata.MessageBody.PaymentCount * 10e7;    //对端余额更新
+          channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
+          Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);
+          console.log(_this.$store.state.vuexStore.channelList[l]);
+          _this.StoreChannel();
+          _this.$notify({
+              title: '成功',
+              dangerouslyUseHTMLString: true,
+              message: '转账确认',
+              duration: 3000,
+              type: 'success'
+          });
+        }
+      } else {
+        _this.$notify.error({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: redata.Status,
+          duration: 3000
+        });
+        return;
+      }
     },
     OnMesRsmcFail:function(redata){
         swal({
@@ -1277,14 +1505,12 @@ export default {
       // }
       var _this = this;
       if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，上链并提交给全节点监控
-        let contractAddress = "0x47EFb4f6F40837973fD41657c44F04903f5E8De9";         //Trinity状态通道合约地址
         web3.eth.getGasPrice().then(function(gasPrice){             // 获取GAS价格
           console.log(gasPrice);
-          var myContract = new web3.eth.Contract(TrinityContractAbi, contractAddress, {       //声明合约
+          var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.trinityContractAbi, _this.$store.state.vuexStore.trinityContractAddress, {       //声明合约
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
               gasPrice: gasPrice        //Gas价格
           });
-          let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.closeChannelInfo.keyStorePass);             //解锁KeyStore
           web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
           // 获取交易次数
             console.log(nonce);
@@ -1292,20 +1518,21 @@ export default {
             let functionSig = web3.eth.abi.encodeFunctionSignature('quickCloseChannel(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
             console.log(functionSig);
 
-            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.closeChannelInfo.channelName,'0', _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.closeChannelInfo.selfDeposit * 10e7, _this.$store.state.vuexStore.closeChannelInfo.uri.split("@")[0],_this.$store.state.vuexStore.closeChannelInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.closeChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
+            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.closeChannelInfo.ChannelName, 4294967295, _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.closeChannelInfo.SelfBalance, _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],_this.$store.state.vuexStore.closeChannelInfo.OtherBalance, _this.$store.state.vuexStore.closeChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
             console.log(data);
 
             var txData = {        //组成txData数据
                 nonce: web3.utils.toHex(nonce++),
                 gasPrice: web3.utils.toHex(gasPrice), 
                 gasLimit: web3.utils.toHex(4500000),
-                to: contractAddress,
+                to: _this.$store.state.vuexStore.trinityContractAddress,
                 from: _this.$store.state.vuexStore.walletInfo.address, 
                 value: '0x00', 
                 data: functionSig + data.substr(2)
             };
             console.log(txData);
 
+            let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.closeChannelInfo.keyStorePass);             //解锁KeyStore
             let signedData = signData(txData,decryptPK.privateKey);
             console.log(signedData);
 
@@ -1324,14 +1551,14 @@ export default {
                     _console.log(err)
                 }
             });
-          // let Message = {
-          //   'messageType': 'monitorDeposit',
-          //   "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
-          //   'chainType': redata.MessageBody.AssetType,
-          //   'playload': redata.ChannelName,
-          //   'comments': ''
-          // };
-          // _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
+            let Message = {
+              'messageType': 'monitorQuickCloseChannel',
+              "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
+              'chainType': redata.MessageBody.AssetType,
+              'playload': redata.ChannelName,
+              'comments': ''
+            };
+            _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
           })
         })
       } else {
@@ -1465,39 +1692,61 @@ export default {
         })
       }
     },
-    websocketClose() {        //断开websocket
+    websocketClose(val) {        //断开websocket
       console.log("已断开websocket");
       // console.log(val);
+      let _this = this;
       let Ip = val.currentTarget.url.split('/')[2].split(':')[0];
       console.log(Ip);
-      let ChannelName;
-      //2console.log("------------");
-      //console.log(this.ChannelItems);
-      var _this = this;
-      _this.ChannelItems.forEach(function(data,index){
-        console.log(data.Ip);
-        if(data.Ip === Ip){
-          ChannelName = data.ChannelName;
-          console.log("断开时oldFlag:" + data.oldFlag);
-          let c = data.Flag
-          // data.oldFlag = ;
-          _this.$set(data,'oldFlag',c);
-          console.log("断开时oldFlag:" + data.oldFlag);
-          _this.$set(data,'Flag',5);
-        }
-        return;
-      });
-      _this.websock.forEach(function(data,index){
-         if(data.ChannelName === ChannelName){
-          //  console.log(index);
-           _this.websock.splice(index,1);
-           return;
-         }
-       })
-       let ip = Ip + ":8766"
-       setTimeout(function () {
-          let t = _this.ConnectWebsocket(ip,ChannelName);
-       }, 2000);
+      let l = _this.getChannelSerial("Ip",Ip);
+      console.log(l);
+      if(l === null){             //如果未检测到通道,给出提醒
+          _this.$notify.error({
+              title: '警告',
+              dangerouslyUseHTMLString: true,
+              message: '未找到该通道,请重试一次',
+              duration: 3000
+          });
+          return;
+      } else {
+        _this.$notify.error({
+              title: '警告',
+              dangerouslyUseHTMLString: true,
+              message: '与' + Ip + '断开连接',
+              duration: 3000
+          });
+        _this.$store.state.vuexStore.channelList[l].isConnect = false;
+        // let ip = Ip + ":8766"
+        // setTimeout(function () {
+        //   let t = _this.ConnectWebsocket(ip,ChannelName);
+        // }, 2000);
+      }
+    },
+    reconnectWebsocket (Ip,ChannelName){
+      let _this = this;
+      const wsuri = "ws://" + Ip + "/";
+      var l = _this.getChannelSerial('ChannelName',ChannelName);
+      console.log(l);
+      if(l === null){             //如果未检测到通道,给出提醒
+          _this.$notify.error({
+              title: '警告',
+              dangerouslyUseHTMLString: true,
+              message: '未找到该通道,请重试一次',
+              duration: 3000
+          });
+          return;
+      } else {
+        console.log(1);
+        _this.$store.state.vuexStore.channelList[l].websock = new WebSocket(wsuri);
+        _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.websocketOnmessage;
+        _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.websocketClose;
+        _this.$store.state.vuexStore.channelList[l].isConnect = true;
+        console.log(_this.$store.state.vuexStore.channelList);
+      }
+    },
+    StoreChannel() {              //储存ChannelList
+      console.log(this.$store.state.vuexStore.channelList);
+      this.saveAsArray(this.$store.state.vuexStore.walletInfo.address + "@channelList",this.$store.state.vuexStore.channelList);
     }
   }
 }
@@ -1508,8 +1757,8 @@ html,body{
   margin: 0;
   padding: 0;
   height: 100vh;
-  width: 100% ; 
-  position: fixed;
+  width: 100%; 
+  /* position: fixed; */
 }
 #app {
   font-family: Helvetica Neue,Helvetica,PingFang SC,Hiragino Sans GB,Microsoft YaHei,SimSun,sans-serif;
@@ -1517,7 +1766,11 @@ html,body{
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   width: 100%;
-  height: 100vh;
+  height: 100%;
+  background:url(./../static/img/bg.jpg);    
+  background-image: url(/static/img/bg.100bd93.jpg);
+  background-repeat: repeat;
+  background-size: 40%;
 }
 .clearfloat:after{
   display: block;
@@ -1540,7 +1793,7 @@ ul,li{
 .rightBox{
   /* width: calc(100% - 300px); */
   width: 100%;
-  height: 100vh;
+  height: 100%;
   background: #FFFFFF;
   transition:ease 0.7s;
   position: absolute;

@@ -71,11 +71,11 @@ export default {
         }
     };
     return {
-      paymentCode:"APWDCZ6SY2VgPV37EKbrkYD6XwjVaa8u8B",
       paymentCodeForm: {
         amount: '',
         assetType: '',
-        selfUrl: '0x23cca051BfedB5e17d3AAD2038Ba0a5155d1B1b7@10.10.10.5:8089',
+        assetContractAddress: '',
+        selfUri: '',
         R: '',
         Hr: '',
         Code: ''
@@ -125,18 +125,48 @@ export default {
         });
     },
     createPaymentCode() {
-        this.$refs['paymentCodeForm'].validate((valid) => {
+        let _this = this;
+        _this.$refs['paymentCodeForm'].validate((valid) => {
           if (valid) {
             console.log('submit!');
-            this.paymentCodeForm.R = createR();
-            this.paymentCodeForm.Hr = createHr(this.paymentCodeForm.R);
+            if(_this.paymentCodeForm.assetType == "TNC"){
+                _this.paymentCodeForm.assetContractAddress = _this.$store.state.vuexStore.tncContractAddress;
+            } else if (_this.paymentCodeForm.assetType == "ETH"){
+                _this.paymentCodeForm.assetContractAddress = "";
+            } else {
+                _this.$notify.info({
+                    title: '警告',
+                    dangerouslyUseHTMLString: true,
+                    message: '资产类型出错',
+                    duration: 3000,
+                    type: 'warning'
+                });
+                return false;
+            }
+            _this.paymentCodeForm.R = createR();
+            _this.paymentCodeForm.Hr = createHr(_this.paymentCodeForm.R);
             // this.paymentCodeForm.R = web3.utils.randomHex(32);
             // this.paymentCodeForm.Hr = web3.eth.accounts.hashMessage(web3.utils.utf8ToHex(this.paymentCodeForm.R));
-            let PaymentCode = this.paymentCodeForm.selfUrl + "&" + this.paymentCodeForm.Hr + "&" + this.paymentCodeForm.assetType + "&" + this.paymentCodeForm.Amount + "&" + this.paymentCodeForm.Amount + this.paymentCodeForm.assetType;
+            _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
+                if(data.State == 3 && data.assetType == _this.paymentCodeForm.assetType){
+                    _this.paymentCodeForm.selfUri = data.SelfUri;
+                }
+            })
+            if(_this.paymentCodeForm.selfUri == ''){
+                _this.$notify.info({
+                    title: '警告',
+                    dangerouslyUseHTMLString: true,
+                    message: '资产合约地址出错',
+                    duration: 3000,
+                    type: 'warning'
+                });
+                return false;
+            }
+            let PaymentCode = _this.paymentCodeForm.selfUri + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetContractAddress + "&" + _this.paymentCodeForm.amount + "&" + "PaymentCode";
             console.log(PaymentCode);
-            this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
-            console.log(this.paymentCodeForm.Code);
-            this.isPaymentCodeBoxShow = true;
+            _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
+            console.log(_this.paymentCodeForm.Code);
+            _this.isPaymentCodeBoxShow = true;
           } else {
             console.log('error submit!!');
             return false;
@@ -148,7 +178,7 @@ export default {
         this.paymentCodeForm = {
         amount: '',
         assetType: '',
-        selfUrl: '',
+        selfUri: '',
         R: '',
         Hr: '',
         Code: ''
@@ -162,7 +192,7 @@ export default {
 <style scoped>
 .receiveForm{
     float: left;
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     overflow: hidden;
 }
@@ -172,7 +202,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

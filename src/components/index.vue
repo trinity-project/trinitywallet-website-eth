@@ -71,6 +71,18 @@
         <el-button @click="ShowTxOnChainBox = false">取 消</el-button>
       </span>
     </el-dialog>
+    <el-dialog class="txOnChannelBox" title="通道转账" :visible.sync="ShowTxOnChannelBox" width="30%" center :modal-append-to-body='false'>
+      <el-form :model="txOnChannelInfo" status-icon :rules="txOnChannelRules" ref="txOnChannelInfo" label-width="70px" class="demo-ruleForm">
+
+        <el-form-item label="密码" prop="keyStorePass">
+          <el-input v-model="txOnChannelInfo.keyStorePass" type="password" auto-complete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="txOnChannel()">转账</el-button>
+        <el-button @click="ShowTxOnChannelBox = false">取 消</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -114,7 +126,14 @@ export default {
       if (!value) {
         return callback(new Error('钱包密码不能为空，否则将无法交易'));
       } else {
-        callback();
+        let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        setTimeout(() => {
+            if(PrivateKey){
+            callback();
+            } else {
+            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+            }
+        }, 2000);
       }
     };
     return {
@@ -141,15 +160,22 @@ export default {
           ]
         },
         txOnChannelInfo: {      //通道转账
-          "sendUrl": '',
-          "receiverUrl": '',
+          "sendUri": '',
+          "receiverUri": '',
           "hr": '',
           "assetType": '',
           "value": 0,
           "fee": 0,
-          "description": ''
+          "description": '',
+          keyStorePass: ''
+        },
+        txOnChannelRules: {       //链上转账规则
+          keyStorePass: [
+            { validator: checkKeyStorePass, trigger: 'blur' }
+          ]
         },
         ShowTxOnChainBox: false,    //是否显示链上转账窗口
+        ShowTxOnChannelBox: false,      //是否显示通道转账窗口
         contact: ''     //当前选中联系人
     }
   },
@@ -196,15 +222,16 @@ export default {
       } else {
         if(_this.paymentCode.substr(0,2) == "TN"){
           console.log("进入通道交易");
+          _this.txOnChannel();
         } else {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '付款码错误，请确认',
-            duration: 3000
-          });
-          return;
-        }
+        this.$notify.error({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: '付款码错误，请确认',
+          duration: 3000
+        });
+        return;
+      }
       }
     },
     contactChange() {       //当选中联系人时将值赋给payment code
@@ -287,7 +314,7 @@ export default {
               nonce: web3.utils.toHex(nonce++),
               gasPrice: web3.utils.toHex(gasPrice), 
               gasLimit: web3.utils.toHex(4500000),
-              to: "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218",
+              to: _this.$store.state.vuexStore.tncContractAddress,
               from: _this.$store.state.vuexStore.walletInfo.address, 
               value: '0x00', 
               data: '0x' + functionSig + web3.utils.padLeft(_this.txOnChainInfo.address.slice(2), 64) + web3.utils.padLeft(web3.utils.toHex(_this.txOnChainInfo.amount * 10e7).substr(2), 64)
@@ -317,6 +344,142 @@ export default {
         })   
       })
     },
+    txOnChannel() {
+      let _this = this;
+      let LinkData;
+        try {
+          LinkData = base58decode(_this.paymentCode.substring(2)).toString();
+        } catch (e) {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '付款码解析错误1',
+            duration: 3000
+          });
+          return false;
+        } finally {
+
+        }
+        console.log(LinkData);
+        if(LinkData.indexOf("&") > -1){           //判断linkData中是否有&隔离符
+        let LinkDataList = LinkData.split("&");     //去除隔离符取出数据
+
+        _this.txOnChannelInfo.receiverUri = LinkDataList[0];
+        _this.txOnChannelInfo.hr = LinkDataList[1];
+        _this.txOnChannelInfo.assetType = _this.$parent.assetContractAddress2AssetType(LinkDataList[2]);
+        _this.txOnChannelInfo.value = LinkDataList[3] * 10e7;      //避免浮点型误差
+        _this.txOnChannelInfo.description = LinkDataList[4];
+        console.log(_this.txOnChannelInfo);
+
+        if (!web3.utils.isAddress(_this.txOnChannelInfo.receiverUri.split("@")[0])) {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '付款码解析错误2',
+            duration: 3000
+          });
+          return;
+        } else if (_this.txOnChannelInfo.hr == "") {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '付款码解析错误3',
+            duration: 3000
+          });
+          return;
+        } else if (_this.txOnChannelInfo.assetType == "") {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '付款码解析错误4',
+            duration: 3000
+          });
+          return;
+        } else if (_this.txOnChannelInfo.value == 0) {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '付款码解析错误5',
+            duration: 3000
+          });
+          return;
+        } else if (_this.$store.state.vuexStore.walletInfo.address === _this.txOnChannelInfo.receiverUri.split("@")[0]) {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '收付款地址不能相同',
+            duration: 3000
+          });
+          return;
+        }
+        if(_this.txOnChannelInfo.assetType == "ETH"){
+          _this.txEthOnChannel();
+        } else if(_this.txOnChannelInfo.assetType == "TNC") {
+          _this.txTncOnChannel();
+        }
+      } else {                  //如果没有&隔离符,给出提醒 终止
+        _this.$notify.error({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: '付款码解析错误，请确认',
+          duration: 3000
+        });
+        return false;
+      }
+    },
+    txEthOnChannel() {
+
+    },
+    txTncOnChannel() {
+      let _this = this;
+      console.log("进入通道交易TNC");
+      return false;
+      let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open');
+      if(l >= 0){
+          console.log(l);
+          let Message = {
+          "MessageType":"Rsmc",
+          "Sender": _this.txOnChannelInfo.sendUri,
+          "Receiver": _this.txOnChannelInfo.receiverUri,
+          "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce,
+          "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
+          "NetMagic": _this.$store.state.vuexStore.NetMagic,
+          "MessageBody": {
+            "AssetType": _this.txOnChannelInfo.assetType,
+            "PaymentCount": _this.txOnChannelInfo.value,
+            "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
+            "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
+            "Commitment": commitment
+          },
+          "Comments": {}
+        }
+        _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+      } else if (l == -1){
+          _this.$notify.error({
+              title: '警告',
+              dangerouslyUseHTMLString: true,
+              message: '未与该Uri建立通道',
+              duration: 3000
+            });
+          return;
+      } else if (l == -2){
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '通道未打开',
+            duration: 3000
+          });
+          return;
+      } else {
+          _this.$notify.error({
+            title: '警告',
+            dangerouslyUseHTMLString: true,
+            message: '未知错误,l值为' + l,
+            duration: 3000
+          });
+          return;
+      }
+    },
     clearTxData() {       //清空链上转账信息
       this.txOnChainInfo = {
         "address": '',
@@ -334,7 +497,7 @@ export default {
 <style scoped>
 .indexBox{
   float: left;
-  height: calc(100vh - 106px);
+  height: calc(100% - 106px);
   width: 100%;
   overflow: hidden;
 }

@@ -105,12 +105,12 @@ export default {
 <style scoped>
 .createForm{
     float: left;
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     overflow: hidden;
 }
 .contentBox{
-    height: calc(100vh - 106px);
+    height: calc(100% - 106px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
