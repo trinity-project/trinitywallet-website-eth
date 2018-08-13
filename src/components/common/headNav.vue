@@ -190,11 +190,31 @@ export default {
             this.$router.push(router);
         }
     },
-    testFun() {      //切换登录状态并保存，用于测试
-        // this.$store.state.vuexStore.channelList = [];
-        // this.$parent.StoreChannel();
-        // return false;
+    testFun() {      //用于测试
         let _this = this;
+        let redata = {
+            "MessageType":"Rsmc",
+            "Sender": "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089",
+            "Receiver": "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089",
+            "TxNonce": 1,
+            "ChannelName": 0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf,
+            "NetMagic": this.$store.state.vuexStore.NetMagic,
+            "MessageBody": {
+            "AssetType": "TNC",
+            "PaymentCount": 2,
+            "SenderBalance": 10,
+            "ReceiverBalance": 10,
+            "Commitment": "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf"
+            },
+            "Comments": {}
+        }
+        _this.$notify.info({
+            title: '消息',
+            duration: 0,
+            message: redata.Sender.split("@")[0] + "正在向你转账,需要你解锁钱包,点击进行解锁",
+            onClick: _this.$parent.showReceiptInfoBox
+        });
+        return false;
         let txData = web3.utils.soliditySha3(         //生成代签名交易数据
             {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[0].ChannelName},    //通道名称
             {t: 'uint256', v: 1},                                   //TXnonce

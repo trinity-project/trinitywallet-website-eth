@@ -51,7 +51,7 @@ export default {
     width: 95%;
     max-width: 400px;
     z-index: 3;
-    background-color: rgba(25, 25, 25, 0.8);
+    background-color: rgba(25, 25, 25, 0.88);
     position: absolute;
     top: 66px;
     right: 10px;

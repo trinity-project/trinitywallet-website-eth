@@ -438,30 +438,59 @@ export default {
       if(l >= 0){
           console.log(l);
           let Message = {
-          "MessageType":"Rsmc",
-          "Sender": _this.txOnChannelInfo.sendUri,
-          "Receiver": _this.txOnChannelInfo.receiverUri,
-          "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce,
-          "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
-          "NetMagic": _this.$store.state.vuexStore.NetMagic,
-          "MessageBody": {
-            "AssetType": _this.txOnChannelInfo.assetType,
-            "PaymentCount": _this.txOnChannelInfo.value,
-            "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
-            "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
-            "Commitment": commitment
-          },
-          "Comments": {}
-        }
+            "MessageType":"Rsmc",
+            "Sender": _this.txOnChannelInfo.sendUri,
+            "Receiver": _this.txOnChannelInfo.receiverUri,
+            "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce,
+            "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
+            "NetMagic": _this.$store.state.vuexStore.NetMagic,
+            "MessageBody": {
+              "AssetType": _this.txOnChannelInfo.assetType,
+              "PaymentCount": _this.txOnChannelInfo.value,
+              "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
+              "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
+              "Commitment": commitment
+            },
+            "Comments": {}
+          }
         _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
-      } else if (l == -1){
+      } else if (l == -1){        //未与该Uri直连,查询路由情况
           _this.$notify.error({
-              title: '警告',
+            title: '提醒',
+            dangerouslyUseHTMLString: true,
+            message: '未与该Uri建立通道,开始查询路由',
+            duration: 3000
+          });
+          let l = -1;
+          _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历通道列表,获取开通的通道
+            if(data[State] === 3){
+                if(data.State == 3 && data.isConnect == true){
+                  i = index;
+                  return;
+                }
+              }
+            })
+          if(l < 0){        //当l小于0时,未遍历到通道,给出提醒
+            _this.$notify.error({
+              title: '提醒',
               dangerouslyUseHTMLString: true,
-              message: '未与该Uri建立通道',
+              message: '没有开通的通道,请先建立通道',
               duration: 3000
             });
-          return;
+            return false;
+          } else {      //遍历到开通的通道
+            let Message = {         //构造消息,查询通道路由
+                "MessageType": "GetRouterInfo",
+                "Sender": _this.txOnChannelInfo.sendUri,
+                "Receiver": _this.txOnChannelInfo.receiverUri,
+                "Magic": _this.$store.state.vuexStore.NetMagic,
+                "MessageBody":{
+                    "AssetType": _this.txOnChannelInfo.assetType,
+                    "NodeList": UrlList,
+                }
+            }
+            _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+          }
       } else if (l == -2){
           _this.$notify.error({
             title: '警告',

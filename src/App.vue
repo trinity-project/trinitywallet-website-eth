@@ -8,6 +8,36 @@
           <footer-box/>
       </div>
       <head-nav/>
+        <el-dialog class="receiptInfoBox" title="收款" :visible.sync="isReceiptRsmcInfoBox" width="30%" center :modal-append-to-body='false'>                    <!--  回复Rsmc消息框 -->
+          <span>{{ activeInfo.redata.Sender }}向你转账</span>
+          <span style="color:#F56C6C">{{ activeInfo.redata.PaymentCount }} {{ activeInfo.redata.AssetType }}</span>
+          <span slot="footer" class="dialog-footer">
+            <el-form :model="activeInfo" status-icon :rules="confirmReceiptRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
+              <el-form-item label="密码" prop="keyStorePass">
+                <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+              </el-form-item>
+              <el-form-item style="text-align:center;margin-left: -80px;">
+                <el-button @click="RsmcSign()" type="danger"> 确定 </el-button>
+                <el-button @click="isReceiptRsmcInfoBox = false;"> 取消 </el-button>
+              </el-form-item>
+            </el-form>            
+          </span>
+        </el-dialog>
+        <el-dialog class="receiptInfoBox" title="收款" :visible.sync="isReceiptHtlcInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  回复Htlc消息框 -->
+          <span>{{ activeInfo.redata.Sender }}向你转账</span>
+          <span style="color:#F56C6C">{{ activeInfo.redata.PaymentCount }} {{ activeInfo.redata.AssetType }}</span>
+          <span slot="footer" class="dialog-footer">
+            <el-form :model="activeInfo" status-icon :rules="confirmReceiptRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
+              <el-form-item label="密码" prop="keyStorePass">
+                <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+              </el-form-item>
+              <el-form-item style="text-align:center;margin-left: -80px;">
+                <el-button @click="HtlcSign()" type="danger"> 确定 </el-button>
+                <el-button @click="isReceiptHtlcInfoBox = false;"> 取消 </el-button>
+              </el-form-item>
+            </el-form>            
+          </span>
+        </el-dialog>
     </div>
   </div>
 </template>
@@ -21,6 +51,35 @@ import footerBox from './components/common/footer'
 
 export default {
   name: 'App',
+  data () {
+      var validatePass = (rule, value, callback) => {         //Receipt 密码输入规则
+      if (!value) {
+        return callback(new Error('钱包密码不能为空，否则将无法交易'));
+      } else {
+        let PrivateKey = this.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore,this.activeInfo.keyStorePass);
+        setTimeout(() => {
+            if(PrivateKey){
+            callback();
+            } else {
+            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+            }
+        }, 2000);
+      }
+    };
+    return {
+        isReceiptRsmcInfoBox: false,     //是否显示接收消息框
+        isReceiptHtlcInfoBox: false,     //是否显示接收消息框
+        activeInfo: {
+          "redata": [],
+          "keyStorePass": ''
+        },
+        confirmReceiptRules: {        //Receipt 输入规则
+          keyStorePass: [
+            { validator: validatePass, trigger: 'blur' }
+          ]
+        }
+    }
+  },
   components: {
     headNav,
     headBox,
@@ -366,23 +425,11 @@ export default {
       case "FounderSign":
         _this.OnMesFounderSign(redata);
         break;
-      case "RegisterChannel":
-        _this.OnMesRegisterChannel(redata);
-        break;
-      case "AddChannel":
-        _this.OnMesAddChannel(redata);
-        break;
-      case "FounderFail":
-        _this.OnMesFounderFail(redata);
-        break;
       case "Rsmc":
         _this.OnMesRsmc(redata);
         break;
       case "RsmcSign":
         _this.OnMesRsmcSign(redata);
-        break;
-      case "RsmcFail":
-        _this.OnMesRsmcFail(redata);
         break;
       case "AckRouterInfo":
         _this.OnMesAckRouterInfo(redata);
@@ -392,9 +439,6 @@ export default {
         break;
       case "HtlcSign":
         _this.OnMesHtlcSign(redata);
-        break;
-      case "HtlcFail":
-        _this.OnMesHtlcFail(redata);
         break;
       case "RResponse":
         _this.OnMesRResponse(redata);
@@ -411,9 +455,6 @@ export default {
       case "Settle":
         _this.OnMesSettle(redata);
         break;
-      case "RegisterChannelFail":
-        _this.OnMesRegisterChannelFail(redata);
-        break;
       case "ChannelInfo":
         _this.OnMesChannelInfo(redata);
         break;
@@ -426,7 +467,7 @@ export default {
     },
     OnMesFounder:function(redata){
       var _this = this;
-      let i = getChannelSerial(ChannelName,redata.ChannelName);
+      let i = _this.getChannelSerial("ChannelName",redata.ChannelName);
       let MessageBody = redata.MessageBody;
       let decryptPrivateKey = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);
       _this.$store.state.vuexStore.FoundertxDataSign = signData(MessageBody.Founder.txData, decryptPrivateKey);
@@ -515,73 +556,78 @@ export default {
           console.log(gasPrice);
         var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.trinityContractAbi, _this.$store.state.vuexStore.trinityContractAddress, {
             from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-            gasPrice: gasPrice        //Gas价格
+            gasPrice: gasPrice * 10        //Gas价格
         });
         let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.addChannelInfo.keyStorePass);
         web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
           // 获取交易次数
 
-            let functionSig = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
-            console.log(functionSig);
-            console.log(_this.$store.state.vuexStore.addChannelInfo.channelName);
-            console.log('0');
-            console.log(_this.$store.state.vuexStore.walletInfo.address);
-            console.log(_this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7);
-            console.log(_this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0]);
-            console.log(_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7);
-            console.log(_this.$store.state.vuexStore.addChannelInfo.selfSignedData);
-            console.log(redata.MessageBody.Commitment);
-            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.addChannelInfo.channelName,'0', _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0],_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
-            console.log(data);
+          let functionSig = web3.eth.abi.encodeFunctionSignature('deposit(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
+          console.log(functionSig);
+          console.log(_this.$store.state.vuexStore.addChannelInfo.channelName);
+          console.log('0');
+          console.log(_this.$store.state.vuexStore.walletInfo.address);
+          console.log(_this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7);
+          console.log(_this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0]);
+          console.log(_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7);
+          console.log(_this.$store.state.vuexStore.addChannelInfo.selfSignedData);
+          console.log(redata.MessageBody.Commitment);
+          let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.addChannelInfo.channelName,'0', _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0],_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.addChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
+          console.log(data);
 
-            var txData = {        //组成txData数据
-                nonce: web3.utils.toHex(nonce++),
-                gasPrice: web3.utils.toHex(gasPrice), 
-                gasLimit: web3.utils.toHex(4500000),
-                to: _this.$store.state.vuexStore.trinityContractAddress,
-                from: _this.$store.state.vuexStore.walletInfo.address, 
-                value: '0x00', 
-                data: functionSig + data.substr(2)
-            };
-            console.log(txData);
+          var txData = {        //组成txData数据
+              nonce: web3.utils.toHex(nonce++),
+              gasPrice: web3.utils.toHex(gasPrice * 10), 
+              gasLimit: web3.utils.toHex(4500000),
+              to: _this.$store.state.vuexStore.trinityContractAddress,
+              from: _this.$store.state.vuexStore.walletInfo.address, 
+              value: '0x00', 
+              data: functionSig + data.substr(2)
+          };
+          console.log(txData);
 
-            let signedData = signData(txData,decryptPK.privateKey);
-            console.log(signedData);
+          let signedData = signData(txData,decryptPK.privateKey);
+          console.log(signedData);
 
-            web3.eth.sendSignedTransaction('0x' + signedData)
-                  .on('transactionHash', function(hash){
-                      console.log(hash);
-                      _this.$notify({
-                          title: '成功',
-                          dangerouslyUseHTMLString: true,
-                          message: '上链成功，请交易确认',
-                          duration: 3000,
-                          type: 'success'
-                      });
-                  })
-                  .on('receipt', function(receipt){
-                      console.log(receipt);
-                      _this.$notify({
-                          title: '成功',
-                          dangerouslyUseHTMLString: true,
-                          message: '交易已确认',
-                          duration: 3000,
-                          type: 'success'
-                      });
-                  })
-                  .on('confirmation', function(confirmationNumber, receipt){
-                    // console.log(confirmationNumber);
-                  })
-                  .on('error', function(error){
-                      _this.$notify.error({
-                        title: '警告',
-                        dangerouslyUseHTMLString: true,
-                        message: error,
-                        duration: 3000
-                      });
-                      return;
-                  })
-            });
+          web3.eth.sendSignedTransaction('0x' + signedData)
+            .on('transactionHash', function(hash){
+              console.log(hash);
+              _this.$notify({
+                  title: '成功',
+                  dangerouslyUseHTMLString: true,
+                  message: '上链成功，请交易确认',
+                  duration: 3000,
+                  type: 'success'
+              });
+            })
+            .on('receipt', function(receipt){
+              console.log(receipt);
+              _this.$notify({
+                  title: '成功',
+                  dangerouslyUseHTMLString: true,
+                  message: '交易已确认',
+                  duration: 3000,
+                  type: 'success'
+              });
+            })
+            .on('confirmation', function(confirmationNumber, receipt){
+              if(receipt.status == "0x0"){
+                return false;
+              }
+            })
+            .on('error', function(error){
+              _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '交易确认失败',
+                duration: 0
+              });
+              let l = _this.getChannelSerial("ChannelName",_this.$store.state.vuexStore.addChannelInfo.channelName);
+              _this.$store.state.vuexStore.channelList.splice(l,1);
+              _this.StoreChannel();         //储存通道信息
+              return false;
+            })
+          });
           let Message = {
             'messageType': 'monitorDeposit',
             "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
@@ -595,338 +641,99 @@ export default {
         console.log("Status异常");
       }
     },
-    OnMesRegisterChannel:function(redata){
-       var _this = this;
-       var k = _this.FounderFailI;
-      //  console.log(k);
-        let ip = _this.UriToIp(redata.Sender,20556);
-        // console.log(ip);
-        axios({
-         method: 'post',
-         url: _this.RpcUrl,
-         headers: {
-           'Content-Type': 'application/json;charset=UTF-8'
-         },
-         data: JSON.stringify({
-           "jsonrpc": "2.0",
-           "method": "FunderCreate",
-           "params": [redata.Sender.split("@")[0],redata.Receiver.split("@")[0],redata.MessageBody.Deposit,redata.MessageBody.AssetType],
-           "id": 1
-         })
-        }).then(function(res){
-          // console.log(res);
-          let Message = {
-              "MessageType":"Founder",
-              "Sender": redata.Receiver,
-              "Receiver":redata.Sender,
-              "TxNonce": 0,
-              "ChannelName":redata.ChannelName,
-              "MessageBody": {
-                  "Founder": res.data.result.Founder,
-                  "Commitment":res.data.result.C_TX,
-                  "RevocableDelivery":res.data.result.R_TX,
-                  "AssetType":redata.MessageBody.AssetType,
-                  "Deposit": redata.MessageBody.Deposit,
-                  "RoleIndex":0
-              },
-              "Comments":"retry"
-           }
-          //  console.log(Message);
-           // var _this = this;
-           // var i = this.FounderFail.index;
-          //  console.log(k);
-           let oldChannelName = "";
-           _this.websock.forEach(function(val,index){   //遍历
-           if(index === k){
-                oldChannelName = val.ChannelName;
-                val.ChannelName = redata.ChannelName;
-             }
-           });
-           _this.ChannelItems.forEach(function(val,index){   //遍历
-            if(val.ChannelName === oldChannelName){
-                 val.ChannelName = redata.ChannelName;
-             }
-           });
-           _this.websock[k].data.send(JSON.stringify(Message));
-           _this.ChannelItems.forEach(function(val,index){   //遍历
-           if(val.ChannelName === redata.MessageBody.ChannelName){
-                _this.Founder = redata.Sender;
-                _this.Receiver = redata.Receiver;
-                _this.$set(val,'Flag',3);
-            }
-           });
-        });
-    },
-    OnMesAddChannel:function(redata){
-       let _this = this;
-       _this.ChannelItems.forEach(function(val,index){   //遍历
-        if(val.ChannelName === redata.MessageBody.ChannelName){
-             _this.$set(val,'Flag',4);
-             let TxNonceMessage = {
-               "ChannelName":redata.MessageBody.ChannelName,
-               "TxNonce":0
-             }
-             _this.TxNonceList.push(TxNonceMessage);
-             _this.StoreTxNonce();
-             swal({
-                title: "Success!",
-                text: "Channel has been opened.",
-                type: "success",
-                showCancelButton: false
-             });
-             let Message1 = {
-                "Address":val.Name,
-                "Amount":val.Balance,
-                "AssetType":val.AssetType,
-                "Fee":0,
-                "Flag":true,
-                "isTestNet":_this.isTestNet,
-                "Date":new Date().getTime()
-             }
-             _this.RecordList.push(Message1);
-             _this.StoreRecordList(_this.RecordList);
-            //  _this.GetAssetsBalance();
-         }
-      })
-    },
-    OnMesRegisterChannelFail:function(redata){
-      // console.log("收到type为" + type + "的消息");
-      let _this = this;
-      _this.ChannelItems.forEach(function(val,index){   //遍历
-        if(val.ChannelName === redata.ChannelName){
-          _this.ChannelItems.splice(index,1);
-        }
-      })
-      swal({
-        title: "Fail",
-        text: redata.Error,
-        type: "error",
-        showCancelButton: false
-      });
-    },
-    OnMesFounderFail:function(redata){
-            // console.log("收到type为" + type + "的消息");
-      let _this = this;
-      _this.ChannelItems.forEach(function(val,index){   //遍历
-        if(val.ChannelName === redata.ChannelName){
-          _this.ChannelItems.splice(index,1);
-        }
-      })
-      swal({
-        title: "Fail",
-        text: redata.Error,
-        type: "error",
-        showCancelButton: false
-      });
-    },
     OnMesRsmc:function(redata){
-       var _this = this;
-       let i;
-       _this.websock.forEach(function(val,index){   //遍历
-         if(val.ChannelName === redata.ChannelName){
-              i = index;
-              return false;
-          }
-       })
-       let MessageBody = redata.MessageBody;
-      //  console.log(MessageBody);
-       //this.FoundertxDataSign = signatureData( MessageBody.Founder.txData, this.WalletInfo.PrivateKey);
-      //  console.log(MessageBody.Commitment);
-      //  if(MessageBody.Commitment === undefined){
-      //     swal({
-      //       title: "Fail",
-      //       text: "something error",
-      //       type: "error",
-      //       showCancelButton: false
-      //     });
-      //     return
-      //  }
-       if (MessageBody.RoleIndex === 3 && redata.Receiver.split('@')[0] === _this.WalletInfo.PublicKey){
-         //当本端为RSMC交易发起者时，且RoleIndex为3时保存BreachRemed交易
-          if(MessageBody.BreachRemedy){
-            _this.TxList.forEach(function(val,index){   //遍历
-              if(val.ChannelName === redata.ChannelName){
-                  val.BreachRemedy = MessageBody.BreachRemedy;
-                  return false;
-              }
-            })
-          }
-       } else if(MessageBody.RoleIndex === 2 && redata.Receiver.split('@')[0] === _this.WalletInfo.PublicKey){
-         //当对端为RSMC交易发起者时，且RoleIndex为2时保存BreachRemed交易
-          if(MessageBody.BreachRemedy){
-            _this.TxList.forEach(function(val,index){   //遍历
-              if(val.ChannelName === redata.ChannelName){
-                  val.BreachRemedy = MessageBody.BreachRemedy;
-                  return false;
-              }
-            })
-          }
-       }
-       let commitment_sig,rd_sig;
-       if(MessageBody.Commitment){
-         commitment_sig = signatureData( MessageBody.Commitment.txData, this.WalletInfo.PrivateKey);
-       }
-       if(MessageBody.RevocableDelivery){
-         rd_sig = signatureData( MessageBody.RevocableDelivery.txData, this.WalletInfo.PrivateKey);
-       }
-       let Message = {
-          "MessageType":"RsmcSign",
-          "Sender": redata.Receiver,
-          "Receiver":redata.Sender,
-          "ChannelName":redata.ChannelName,
-          "TxNonce": redata.TxNonce,
-          "MessageBody": {
-              "Commitment": {
-                "txDataSign":commitment_sig,
-                "originalData":MessageBody.Commitment
-              },
-              "RevocableDelivery": {
-                "txDataSign":rd_sig,
-                "originalData":MessageBody.RevocableDelivery
-              },
-              "AssetType": redata.MessageBody.AssetType,
-              "Value": redata.MessageBody.Value,
-              "RoleIndex": redata.MessageBody.RoleIndex,
-              "Comments": redata.MessageBody.Comments
-              },
-          }
-        if(commitment_sig || rd_sig){
-          _this.websock[i].data.send(JSON.stringify(Message));
-          // console.log(JSON.stringify(Message));
-        }
-        
-        if(MessageBody.RoleIndex === 0){
-          //当RoleIndex为0时回复Rsmc同时构造Rsmc交易
-            let Balance,Balance2;
-            _this.ChannelItems.forEach(function(val,index){
-              if(val.ChannelName === redata.ChannelName){
-                  Balance = val.Balance;
-                  Balance2 = val.Balance2;
-              }
-            });
-            let l = [];
-            _this.TxList.forEach(function(data,index){
-              if(data.ChannelName === redata.ChannelName){
-                  l.push(data.Founder);
-              }
-            });
-            // console.log(l);
-            let lLength = l.length - 1;
-            //console.log(l[lLength]);
-            let txId = l[lLength].txId;
-            let addressFunding = l[lLength].addressFunding;
-            //console.log(addressFunding);
-            let scriptFunding = l[lLength].scriptFunding;
-            //console.log(scriptFunding);
+      // 收到的消息体
+      // {
+      //   "MessageType":"Rsmc",
+      //   "Sender": sendUri,
+      //   "Receiver": receiverUri,
+      //   "TxNonce": TxNonce,
+      //   "ChannelName": ChannelName,
+      //   "NetMagic": _this.$store.state.vuexStore.NetMagic,
+      //   "MessageBody": {
+      //     "AssetType": _this.txOnChannelInfo.assetType,
+      //     "PaymentCount": _this.txOnChannelInfo.value,
+      //     "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
+      //     "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
+      //     "Commitment": commitment
+      //   },
+      //   "Comments": {}
+      // }
+      var _this = this;
+      let l = _this.$parent.getChannelSerial("ChannelName", redata.ChannelName,'open');      //获取所需的channel在List的位置
+      if(l == -1){          //当l为-1时,未遍历到通道
+        _this.$notify.error({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: '未与该Uri建立通道',
+          duration: 0
+        });
+        return false;
+      } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
+        _this.$notify.error({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: '该通道未Open或者未连接上websocket',
+          duration: 0
+        });
+        return false;
+      } else{
+        _this.activeInfo.redata = redata;     
+        _this.$notify.info({
+            title: '消息',
+            duration: 0,
+            message: _this.$store.state.vuexStore.channelList[l].Alice + "通道有收款消息,需要你解锁钱包.<br/>点击进行解锁",
+            onClick: _this.showReceiptRsmcInfoBox        //显示接收信息框
+        });
+      }
+    },
+    showReceiptRsmcInfoBox() {       //显示接收信息框
+      this.isReceiptRsmcInfoBox = true;
+    },
+    RsmcSign() {          //进入RsmcSign,开始对交易数据签名
+      let _this = this;
+      _this.$refs['activeInfo'].validate((valid) => {
+        if (valid) {
+          let l = _this.getChannelSerial("ChannelName", _this.activeInfo.redata.ChannelName,'open'); //获取所需的channel在List的位置
 
-            // console.log(p);
-            let ip = _this.UriToIp(redata.Receiver,20556);
-            axios({
-              method: 'post',
-              url: _this.RpcUrl,
-              headers: {
-                'Content-Type': 'application/json;charset=UTF-8'
+          let txData = web3.utils.soliditySha3(         //生成代签名交易数据
+              {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[l].ChannelName},    //通道名称
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce},                                //TXnonce
+              {t: 'address', v: _this.$store.state.vuexStore.channelList[0].OtherUri.split("@")[0]},                 //本端地址
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].OtherBalance - (_this.activeInfo.redata.PaymentCount * 10e7)},       //本端押金
+              {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                                    //对端地址
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].SelfBalance + (_this.activeInfo.redata.PaymentCount * 10e7)}       //对端押金
+          );
+          console.log(txData);
+
+          let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore, _this.activeInfo.keyStorePass);        //解锁钱包用于签名          
+          let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
+          console.log(selfSignedData); 
+          let commitment;
+          if(_this.activeInfo.redata.SenderBalance == _this.$store.state.vuexStore.channelList[l].SelfBalance && _this.activeInfo.redata.ReceiverBalance == _this.$store.state.vuexStore.channelList[l].OtherBalance){      //判断通道余额是否正确
+            let Message = {
+              "MessageType":"RsmcSign",
+              "Sender": _this.activeInfo.redata.Receiver,
+              "Receiver": _this.activeInfo.redata.Sender,
+              "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce,
+              "ChannelName": _this.activeInfo.redata.ChannelName,
+              "NetMagic": _this.$store.state.vuexStore.NetMagic,
+              "MessageBody": {
+                "AssetType": _this.$store.state.vuexStore.channelList[l].assetType,
+                "PaymentCount": _this.activeInfo.redata.PaymentCount,
+                "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
+                "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
+                "Commitment": commitment,
               },
-              data: JSON.stringify({
-                "jsonrpc": "2.0",
-                "method": "FunderTransaction",    //实际为RSMCTransaction，与FunderTransaction公用一个接口方法
-                "params": [ redata.Sender.split('@')[0] ,_this.WalletInfo.PublicKey ,addressFunding ,scriptFunding ,Balance2 ,Balance , txId , redata.MessageBody.AssetType],
-                "id": 1
-              })
-            }).then(function(res){
-                console.log(res);
-                let Message = {
-                  "MessageType":"Rsmc",
-                  "Sender": redata.Receiver,
-                  "Receiver": redata.Sender,
-                  "TxNonce": redata.TxNonce,
-                  "ChannelName": redata.ChannelName,
-                  "MessageBody": {
-                      "Commitment": res.data.result.C_TX,
-                      "RevocableDelivery": res.data.result.R_TX,
-                      "AssetType": redata.MessageBody.AssetType,
-                      "Value": redata.MessageBody.Value,
-                      "RoleIndex": redata.MessageBody.RoleIndex + 1,
-                      "Comments": redata.MessageBody.Comments
-                  }
-                  }
-                  _this.websock[i].data.send(JSON.stringify(Message));
-                  console.log(JSON.stringify(Message));
-
-                  _this.BreachRemedy = res.data.result.BR_TX;
-
-                  // let Address;
-                  // _this.ChannelItems.forEach(function(val,index){   //遍历
-                  //   if(val.ChannelName === redata.ChannelName){
-                  //         Address = val.Name;
-                  //     }
-                  // })
-                  // // let ReceiverAddr = _this.PlckToAdrs(_this.TxOnChannelInfo.ReceiverUrl.split("@")[0]);
-                  // let Message1 = {
-                  //   "Address":Address,
-                  //   "Amount":_this.TxOnChannelInfo.Value/10000,
-                  //   "AssetType":_this.TxOnChannelInfo.AssetType,
-                  //   "Fee":_this.TxOnChannelInfo.Fee,
-                  //   "Flag":false,
-                  //   "isTestNet":_this.isTestNet,
-                  //   "Date":new Date().getTime()
-                  // }
-                  // _this.RecordList.push(Message1);
-                  // _this.StoreRecordList(_this.RecordList);
-            });
-        }
-        if(MessageBody.RoleIndex === 1 || MessageBody.RoleIndex === 2){
-          //_this.FounderFail = redata.MessageBody;
-          // _this.FounderFailI = i;
-          // let ip = _this.UriToIp(this.ReceiverUrl,20556);
-          // console.log(ip);
-          // console.log(redata.Comments);
-          let Founder;
-          _this.TxList.forEach(function(val,index){   //遍历
-            if(val.ChannelName === redata.ChannelName){
-                  Founder = val.Founder;
-              }
-          })
-          let BreachRemedy_sig = signatureData( _this.BreachRemedy.txData, _this.WalletInfo.PrivateKey);
-          let Message1 = {
-            "MessageType":"Rsmc",
-            "Sender": redata.Receiver,
-            "Receiver":redata.Sender,
-            "ChannelName":redata.ChannelName,
-            "TxNonce": redata.TxNonce,
-            "MessageBody": {
-                "BreachRemedy": {
-                  "txDataSign":BreachRemedy_sig,
-                  "originalData":_this.BreachRemedy
-                },
-                "AssetType": redata.MessageBody.AssetType,
-                "Value": redata.MessageBody.Value,
-                "RoleIndex": redata.MessageBody.RoleIndex + 1,
-                "Comments":redata.MessageBody.Comments
-                },
+              "Comments": {},
+              "Status": "RESPONSE_OK",
             }
-          _this.websock[i].data.send(JSON.stringify(Message1));
-          //  console.log(JSON.stringify(Message1));
-        }
-        if(MessageBody.RoleIndex === 2){
-          let Name;
-          _this.ChannelItems.forEach(function(data,index){
-            if(data.ChannelName === redata.ChannelName){
-              Name = data.Name;
-            }
-          })
-          // let ReceiverAddr = _this.PlckToAdrs(redata.Sender.split("@")[0]);
-          let Message1 = {
-            "Address": Name,
-            "Amount": redata.MessageBody.Value,
-            "AssetType": redata.MessageBody.AssetType,
-            "Fee": 0,
-            "Flag":true,
-            "isTestNet":_this.isTestNet,
-            "Date":new Date().getTime()
           }
-          _this.RecordList.push(Message1);
+        } else {
+            console.log('error submit!!');
+            return false;
         }
+      })
     },
     OnMesRsmcSign:function(redata){
       //收到的消息体
@@ -984,14 +791,6 @@ export default {
         });
         return;
       }
-    },
-    OnMesRsmcFail:function(redata){
-        swal({
-          title: "Info.",
-          text: redata.Error,
-          type: "info",
-          showCancelButton: false
-        });
     },
     OnMesAckRouterInfo:function(redata){
         // console.log("收到type为" + type + "的消息");
@@ -1128,194 +927,98 @@ export default {
         }
     },
     OnMesHtlc:function(redata){
+      // 收到的消息体
+      // {
+      //   "MessageType":"Htlc",
+      //   "Sender": sendUri,
+      //   "Receiver": receiverUri,
+      //   "TxNonce": TxNonce,
+      //   "ChannelName": ChannelName,
+      //   "NetMagic": _this.$store.state.vuexStore.NetMagic,
+      //   "MessageBody": {
+      //     "AssetType": _this.txOnChannelInfo.assetType,
+      //     "PaymentCount": _this.txOnChannelInfo.value,
+      //     "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
+      //     "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
+      //     "Commitment": commitment
+      //   },
+      //   "Comments": {}
+      // }
+      var _this = this;
+      let l = _this.$parent.getChannelSerial("ChannelName", redata.ChannelName,'open');      //获取所需的channel在List的位置
+      if(l == -1){          //当l为-1时,未遍历到通道
+        _this.$notify.error({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: '未与该Uri建立通道',
+          duration: 0
+        });
+        return false;
+      } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
+        _this.$notify.error({
+          title: '警告',
+          dangerouslyUseHTMLString: true,
+          message: '该通道未Open或者未连接上websocket',
+          duration: 0
+        });
+        return false;
+      } else{
+        _this.activeInfo.redata = redata;     
+        _this.$notify.info({
+            title: '消息',
+            duration: 0,
+            message: _this.$store.state.vuexStore.channelList[l].Alice + "通道有收款消息,需要你解锁钱包.<br/>点击进行解锁",
+            onClick: _this.showReceiptInfoBox        //显示接收信息框
+        });
+      }
+    },
+    showReceiptHtlcInfoBox() {       //显示接收信息框
+      this.isReceiptInfoBox = true;
+    },
+    HtlcSign() {          //进入HtlcSign,开始对交易数据签名
       let _this = this;
-      _this.HtlcFlag = true;    //消息接收标记
+      _this.$refs['activeInfo'].validate((valid) => {
+        if (valid) {
+          let l = _this.getChannelSerial("ChannelName", _this.activeInfo.redata.ChannelName,'open'); //获取所需的channel在List的位置
 
-      let MessageBody = redata.MessageBody;
-      let RoleIndex = MessageBody.RoleIndex;
-      let i;
-      _this.websock.forEach(function(val,index){   //遍历
-        if(val.ChannelName === redata.ChannelName){
-              i = index;
-              return false;
-          }
-      })
-      // console.log("收到type为" + type + "的消息");
-      let HCTX_sig,HTTX_sig,HTDTX_sig,HTRDTX_sig,RDTX_sig;
-      if(MessageBody.HCTX){
-        HCTX_sig = signatureData( MessageBody.HCTX.txData, this.WalletInfo.PrivateKey);
-        console.log("HCTX_sig:" + HCTX_sig);
-      }
-      // if(MessageBody.HERDTX){
-      //   let HERDTX_sig = signatureData( MessageBody.HERDTX.txData, this.WalletInfo.PrivateKey);
-      //   console.log("HERDTX_sig:" + HERDTX_sig);
-      // }
-      // if(MessageBody.HEDTX){
-      //   let HEDTX_sig = signatureData( MessageBody.HEDTX.txData, this.WalletInfo.PrivateKey);
-      //   console.log("HEDTX_sig:" + HEDTX_sig);
-      // }
-      if(MessageBody.HTTX){
-        HTTX_sig = signatureData( MessageBody.HTTX.txData, this.WalletInfo.PrivateKey);
-        console.log("HTTX_sig:" + HTTX_sig);
-      }
-      if(MessageBody.HTDTX){
-        HTDTX_sig = signatureData( MessageBody.HTDTX.txData, this.WalletInfo.PrivateKey);
-        console.log("HTDTX_sig:" + HTDTX_sig);
-      }
-      if(MessageBody.HTRDTX){
-        HTRDTX_sig = signatureData( MessageBody.HTRDTX.txData, this.WalletInfo.PrivateKey);
-        console.log("HTRDTX_sig:" + HTRDTX_sig);
-      }
-      // if(MessageBody.HETX){
-      //   let HETX_sig = signatureData( MessageBody.HETX.txData, this.WalletInfo.PrivateKey);
-      //   console.log("HETX_sig:" + HETX_sig);
-      // }
-      if(MessageBody.RDTX){
-        RDTX_sig = signatureData( MessageBody.RDTX.txData, this.WalletInfo.PrivateKey);
-        console.log("RDTX_sig:" + RDTX_sig);
-      }
-      let Message;
-      if(RoleIndex === 0){
-        Message = {
-        "MessageType":"HtlcSign",
-        "Sender": redata.Receiver,
-        "Receiver":redata.Sender,
-        "TxNonce": redata.TxNonce,
-        "ChannelName":redata.ChannelName,
-        "Router":redata.Router,
-        "Next":redata.Next,
-        "MessageBody": {
-                "HCTX": {
-                  "txDataSign":HCTX_sig,
-                  "originalData":MessageBody.HCTX,
-                },
-                "RDTX": {
-                  "txDataSign":RDTX_sig,
-                  "originalData":MessageBody.RDTX,
-                },
-                "HTTX": {
-                  "txDataSign":HTTX_sig,
-                  "originalData":MessageBody.HTTX,
-                },
-                "HTRDTX": {
-                  "txDataSign":HTRDTX_sig,
-                  "originalData":MessageBody.HTRDTX,
-                },
-                "HEDTX":MessageBody.HEDTX,
-                "RoleIndex":MessageBody.RoleIndex,
-                "Comments":"",
-                "Count":MessageBody.Count,
-                "AssetType":MessageBody.AssetType,
-                "HashR":MessageBody.HashR
-            }
-        }
-      } else if(RoleIndex === 1){
-        Message = {
-        "MessageType":"HtlcSign",
-        "Sender": redata.Receiver,
-        "Receiver":redata.Sender,
-        "TxNonce": redata.TxNonce,
-        "ChannelName":redata.ChannelName,
-        "Router":redata.Router,
-        "Next":redata.Next,
-        "MessageBody": {
-                "HCTX": {
-                  "txDataSign":HCTX_sig,
-                  "originalData":MessageBody.HCTX,
-                },
-                "RDTX": {
-                  "txDataSign":RDTX_sig,
-                  "originalData":MessageBody.RDTX,
-                },
-                "HTDTX": {
-                  "txDataSign":HTDTX_sig,
-                  "originalData":MessageBody.HTDTX,
-                },
-                "HETX": MessageBody.HETX,
-                "HERDTX": MessageBody.HERDTX,
-                "RoleIndex":MessageBody.RoleIndex,
-                "Comments":"",
-                "Count":MessageBody.Count,
-                "AssetType":MessageBody.AssetType,
-                "HashR":MessageBody.HashR
-            }
-        }
-      }
-        _this.websock[i].data.send(JSON.stringify(Message));
-        // console.log(JSON.stringify(Message));
-        if(RoleIndex === 0){
-          // 增加htlc回馈,当RoleIndex为0时，构造Htlc交易
-          let Balance;
-          let Balance2;
-          let ChannelName;
-          _this.ChannelItems.forEach(function(val,index){
-            if(val.Url === redata.Sender){
-               Balance = val.Balance;
-               Balance2 = val.Balance2;
-               ChannelName = val.ChannelName;
-            }
-          });
+          let txData = web3.utils.soliditySha3(         //生成代签名交易数据
+              {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[l].ChannelName},    //通道名称
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce},                                //TXnonce
+              {t: 'address', v: _this.$store.state.vuexStore.channelList[0].OtherUri.split("@")[0]},                 //本端地址
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].OtherBalance - (_this.activeInfo.redata.PaymentCount * 10e7)},       //本端押金
+              {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                                    //对端地址
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].SelfBalance + (_this.activeInfo.redata.PaymentCount * 10e7)}       //对端押金
+          );
+          console.log(txData);
 
-          let l = [];
-          _this.TxList.forEach(function(data,index){
-            if(data.ChannelName === ChannelName){
-               l.push(data.Founder);
-            }
-          });
-          console.log(i);
-          console.log(l);
-          let lLength = l.length - 1;
-          console.log(l[lLength]);
-          let addressFunding = l[lLength].addressFunding;
-          console.log(addressFunding);
-          let scriptFunding = l[lLength].scriptFunding;
-
-          axios({
-              method: 'post',
-              url: _this.RpcUrl,
-              headers: {
-                'Content-Type': 'application/json;charset=UTF-8'
+          let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore, _this.activeInfo.keyStorePass);        //解锁钱包用于签名          
+          let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
+          console.log(selfSignedData); 
+          let commitment;
+          if(_this.activeInfo.redata.SenderBalance == _this.$store.state.vuexStore.channelList[l].SelfBalance && _this.activeInfo.redata.ReceiverBalance == _this.$store.state.vuexStore.channelList[l].OtherBalance){      //判断通道余额是否正确
+            let Message = {
+              "MessageType":"RsmcSign",
+              "Sender": _this.activeInfo.redata.Receiver,
+              "Receiver": _this.activeInfo.redata.Sender,
+              "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce,
+              "ChannelName": _this.activeInfo.redata.ChannelName,
+              "NetMagic": _this.$store.state.vuexStore.NetMagic,
+              "MessageBody": {
+                "AssetType": _this.$store.state.vuexStore.channelList[l].assetType,
+                "PaymentCount": _this.activeInfo.redata.PaymentCount,
+                "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
+                "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
+                "Commitment": commitment,
               },
-              data: JSON.stringify({
-                "jsonrpc": "2.0",
-                "method": "HTLCTransaction",
-                "params": [_this.WalletInfo.PublicKey, redata.Sender.split("@")[0], MessageBody.Count, Balance,Balance2,MessageBody.HashR,addressFunding,scriptFunding,MessageBody.AssetType],
-                "id": 1
-              })
-            }).then(function(res){
-               console.log(res);
-              let HETX_sig = signatureData( res.data.result.HETX.txData, _this.WalletInfo.PrivateKey);
-              let HERDTX_sig = signatureData( res.data.result.HERDTX.txData, _this.WalletInfo.PrivateKey);
-              let Message1 = {
-                "MessageType":"Htlc",
-                "Sender": redata.Receiver,
-                "Receiver":redata.Sender,
-                "TxNonce": redata.TxNonce,
-                "ChannelName":ChannelName,
-                "Router":redata.Router,
-                "Next":redata.Next,
-                "MessageBody": {
-                        "HCTX":res.data.result.HCTX,
-                        "RDTX":res.data.result.RDTX,
-                        "HTDTX":res.data.result.HTDTX,
-                        "HETX":{
-                          "txDataSign":HETX_sig,
-                          "originalData":res.data.result.HETX,
-                        },
-                        "HERDTX":{
-                          "txDataSign":HERDTX_sig,
-                          "originalData":res.data.result.HERDTX,
-                        },
-                        "RoleIndex":MessageBody.RoleIndex + 1,
-                        "Comments":"",
-                        "Count":MessageBody.Count,
-                        "AssetType":MessageBody.AssetType,
-                        "HashR":MessageBody.HashR
-                    }
-                }
-              _this.websock[i].data.send(JSON.stringify(Message1));
-            })
-        }     
+              "Comments": {},
+              "Status": "RESPONSE_OK",
+            }
+          }
+        } else {
+            console.log('error submit!!');
+            return false;
+        }
+      })
     },
     OnMesHtlcSign:function(redata){
       // console.log(redata);
@@ -1367,30 +1070,7 @@ export default {
           }
         _this.websock[i].data.send(JSON.stringify(Message1));
       }      
-    },
-    OnMesHtlcFail:function(redata){
-        swal({
-          title: "Info",
-          text: redata.Error,
-          type: "info",
-          showCancelButton: false
-        });  
-    },
-    OnMesFounderFail:function(redata){
-            // console.log("收到type为" + type + "的消息");
-      let _this = this;
-      _this.ChannelItems.forEach(function(val,index){   //遍历
-        if(val.ChannelName === redata.ChannelName){
-          _this.ChannelItems.splice(index,1);
-        }
-      })
-      swal({
-        title: "Fail",
-        text: redata.Error,
-        type: "error",
-        showCancelButton: false
-      });
-    },
+    }, 
     OnMesRResponse:function(redata){
       // console.log("收到type为" + type + "的消息");
       var _this = this;
@@ -1509,7 +1189,7 @@ export default {
           console.log(gasPrice);
           var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.trinityContractAbi, _this.$store.state.vuexStore.trinityContractAddress, {       //声明合约
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-              gasPrice: gasPrice        //Gas价格
+              gasPrice: gasPrice * 10        //Gas价格
           });
           web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
           // 获取交易次数
@@ -1523,7 +1203,7 @@ export default {
 
             var txData = {        //组成txData数据
                 nonce: web3.utils.toHex(nonce++),
-                gasPrice: web3.utils.toHex(gasPrice), 
+                gasPrice: web3.utils.toHex(gasPrice * 10), 
                 gasLimit: web3.utils.toHex(4500000),
                 to: _this.$store.state.vuexStore.trinityContractAddress,
                 from: _this.$store.state.vuexStore.walletInfo.address, 
@@ -1824,6 +1504,11 @@ ul,li{
   color: #606266;
   cursor: pointer;
   text-decoration: underline;
+}
+/* 通知消息p标签换行 */
+.el-notification__content p {       
+    word-wrap: break-word;
+    word-break: break-all;
 }
 nav .el-menu-item-group__title {
   padding: 0;

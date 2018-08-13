@@ -20,7 +20,7 @@
             <el-input v-model.number="addChannelForm.selfDeposit"  auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="对端押金" prop="otherDeposit">
-            <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" step="0.00000001" show-input ></el-slider>
+            <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" :step="0.00000001" show-input ></el-slider>
           </el-form-item>
           <el-form-item label="通道名称" prop="alice">
             <el-input v-model="addChannelForm.alice" auto-complete="off"></el-input>
@@ -177,7 +177,7 @@ export default {
             console.log(gasPrice);
           var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-              gasPrice: gasPrice        //Gas价格
+              gasPrice: gasPrice * 10        //Gas价格
           });
           let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);
           web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
@@ -193,7 +193,7 @@ export default {
 
               var txData = {        //组成txData数据
                   nonce: web3.utils.toHex(nonce++),
-                  gasPrice: web3.utils.toHex(gasPrice), 
+                  gasPrice: web3.utils.toHex(gasPrice * 10), 
                   gasLimit: web3.utils.toHex(4500000),
                   to: _this.$store.state.vuexStore.tncContractAddress,
                   from: _this.$store.state.vuexStore.walletInfo.address, 
