@@ -180,7 +180,7 @@ export default {
             if (valid) {
             let l = this.$parent.getChannelSerial('ChannelName',_this.activeInfo.ChannelName);
             console.log(l);
-            if(l === null){             //如果未检测到通道,给出提醒
+            if(l === -1){             //如果未检测到通道,给出提醒
                 _this.$notify.error({
                     title: '警告',
                     dangerouslyUseHTMLString: true,

@@ -1,20 +1,20 @@
 <template>
   <div class="loginByKeyStoreForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox loginByKeyStoreContentBox">
-        <h2>从备份文件恢复</h2>
+        <h2>{{ $t('loginByKeyStore.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-form status-icon ref="loginByKeyStoreForm" label-position="top" label-width="80px" class="demo-ruleForm">
             <el-upload class="upload-demo" ref="upload" :on-change="handleChange" :file-list="fileList" accept = ".json" :auto-upload="false" :limit="1" action="/">
-                <el-button slot="trigger">选取文件</el-button>
+                <el-button slot="trigger">{{ $t('loginByKeyStore.chooseKeyStore') }}</el-button>
             </el-upload>
-            <el-form-item label="密码" prop="keyStorePass">
+            <el-form-item :label="$t('loginByKeyStore.password')" prop="keyStorePass">
                 <el-input type="password" v-model="keyStorePass" auto-complete="off"></el-input>
             </el-form-item>
             <el-form-item style="text-align:center">
-                <el-button @click="login()" type="primary" style="width:120px;">导入</el-button>
+                <el-button @click="login()" type="primary" style="width:120px;">{{ $t('loginByKeyStore.import') }}</el-button>
             </el-form-item>
         </el-form>
-        <a @click="$parent.backToStart()" class="backToStartBtn">返回开始界面</a>
+        <a @click="$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
     </div>
   </div>
 </template>
@@ -43,9 +43,9 @@ export default {
                 _this.keyStoreContent = JSON.parse(e.target.result);
                 if(_this.keyStoreContent.address.length !== 40){
                     _this.$notify.error({
-                        title: '警告',
+                        title: _this.$t('loginByKeyStore.callback-1'),
                         dangerouslyUseHTMLString: true,
-                        message: 'KeyStore文件读取错误',
+                        message: _this.$t('loginByKeyStore.callback-2'),
                         duration: 3000
                     });
                     _this.keyStoreContent = "";
@@ -57,17 +57,17 @@ export default {
     login() {                     //登录方法
         if(this.keyStoreContent == ''){
             this.$notify.error({
-                title: '警告',
+                title: this.$t('loginByKeyStore.callback-3'),
                 dangerouslyUseHTMLString: true,
-                message: 'KeyStore文件不能为空',
+                message: this.$t('loginByKeyStore.callback-4'),
                 duration: 3000
             });
             return false;
-        } else if (this.keyStoreContent == ''){
+        } else if (this.keyStorePass == ''){
             this.$notify.error({
-                title: '警告',
+                title: this.$t('loginByKeyStore.callback-5'),
                 dangerouslyUseHTMLString: true,
-                message: '密码不能为空',
+                message: this.$t('loginByKeyStore.callback-6'),
                 duration: 3000
             });
             return false;
@@ -92,15 +92,15 @@ export default {
         } catch (e) {
             if(e.message == 'Key derivation failed - possibly wrong password'){
                 this.$notify.error({
-                    title: '警告',
+                    title: this.$t('loginByKeyStore.callback-7'),
                     dangerouslyUseHTMLString: true,
-                    message: '钱包解锁失败 - 可能是密码错误',
+                    message: this.$t('loginByKeyStore.callback-8'),
                     duration: 3000
                 });
                 return false;
             } else {
                 this.$notify.error({
-                    title: '警告',
+                    title: this.$t('loginByKeyStore.callback-9'),
                     dangerouslyUseHTMLString: true,
                     message: e.message,
                     duration: 3000
@@ -125,9 +125,9 @@ export default {
             // console.log(this.$store.state.vuexStore.walletInfo.address);
             this.$store.state.vuexStore.isLogin = true;
             this.$notify({
-                title: '成功',
+                title: this.$t('loginByKeyStore.callback-10'),
                 dangerouslyUseHTMLString: true,
-                message: '导入成功',
+                message: this.$t('loginByKeyStore.callback-11'),
                 duration: 3000,
                 type: 'success'
             });
@@ -135,9 +135,9 @@ export default {
             this.$store.state.vuexStore.activeNavIndex = "1-1";
         } else {
             this.$notify.error({
-                title: '警告',
+                title: this.$t('loginByKeyStore.callback-12'),
                 dangerouslyUseHTMLString: true,
-                message: '导入失败，请确认KeyStore和密码正确',
+                message: this.$t('loginByKeyStore.callback-13'),
                 duration: 3000
             });
         }

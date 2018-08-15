@@ -15,13 +15,13 @@
             <tbody>
               <tr>
                 <td>TNC</td>
-                <td>{{ $store.state.vuexStore.balanceData.Chain.TNC }}</td>
-                <td>{{ $store.state.vuexStore.balanceData.Channel.TNC }}</td>
+                <td>{{ balanceData.Chain.TNC }}</td>
+                <td>{{ balanceData.Channel.TNC }}</td>
               </tr>
               <tr>
                 <td>ETH</td>
-                <td>{{ $store.state.vuexStore.balanceData.Chain.ETH }}</td>
-                <td>{{ $store.state.vuexStore.balanceData.Channel.ETH }}</td>
+                <td>{{ balanceData.Chain.ETH }}</td>
+                <td>{{ balanceData.Channel.ETH }}</td>
               </tr>
             </tbody>
           </table>
@@ -44,7 +44,7 @@
             <el-input type="textarea" v-model="paymentCode"></el-input>
           </el-form-item>
           <el-form-item style="text-align:center;">
-            <el-button class="transferBtn" type="primary" @click="decryptPaymentCode">转账</el-button>
+            <el-button class="transferBtn" type="primary" @click="decryptPaymentCode()">转账</el-button>
           </el-form-item>
         </el-form>
     </div>
@@ -72,14 +72,15 @@
       </span>
     </el-dialog>
     <el-dialog class="txOnChannelBox" title="通道转账" :visible.sync="ShowTxOnChannelBox" width="30%" center :modal-append-to-body='false'>
+      <span>向{{ txOnChannelInfo.receiverUri.split("@")[0] }}</span>
+      <span style="color:#F56C6C">转账{{ txOnChannelInfo.value / 10e7 }} {{ txOnChannelInfo.assetType }}</span>
       <el-form :model="txOnChannelInfo" status-icon :rules="txOnChannelRules" ref="txOnChannelInfo" label-width="70px" class="demo-ruleForm">
-
         <el-form-item label="密码" prop="keyStorePass">
           <el-input v-model="txOnChannelInfo.keyStorePass" type="password" auto-complete="off"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="txOnChannel()">转账</el-button>
+        <el-button type="primary" @click="confirmTx()">转账</el-button>
         <el-button @click="ShowTxOnChannelBox = false">取 消</el-button>
       </span>
     </el-dialog>
@@ -167,7 +168,8 @@ export default {
           "value": 0,
           "fee": 0,
           "description": '',
-          keyStorePass: ''
+          "ChannelName": '',
+          "keyStorePass": ''
         },
         txOnChannelRules: {       //链上转账规则
           keyStorePass: [
@@ -177,6 +179,11 @@ export default {
         ShowTxOnChainBox: false,    //是否显示链上转账窗口
         ShowTxOnChannelBox: false,      //是否显示通道转账窗口
         contact: ''     //当前选中联系人
+    }
+  },
+  computed: {
+    balanceData() {
+        return this.$store.state.vuexStore.balanceData;
     }
   },
   mounted() {
@@ -222,7 +229,82 @@ export default {
       } else {
         if(_this.paymentCode.substr(0,2) == "TN"){
           console.log("进入通道交易");
-          _this.txOnChannel();
+            let LinkData;
+            try {
+              LinkData = base58decode(_this.paymentCode.substring(2)).toString();
+            } catch (e) {
+              _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '付款码解析错误1',
+                duration: 3000
+              });
+              return false;
+            } finally {
+
+            }
+            console.log(LinkData);
+            if(LinkData.indexOf("&") > -1){           //判断linkData中是否有&隔离符
+            let LinkDataList = LinkData.split("&");     //去除隔离符取出数据
+
+            _this.txOnChannelInfo.receiverUri = LinkDataList[0];
+            _this.txOnChannelInfo.hr = LinkDataList[1];
+            _this.txOnChannelInfo.assetType = _this.$parent.assetContractAddress2AssetType(LinkDataList[2]);
+            _this.txOnChannelInfo.value = LinkDataList[3] * 10e7;      //避免浮点型误差
+            _this.txOnChannelInfo.description = LinkDataList[4];
+            console.log(_this.txOnChannelInfo);
+
+            if (!web3.utils.isAddress(_this.txOnChannelInfo.receiverUri.split("@")[0])) {
+              _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '付款码解析错误2',
+                duration: 3000
+              });
+              return;
+            } else if (_this.txOnChannelInfo.hr == "") {
+              _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '付款码解析错误3',
+                duration: 3000
+              });
+              return;
+            } else if (_this.txOnChannelInfo.assetType == "") {
+              _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '付款码解析错误4',
+                duration: 3000
+              });
+              return;
+            } else if (_this.txOnChannelInfo.value == 0) {
+              _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '付款码解析错误5',
+                duration: 3000
+              });
+              return;
+            } else if (_this.$store.state.vuexStore.walletInfo.address === _this.txOnChannelInfo.receiverUri.split("@")[0]) {
+              _this.$notify.error({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '收付款地址不能相同',
+                duration: 3000
+              });
+              return;
+            }
+            _this.ShowTxOnChannelBox = true;
+          } else {                  //如果没有&隔离符,给出提醒 终止
+            _this.$notify.error({
+              title: '警告',
+              dangerouslyUseHTMLString: true,
+              message: '付款码解析错误，请确认',
+              duration: 3000
+            });
+            return false;
+          }
         } else {
         this.$notify.error({
           title: '警告',
@@ -266,7 +348,7 @@ export default {
                   // nonce每次++，以免覆盖之前pending中的交易
                   nonce: web3.utils.toHex(nonce++),
                   gasLimit: web3.utils.toHex(4500000),   
-                  gasPrice: web3.utils.toHex(gasPrice),  
+                  gasPrice: web3.utils.toHex(gasPrice * 5),  
                   to: _this.txOnChainInfo.address,
                   from: _this.$store.state.vuexStore.walletInfo.address,
                   value: web3.utils.toHex(_this.txOnChainInfo.amount * 10e17),         
@@ -277,24 +359,40 @@ export default {
               let signedData = signData(txData,decryptPK.privateKey);
               console.log(signedData);
 
+              let date = new Date().getTime();        //获取当前时间戳
               web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
-                  if (!err) {
-                      console.log(hash);
-                      _this.$notify({
-                          title: '成功',
-                          dangerouslyUseHTMLString: true,
-                          message: '上链成功，请交易确认',
-                          duration: 3000,
-                          type: 'success'
-                      });
-                      _this.ShowTxOnChainBox = false;
-                      _this.clearTxData();
-                      _this.$parent.cycleGetTransactionReceipt(hash);
-                  } else {
-                      _console.log(err)
+                if (!err) {
+                  console.log(hash);
+                  _this.$notify({
+                      title: '成功',
+                      dangerouslyUseHTMLString: true,
+                      message: '上链成功，请交易确认',
+                      duration: 3000,
+                      type: 'success'
+                  });
+                  _this.ShowTxOnChainBox = false;
+
+                  let recordMessage = {
+                    date: date,
+                    name: _this.txOnChainInfo.address,
+                    Amount: _this.txOnChainInfo.amount * 10e7,
+                    assetType: 'ETH',
+                    isOnChannel: false,
+                    isPay: true,
+                    isSuccess: true,
+                    isTestNet: _this.$store.state.vuexStore.isTestNet,
+                    transactionHash : hash,
+                    blockHash: ""
                   }
-              });
-          })   
+                  _this.$store.state.vuexStore.recordList.push(recordMessage);
+                  _this.$parent.StoreRecordList(_this.$store.state.vuexStore.recordList);
+                  _this.$parent.cycleGetTransactionReceipt(hash);
+                  _this.clearTxData();
+                } else {
+                  console.log(err);
+                }
+              })
+          })  
       })
     },
     txTncOnChain() {    //链上TNC转账方法
@@ -312,7 +410,7 @@ export default {
 
           var txData = {
               nonce: web3.utils.toHex(nonce++),
-              gasPrice: web3.utils.toHex(gasPrice), 
+              gasPrice: web3.utils.toHex(gasPrice * 5), 
               gasLimit: web3.utils.toHex(4500000),
               to: _this.$store.state.vuexStore.tncContractAddress,
               from: _this.$store.state.vuexStore.walletInfo.address, 
@@ -324,108 +422,58 @@ export default {
           let signedData = signData(txData,decryptPK.privateKey);
           console.log(signedData);
 
+          let date = new Date().getTime();        //获取当前时间戳
           web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
-              if (!err) {
-                  console.log(hash);
-                  _this.$notify({
-                      title: '成功',
-                      dangerouslyUseHTMLString: true,
-                      message: '上链成功，请交易确认',
-                      duration: 3000,
-                      type: 'success'
-                  });
-                  _this.ShowTxOnChainBox = false;
-                  _this.clearTxData();
-                  _this.$parent.cycleGetTransactionReceipt(hash);
-              } else {
-                  _console.log(err)
+            if (!err) {
+              console.log(hash);
+              _this.$notify({
+                  title: '成功',
+                  dangerouslyUseHTMLString: true,
+                  message: '上链成功，请交易确认',
+                  duration: 3000,
+                  type: 'success'
+              });
+              _this.ShowTxOnChainBox = false;
+              
+              let recordMessage = {
+                date: date,
+                name: _this.txOnChainInfo.address,
+                Amount: _this.txOnChainInfo.amount * 10e7,
+                assetType: 'TNC',
+                isOnChannel: false,
+                isPay: true,
+                state: 0,
+                isTestNet: _this.$store.state.vuexStore.isTestNet,
+                transactionHash : hash,
+                blockHash: ""
               }
-          });
+              console.log(_this.txOnChainInfo.address);
+              console.log(recordMessage);
+              _this.$store.state.vuexStore.recordList.push(recordMessage);
+              _this.$parent.StoreRecordList(_this.$store.state.vuexStore.recordList);
+              _this.$parent.cycleGetTransactionReceipt(hash);
+              _this.clearTxData();
+            } else {
+              console.log(err);
+            }
+          })
         })   
       })
     },
-    txOnChannel() {
+    confirmTx() {
       let _this = this;
-      let LinkData;
-        try {
-          LinkData = base58decode(_this.paymentCode.substring(2)).toString();
-        } catch (e) {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '付款码解析错误1',
-            duration: 3000
-          });
+      _this.$refs['txOnChannelInfo'].validate((valid) => {
+        if (valid) {
+          if(_this.txOnChannelInfo.assetType == "ETH"){
+            _this.txEthOnChannel();
+          } else if(_this.txOnChannelInfo.assetType == "TNC") {
+            _this.txTncOnChannel();
+          }
+        } else {
+          console.log('error submit!!');
           return false;
-        } finally {
-
         }
-        console.log(LinkData);
-        if(LinkData.indexOf("&") > -1){           //判断linkData中是否有&隔离符
-        let LinkDataList = LinkData.split("&");     //去除隔离符取出数据
-
-        _this.txOnChannelInfo.receiverUri = LinkDataList[0];
-        _this.txOnChannelInfo.hr = LinkDataList[1];
-        _this.txOnChannelInfo.assetType = _this.$parent.assetContractAddress2AssetType(LinkDataList[2]);
-        _this.txOnChannelInfo.value = LinkDataList[3] * 10e7;      //避免浮点型误差
-        _this.txOnChannelInfo.description = LinkDataList[4];
-        console.log(_this.txOnChannelInfo);
-
-        if (!web3.utils.isAddress(_this.txOnChannelInfo.receiverUri.split("@")[0])) {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '付款码解析错误2',
-            duration: 3000
-          });
-          return;
-        } else if (_this.txOnChannelInfo.hr == "") {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '付款码解析错误3',
-            duration: 3000
-          });
-          return;
-        } else if (_this.txOnChannelInfo.assetType == "") {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '付款码解析错误4',
-            duration: 3000
-          });
-          return;
-        } else if (_this.txOnChannelInfo.value == 0) {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '付款码解析错误5',
-            duration: 3000
-          });
-          return;
-        } else if (_this.$store.state.vuexStore.walletInfo.address === _this.txOnChannelInfo.receiverUri.split("@")[0]) {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '收付款地址不能相同',
-            duration: 3000
-          });
-          return;
-        }
-        if(_this.txOnChannelInfo.assetType == "ETH"){
-          _this.txEthOnChannel();
-        } else if(_this.txOnChannelInfo.assetType == "TNC") {
-          _this.txTncOnChannel();
-        }
-      } else {                  //如果没有&隔离符,给出提醒 终止
-        _this.$notify.error({
-          title: '警告',
-          dangerouslyUseHTMLString: true,
-          message: '付款码解析错误，请确认',
-          duration: 3000
-        });
-        return false;
-      }
+      })
     },
     txEthOnChannel() {
 
@@ -433,27 +481,33 @@ export default {
     txTncOnChannel() {
       let _this = this;
       console.log("进入通道交易TNC");
-      return false;
+
       let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open');
       if(l >= 0){
+          _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
+          _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[l].ChannelName;    //赋值ChannelName
           console.log(l);
-          let Message = {
+          let Message = {                       //构造Rsmc消息体
             "MessageType":"Rsmc",
             "Sender": _this.txOnChannelInfo.sendUri,
             "Receiver": _this.txOnChannelInfo.receiverUri,
-            "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce,
+            "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
             "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
             "NetMagic": _this.$store.state.vuexStore.NetMagic,
             "MessageBody": {
               "AssetType": _this.txOnChannelInfo.assetType,
-              "PaymentCount": _this.txOnChannelInfo.value,
-              "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
-              "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
-              "Commitment": commitment
+              "PaymentCount": _this.txOnChannelInfo.value / 10e7,
+              "SenderBalance": (_this.$store.state.vuexStore.channelList[l].SelfBalance - _this.txOnChannelInfo.value) / 10e7,
+              "ReceiverBalance": (_this.$store.state.vuexStore.channelList[l].OtherBalance + _this.txOnChannelInfo.value) / 10e7,
+              "Commitment": ""
             },
             "Comments": {}
           }
+        _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
+        console.log(_this.$store.state.vuexStore.txOnChannelInfo);
         _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+        _this.ShowTxOnChannelBox = false;
+        _this.clearTxData();
       } else if (l == -1){        //未与该Uri直连,查询路由情况
           _this.$notify.error({
             title: '提醒',
@@ -478,7 +532,7 @@ export default {
               duration: 3000
             });
             return false;
-          } else {      //遍历到开通的通道
+          } else {      //遍历到开通的通道,进入Htlc交易
             let Message = {         //构造消息,查询通道路由
                 "MessageType": "GetRouterInfo",
                 "Sender": _this.txOnChannelInfo.sendUri,
@@ -489,6 +543,8 @@ export default {
                     "NodeList": UrlList,
                 }
             }
+            _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
+            console.log(_this.$store.state.vuexStore.txOnChannelInfo);
             _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
           }
       } else if (l == -2){
@@ -498,6 +554,8 @@ export default {
             message: '通道未打开',
             duration: 3000
           });
+          _this.ShowTxOnChannelBox = false;
+          _this.clearTxData();
           return;
       } else {
           _this.$notify.error({
@@ -516,7 +574,19 @@ export default {
         "amount": '',
         "keyStorePass": ''
       };
+      this.txOnChannelInfo = {      //清空通道转账信息
+        "sendUri": '',
+        "receiverUri": '',
+        "hr": '',
+        "assetType": '',
+        "value": 0,
+        "fee": 0,
+        "description": '',
+        "ChannelName": '',
+        "keyStorePass": ''
+      };
       this.paymentCode = '';
+      this.contact = '';
     }
   }
 }
@@ -601,5 +671,11 @@ h2{
 }
 .fullPage{
     width: 100% !important;
+}
+.txOnChannelBox .el-dialog__body span{
+  display: block;
+  margin: 10px 0;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 </style>

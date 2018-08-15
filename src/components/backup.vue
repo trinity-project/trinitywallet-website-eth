@@ -6,7 +6,7 @@
         <el-button @click="backup()" style="margin:10px 0;" type="primary" icon="el-icon-edit" plain>{{$t('backup.backupBtn')}}</el-button>
         <div class="tipBox tipBox-red">
             <h3>{{$t('backup.tips')}}</h3>
-            <p>点击“备份当前钱包”按钮后，浏览器会生成一个钱包备份文件，当您清空浏览器数据库、或者更换浏览器、重装系统后，可以使用钱包备份文件恢复当前钱包。请将该文件保存到安全的地方，并牢记钱包密码，钱包文件丢失或钱包密码遗忘可能会导致您的资产丢失。</p>
+            <p>{{ $t('backup.tipsContent') }}</p>
         </div>
     </div>
   </div>

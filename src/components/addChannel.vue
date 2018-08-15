@@ -13,7 +13,7 @@
           <el-form-item label="资产类型" prop="assetType">
             <el-select v-model="addChannelForm.assetType" placeholder="请选择资产类型" style="width:100%;">
               <el-option label="TNC" value="TNC"></el-option>
-              <el-option label="ETH" value="ETH"></el-option>
+              <el-option label="ETH" value="ETH" disabled></el-option>
             </el-select>
           </el-form-item>
           <el-form-item label="本端押金" prop="selfDeposit">
@@ -177,7 +177,7 @@ export default {
             console.log(gasPrice);
           var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-              gasPrice: gasPrice * 10        //Gas价格
+              gasPrice: gasPrice  * 3        //Gas价格
           });
           let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);
           web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
@@ -193,7 +193,7 @@ export default {
 
               var txData = {        //组成txData数据
                   nonce: web3.utils.toHex(nonce++),
-                  gasPrice: web3.utils.toHex(gasPrice * 10), 
+                  gasPrice: web3.utils.toHex(gasPrice  * 3), 
                   gasLimit: web3.utils.toHex(4500000),
                   to: _this.$store.state.vuexStore.tncContractAddress,
                   from: _this.$store.state.vuexStore.walletInfo.address, 

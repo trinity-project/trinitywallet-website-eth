@@ -1,23 +1,23 @@
 <template>
   <div class="loginByPrivateKeyForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
-        <h2>导入私钥</h2>
+        <h2>{{ $t('loginByPrivateKey.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-form :model="loginByPrivateKeyForm" status-icon :rules="loginByPrivateKeyRules" ref="loginByPrivateKeyForm" label-width="80px" class="demo-ruleForm">
-            <el-form-item label="私钥" prop="privateKey">
+            <el-form-item :label="$t('loginByPrivateKey.privateKey')" prop="privateKey">
                 <el-input v-model="loginByPrivateKeyForm.privateKey"></el-input>
             </el-form-item>
-            <el-form-item label="密码" prop="pass">
+            <el-form-item :label="$t('loginByPrivateKey.password')" prop="pass">
               <el-input type="password" v-model="loginByPrivateKeyForm.pass" auto-complete="off"></el-input>
             </el-form-item>
-            <el-form-item label="确认密码" prop="checkPass">
+            <el-form-item :label="$t('loginByPrivateKey.checkPass')" prop="checkPass">
               <el-input type="password" v-model="loginByPrivateKeyForm.checkPass" auto-complete="off"></el-input>
             </el-form-item>
             <el-form-item style="text-align:center;">
-                <el-button type="primary" @click="Login()" style="margin-left:-40px;width: 120px;">提交</el-button>
+                <el-button type="primary" @click="Login()" style="margin-left:-40px;width: 120px;">{{ $t('loginByPrivateKey.import') }}</el-button>
             </el-form-item>
         </el-form>
-        <a @click="$parent.backToStart()" class="backToStartBtn">返回开始界面</a>
+        <a @click="$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
     </div>
   </div>
 </template>
@@ -28,17 +28,17 @@ export default {
   data () {
     var checkPrivateKey = (rule, value, callback) => {      //loginByPrivateKey  私钥规则
       if (!value) {
-        return callback(new Error('私钥不能为空'));
+        return callback(new Error(this.$t('loginByPrivateKey.callback-1')));
       }
       if (value.length !== 64) {
-          callback(new Error('请输入正确的私钥'));
+          callback(new Error(this.$t('loginByPrivateKey.callback-2')));
       } else {
           callback();
       }
     };
     var validatePass = (rule, value, callback) => {         //loginByPrivateKey  密码规则
       if (value === '') {
-        callback(new Error('请输入密码'));
+        callback(new Error(this.$t('loginByPrivateKey.callback-3')));
       } else {
         if (this.loginByPrivateKeyForm.checkPass !== '') {
           this.$refs.loginByPrivateKeyForm.validateField('checkPass');
@@ -48,9 +48,9 @@ export default {
     };
     var validatePass2 = (rule, value, callback) => {        //loginByPrivateKey  重复密码规则
       if (value === '') {
-        callback(new Error('请再次输入密码'));
+        callback(new Error(this.$t('loginByPrivateKey.callback-4')));
       } else if (value !== this.loginByPrivateKeyForm.pass) {
-        callback(new Error('两次输入密码不一致!'));
+        callback(new Error(this.$t('loginByPrivateKey.callback-5')));
       } else {
         callback();
       }
@@ -97,9 +97,9 @@ export default {
               // console.log(this.$store.state.vuexStore.walletInfo.address);
               this.$store.state.vuexStore.isLogin = true;
               this.$notify({
-                  title: '成功',
+                  title: this.$t('loginByPrivateKey.callback-6'),
                   dangerouslyUseHTMLString: true,
-                  message: '导入成功',
+                  message: this.$t('loginByPrivateKey.callback-7'),
                   duration: 3000,
                   type: 'success'
               });
@@ -107,9 +107,9 @@ export default {
               this.$store.state.vuexStore.activeNavIndex = "3-5";
             } else {
               this.$notify.error({
-                  title: '警告',
+                  title: this.$t('loginByPrivateKey.callback-8'),
                   dangerouslyUseHTMLString: true,
-                  message: '导入失败，请确认私钥正确',
+                  message: this.$t('loginByPrivateKey.callback-9'),
                   duration: 3000
               });
             }

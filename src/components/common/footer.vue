@@ -1,20 +1,28 @@
 <template>
     <footer v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'" class="footer">
-        <!-- <div class="container-fluid">
-            <ul class="clearfloat">
-                <li :class="{ active: item.isActive }" v-for="(item,index) in FooterList" :key="index">
-                    <a @click="changeActive(index)" href="javascript:;">
-                        <span><i :class="[true, item.icon]"></i></span>
-                        <span>{{ item.Name }}</span>
-                    </a>
-                </li>
-            </ul>
-        </div> -->
         <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-demo" mode="horizontal">
-            <el-menu-item :index="item.index" v-for="(item,index) in FooterList" :key="index">
-                <router-link :to="item.router" class="clearfloat">
-                    <span><i :class="[true, item.icon]"></i></span>
-                    <span>{{ item.name }}</span>
+            <el-menu-item index="1-1">
+                <router-link to="/" class="clearfloat">
+                    <span><i class="el-icon-ETH-geren1"></i></span>
+                    <span>{{ $t('navMenu.wallet.index') }}</span>
+                </router-link>
+            </el-menu-item>
+            <el-menu-item index="1-2">
+                <router-link to="/receive" class="clearfloat">
+                    <span><i class="el-icon-ETH-zhuanzhang"></i></span>
+                    <span>{{ $t('navMenu.wallet.receive') }}</span>
+                </router-link>
+            </el-menu-item>
+            <el-menu-item index="1-3">
+                <router-link to="/channelList" class="clearfloat">
+                    <span><i class="el-icon-ETH-list"></i></span>
+                    <span>{{ $t('navMenu.wallet.channelList') }}</span>
+                </router-link>
+            </el-menu-item>
+            <el-menu-item index="1-4">
+                <router-link to="/record" class="clearfloat">
+                    <span><i class="el-icon-ETH-dujiayuniconzhenggao-19"></i></span>
+                    <span>{{ $t('navMenu.wallet.record') }}</span>
                 </router-link>
             </el-menu-item>
         </el-menu>
@@ -30,7 +38,7 @@ export default {
             {
                 index: "1-1",
                 icon: "el-icon-ETH-geren1",
-                name: "Index",
+                name: this.$t('navMenu.wallet.index'),
                 router: "/"
             },
             {

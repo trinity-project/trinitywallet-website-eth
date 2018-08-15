@@ -1,20 +1,21 @@
 <template>
   <div class="startForm">
     <div class="contentBox">
-        <h2>欢迎</h2>
+        <h2>{{ $t('start.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <div @click="toOtherForm('./create')" class="clooseLoginBox clooseLoginBox-blue">
-            <h3>创建新钱包</h3>
-            <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
+            <h3>{{ $t('start.createWallet') }}</h3>
+            <p>{{ $t('start.createWalletTxt') }}</p>
         </div>
         <div @click="toOtherForm('./loginByPrivateKey')" class="clooseLoginBox clooseLoginBox-green">
-            <h3>从私钥导入</h3>
-            <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
+            <h3>{{ $t('start.loginByPrivateKey') }}</h3>
+            <p>{{ $t('start.loginByPrivateKeyTxt') }}</p>
         </div>
         <div @click="toOtherForm('./loginByKeyStore')" class="clooseLoginBox clooseLoginBox-gray">
-            <h3>从备份文件恢复</h3>
-            <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
+            <h3>{{ $t('start.loginByKeystore') }}</h3>
+            <p>{{ $t('start.loginByKeystoreTxt') }}</p>
         </div>
+        <a @click="switchLang()" class="backToStartBtn">{{$t('navMenu.setting.switchLang')}}</a>
     </div>
   </div>
 </template>
@@ -29,7 +30,11 @@ export default {
   },
   methods: {
       toOtherForm(router) {
-          this.$router.push(router);
+        this.$router.push(router);
+      },
+      switchLang() {      //切换语言
+        this.$i18n.locale === 'cn' ? this.$i18n.locale ='en' : this.$i18n.locale ='cn';
+        this.$parent.saveAsString("lang",this.$i18n.locale);
       }
   }
 }

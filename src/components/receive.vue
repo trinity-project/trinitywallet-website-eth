@@ -156,7 +156,7 @@ export default {
                 _this.$notify.info({
                     title: '警告',
                     dangerouslyUseHTMLString: true,
-                    message: '资产合约地址出错',
+                    message: '没有该资产类型的通道',
                     duration: 3000,
                     type: 'warning'
                 });

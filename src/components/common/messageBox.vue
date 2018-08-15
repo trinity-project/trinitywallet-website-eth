@@ -37,6 +37,8 @@ export default {
         console.log("清除全部");
         this.$store.state.vuexStore.channelList = [];
         this.$parent.StoreChannel();
+        this.$store.state.vuexStore.recordList = [];
+        this.$parent.StoreRecordList();
         return false;
       }
   }

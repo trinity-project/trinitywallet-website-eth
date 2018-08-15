@@ -109,8 +109,10 @@ export default {
     },
     channelList: [],        //通道列表
     addChannelInfo: [],       //添加通道信息
+    txOnChannelInfo: [],        //通道转账信息
     closeChannelInfo: [],       //关闭通道信息
     contactList: {},            //联系人列表
+    recordList: [],
     FoundertxDataSign: ""       //暂存签名后的FoundertxData
   },
   getters: {

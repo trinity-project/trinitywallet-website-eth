@@ -65,7 +65,7 @@
                         <i class="el-icon-ETH-fuzhi"></i>
                         <span>{{$t('navMenu.setting.backup')}}</span>
                     </el-menu-item>
-                    <el-menu-item index="3-6">
+                    <el-menu-item @click="showSignOutBox()" index="3-6">
                         <i class="el-icon-ETH-tuichu"></i>
                         <span slot="title">{{$t('navMenu.setting.signOut')}}</span>
                     </el-menu-item>
@@ -75,50 +75,6 @@
                     <i class="el-icon-ETH-xinxi"></i>
                     <span slot="title">{{ $t('navMenu.about') }}</span>
                 </el-menu-item>
-                <!-- <el-submenu index="4">
-                    <template slot="title">
-                    <i class="el-icon-location"></i>
-                    <span>测试功能</span>
-                    </template>
-                    <el-menu-item-group>
-                        <router-link to="/start">
-                            <el-menu-item index="4-1">
-                                <i class="el-icon-setting"></i>
-                                <span slot="title">开始页</span>
-                            </el-menu-item>
-                        </router-link>
-                        <router-link to="/create">
-                            <el-menu-item index="4-2">
-                                <i class="el-icon-setting"></i>
-                                <span slot="title">创建</span>
-                            </el-menu-item>
-                        </router-link>
-                        <router-link to="/login">
-                            <el-menu-item index="4-3">
-                                <i class="el-icon-setting"></i>
-                                <span slot="title">导入</span>
-                            </el-menu-item>
-                        </router-link>
-                        <router-link to="/addChannel">
-                            <el-menu-item index="4-4">
-                                <i class="el-icon-ETH-tianjia"></i>
-                                <span slot="title">{{$t('navMenu.wallet.addChannel')}}</span>
-                            </el-menu-item>
-                        </router-link>
-                        <router-link to="/index6">
-                            <el-menu-item index="4-5">
-                                <i class="el-icon-setting"></i>
-                                <span slot="title">私钥转地址</span>
-                            </el-menu-item>
-                        </router-link>
-                        <router-link to="/loginByKeyStore">
-                            <el-menu-item index="4-6">
-                                <i class="el-icon-setting"></i>
-                                <span slot="title">由KeyStore导入</span>
-                            </el-menu-item>
-                        </router-link>
-                    </el-menu-item-group>
-                </el-submenu> -->
                 </el-menu>
             </el-col>
         </el-row>
@@ -126,13 +82,15 @@
 </template>
 
 <script>
+import Vue from 'Vue'
 export default {
   name: 'LeftNav',
   data () {
     return {
       isLogin: false,
       isNightMode: false,
-      navSelected: "1-1"          //当前active Nav
+      navSelected: "1-1",          //当前active Nav
+      isSignOutBoxShow: false       //是否显示退出框
     }
   },
   computed: {
@@ -246,53 +204,23 @@ export default {
             "Comments": {}
         }
         _this.$store.state.vuexStore.channelList[0].websock.send(JSON.stringify(Message));
-
-
-        // this.$store.state.vuexStore.channelList = [];
-        // this.$parent.StoreChannel();         //储存通道信息
-        // this.$store.state.vuexStore.channelList[0].State = 3;
-        // console.log(this.$store.state.vuexStore.channelList[0]);
-            // var a1 = web3.utils.padLeft(_this.$store.state.vuexStore.addChannelInfo.channelName, 64);
-            // console.log(a1);
-            // var a2 = web3.utils.padLeft(web3.utils.toHex(0).substr(2), 64);
-            // console.log(a2);
-            // var a3 = web3.utils.padLeft(_this.$store.state.vuexStore.walletInfo.address.slice(2), 64);
-            // console.log(a3);
-            // var a4 = web3.utils.padLeft(web3.utils.toHex(_this.$store.state.vuexStore.addChannelInfo.selfDeposit * 10e7).substr(2), 64);
-            // console.log(a4);
-            // var a5 = web3.utils.padLeft(_this.$store.state.vuexStore.addChannelInfo.uri.split("@")[0].slice(2), 64);
-            // console.log(a5);
-            // var a6 = web3.utils.padLeft(web3.utils.toHex(_this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7).substr(2), 64);
-            // console.log(a6);
-            // var a7 = web3.utils.hexToBytes(_this.$store.state.vuexStore.addChannelInfo.selfSignedData);
-            // console.log(a7);
-            // var a8 = web3.utils.hexToBytes(redata.MessageBody.Commitment);
-            // console.log(a8);
-
-    },
-    keepDecimalPlaces(num,a) {    //将num保留a位小数
-        let result;
-        if(isNaN(num)){
-          result = NaN;
-        } else {
-          result = parseInt(num * (Math.pow(10,a))) / (Math.pow(10,a));
-        }
-        return result;
     },
     getAddressInfo() {      // 监测store中的address,出现变化时获取相关信息
-        this.getBalance();          //获取总的余额
         let Message = {
             "messageType":"init", 
             "walletAddress":this.$store.state.vuexStore.walletInfo.address
         }
         this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
-        this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");           //获取联系人列表
         this.$store.state.vuexStore.channelList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@channelList");           //获取通道列表
+        this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");           //获取联系人列表
+        this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList");           //获取交易记录列表
+        this.getBalance();          //获取总的余额
         this.cycleReconnectWebsocket();
     },
     getBalance() {      //获取总的余额
       this.getEthBalance();
       this.getTncBalance();
+      this.$parent.getChannelBalance();
     },
     getEthBalance() {      //获取ETH余额
       let _this = this;
@@ -302,7 +230,7 @@ export default {
               console.log(val);
               let ethBalance = web3.utils.fromWei(web3.utils.hexToNumberString(val));
               console.log(ethBalance);
-              _this.$store.state.vuexStore.balanceData.Chain.ETH = _this.keepDecimalPlaces(ethBalance,3);
+              _this.$store.state.vuexStore.balanceData.Chain.ETH = _this.$parent.keepDecimalPlaces(ethBalance,3);
           }); 
         }
       }
@@ -316,18 +244,25 @@ export default {
       });
       myContract.methods.balanceOf(_this.$store.state.vuexStore.walletInfo.address).call({from: contractAddress}, function(error, result){
           if(!error) {
-              let btnBalance= (result/100000000);
-              _this.$store.state.vuexStore.balanceData.Chain.TNC = _this.keepDecimalPlaces(btnBalance,3);
+              let tncBalance= (result/100000000);
+              _this.$store.state.vuexStore.balanceData.Chain.TNC = _this.$parent.keepDecimalPlaces(tncBalance,3);
           } else {
               console.log(error);
           }
       });
     },
-    cycleReconnectWebsocket() {
+    cycleReconnectWebsocket() {             //登录后循环连接各个通道
         var _this = this;
         _this.$store.state.vuexStore.channelList.forEach(function(val,index){           //遍历channelList
             _this.$parent.reconnectWebsocket(val.Ip + ":8766",val.ChannelName);
         })
+    },
+    showSignOutBox() {                  //显示退出提醒框
+        if(this.$store.state.vuexStore.isLogin == true){
+            this.$parent.showSignOutBox();
+        } else {
+            
+        }
     }
   }
 }
