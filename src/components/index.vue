@@ -7,9 +7,9 @@
           <table class="assetTable">
             <thead>
               <tr>
-                <th>资产类型</th>
-                <th>链上金额</th>
-                <th>通道金额</th>
+                <th>{{ $t('index.assetType') }}</th>
+                <th>{{ $t('index.balanceOnChain') }}</th>
+                <th>{{ $t('index.balanceOnChannel') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -30,11 +30,11 @@
       <el-button @click="showMoreAsset()" :class="{ showMoreAssetBtn_active :isShowMoreAsset}" class="showMoreAssetBtn" type="primary" icon="el-icon-arrow-down" circle></el-button>
     </div>
     <div class="contentBox">
-        <h2>转账</h2>
+        <h2>{{ $t('index.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-form class="indexForm" ref="form">
-          <label>支付码/地址</label>
-            <el-select size="mini" v-model="contact" @change="contactChange" filterable clearable placeholder="从联系人里转账" style="float: right;margin-bottom: 12px;">
+          <label>{{ $t('index.paymentCode') }}</label>
+            <el-select size="mini" v-model="contact" @change="contactChange" filterable clearable :placeholder="$t('index.transferByContact')" style="float: right;margin-bottom: 12px;">
               <el-option v-for="item in $store.state.vuexStore.contactList" :key="item.address" :label="item.name" :value="item.address">
                 <span style="float: left">{{ item.name }}</span>
                 <span style="float: right; color: #8492a6; font-size: 13px;overflow: hidden;margin-left: 20px;width: 175px;text-overflow:ellipsis;white-space: nowrap;">{{ item.address }}</span>
@@ -44,7 +44,7 @@
             <el-input type="textarea" v-model="paymentCode"></el-input>
           </el-form-item>
           <el-form-item style="text-align:center;">
-            <el-button class="transferBtn" type="primary" @click="decryptPaymentCode()">转账</el-button>
+            <el-button class="transferBtn" type="primary" @click="decryptPaymentCode()">{{ $t('index.transfer') }}</el-button>
           </el-form-item>
         </el-form>
     </div>
@@ -499,7 +499,8 @@ export default {
               "PaymentCount": _this.txOnChannelInfo.value / 10e7,
               "SenderBalance": (_this.$store.state.vuexStore.channelList[l].SelfBalance - _this.txOnChannelInfo.value) / 10e7,
               "ReceiverBalance": (_this.$store.state.vuexStore.channelList[l].OtherBalance + _this.txOnChannelInfo.value) / 10e7,
-              "Commitment": ""
+              "Commitment": "",
+              "RoleIndex": 0
             },
             "Comments": {}
           }

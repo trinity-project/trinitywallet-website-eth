@@ -1,7 +1,7 @@
 <template>
   <div class="recordForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
-        <h2 @click="testfun()">交易记录</h2>
+        <h2 @click="testfun()">{{ $t('record.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <ul v-if="formatRecordList(recordList).length">
             <li @click="showRecordInfo(data,index)" v-for="(data,index) in formatRecordList(recordList)" :key="index">
@@ -12,19 +12,19 @@
             </li>
         </ul>
         <p v-if="!formatRecordList(recordList).length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
-            还没有交易，立即去转账
+            {{ $t('record.noRecord') }}
         </p>
     </div>
-    <el-dialog class="recordInfoBox" title="通道信息" :visible.sync="isRecordInfoBoxShow" width="30%" center :modal-append-to-body='false'>
-        <span>对端地址：{{ activeInfo.name }}</span>
-        <span>交易时间：{{ activeInfo.date | formatDateTime }}</span>
-        <span>交易金额：{{ activeInfo.Amount / 10e7 }}{{ activeInfo.assetType }}</span>
-        <span>交易方式：{{ activeInfo.isOnChannel | formatIsOnChannel}}</span>
-        <span>交易结果：{{ activeInfo.state | formatState}}</span>
-        <span>transactionHash: {{ activeInfo.transactionHash}}</span>
-        <span>blockHash: {{ activeInfo.blockHash }}</span>
+    <el-dialog class="recordInfoBox" :title="$t('record.recordInfo')" :visible.sync="isRecordInfoBoxShow" width="30%" center :modal-append-to-body='false'>
+        <span>{{ $t('record.otherUri') }}: {{ activeInfo.name }}</span>
+        <span>{{ $t('record.date') }}: {{ activeInfo.date | formatDateTime }}</span>
+        <span>{{ $t('record.amount') }}: {{ activeInfo.Amount / 10e7 }}{{ activeInfo.assetType }}</span>
+        <span>{{ $t('record.isOnChannel') }}: {{ activeInfo.isOnChannel | formatIsOnChannel}}</span>
+        <span>{{ $t('record.state') }}: {{ activeInfo.state | formatState}}</span>
+        <span>{{ $t('record.transactionHash') }}: {{ activeInfo.transactionHash}}</span>
+        <span>{{ $t('record.blockHash') }}: {{ activeInfo.blockHash }}</span>
         <span slot="footer" class="dialog-footer">
-            <el-button @click="isRecordInfoBoxShow = false;"> 关闭 </el-button>
+            <el-button @click="isRecordInfoBoxShow = false;"> {{ $t('record.close') }} </el-button>
         </span>
     </el-dialog>
   </div>
@@ -95,9 +95,9 @@ export default {
     formatIsOnChannel:function(val){            //格式化支付方式
         var state;
         if(val){
-            state = "通道";
+            state = "Channel";
         } else {
-            state = "链上";
+            state = "Chain";
         }
         return state;
     },
@@ -211,6 +211,9 @@ export default {
     padding: 30px;
     box-sizing: border-box;
     overflow-x: hidden;
+}
+.contentBox::-webkit-scrollbar {
+    display: none;
 }
 h2{
     margin: 0;

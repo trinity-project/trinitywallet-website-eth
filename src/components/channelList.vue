@@ -3,45 +3,45 @@
     <div class="contentBox">
         <div>
             <router-link to="/addChannel" style="float:right">
-                <el-button size="mini" icon="el-icon-plus" type="primary">添加通道</el-button>
+                <el-button size="mini" icon="el-icon-plus" type="primary">{{ $t('channelList.addChannel') }}</el-button>
             </router-link>
-            <h2>通道列表</h2>
+            <h2>{{ $t('channelList.title') }}</h2>
         </div>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <ul v-if="channelList.length">
             <li @click="showChannelInfo(data,index)" v-for="(data,index) in channelList" :key="index">
                 <h3>{{ data.Alice }}</h3><br>
                 <p>{{ data.date | formatDateTime }}</p>
-                <p v-if="data.isConnect">State：{{ data.State | formatStatus }}</p>
-                <p v-if="!data.isConnect">State：NotConnect</p>
+                <p v-if="data.isConnect" style="min-width: 180px;">State：{{ data.State | formatStatus }}</p>
+                <p v-if="!data.isConnect" style="min-width: 180px;">State：NotConnect</p>
                 <span>{{ data.SelfBalance | formatBalance }}<sup>{{ data.assetType }}</sup></span>
             </li>
         </ul>
         <p v-if="!channelList.length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
-            还没有通道，立即去添加
+            {{ $t('channelList.noChannel') }}
         </p>
     </div>
     <el-dialog class="channelInfoBox" :title="activeInfo.Alice" :visible.sync="isChannelInfoBoxShow" width="30%" center :modal-append-to-body='false'>
-        <span>通道名称：{{ activeInfo.ChannelName }}</span>
-        <span>开通时间：{{ activeInfo.date | formatDateTime }}</span>
-        <span>本端地址：{{ activeInfo.SelfUri }}</span>
-        <span>本端余额：{{ activeInfo.SelfBalance | formatBalance }}{{ activeInfo.assetType }}</span>
-        <span>对端地址：{{ activeInfo.OtherUri }}</span>
-        <span>对端余额：{{ activeInfo.OtherBalance | formatBalance }}{{ activeInfo.assetType }}</span>
-        <span>通道状态：{{ activeInfo.State | formatStatus }}</span>
-        <span>是否连接：{{ activeInfo.isConnect | formatConnect }}</span>
-        <span>网络：{{ activeInfo.isTestNet | formatNet}}</span>
+        <span>{{ $t('channelList.channelName') }}：{{ activeInfo.ChannelName }}</span>
+        <span>{{ $t('channelList.date') }}：{{ activeInfo.date | formatDateTime }}</span>
+        <span>{{ $t('channelList.selfUri') }}：{{ activeInfo.SelfUri }}</span>
+        <span>{{ $t('channelList.selfBalance') }}：{{ activeInfo.SelfBalance | formatBalance }}{{ activeInfo.assetType }}</span>
+        <span>{{ $t('channelList.otherUri') }}：{{ activeInfo.OtherUri }}</span>
+        <span>{{ $t('channelList.otherBalance') }}：{{ activeInfo.OtherBalance | formatBalance }}{{ activeInfo.assetType }}</span>
+        <span>{{ $t('channelList.channelState') }}：{{ activeInfo.State | formatStatus }}</span>
+        <span>{{ $t('channelList.isConnect') }}：{{ activeInfo.isConnect | formatConnect }}</span>
+        <span>{{ $t('channelList.isTestNet') }}：{{ activeInfo.isTestNet | formatNet}}</span>
         <span v-if="!isConfirmCloseChannel" slot="footer" class="dialog-footer">
-            <el-button @click="showConfirmCloseChannelData()" type="danger"> 关闭通道 </el-button>
+            <el-button @click="showConfirmCloseChannelData()" type="danger"> {{ $t('channelList.closeChannel') }} </el-button>
         </span>
         <span v-if="isConfirmCloseChannel" slot="footer" class="dialog-footer">
             <el-form :model="activeInfo" status-icon :rules="confirmCloseRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
-                <el-form-item label="密码" prop="keyStorePass">
-                    <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+                <el-form-item :label="$t('channelList.password')" prop="keyStorePass">
+                    <el-input v-model="activeInfo.keyStorePass" :placeholder="$t('channelList.inputPassword')" type="password" auto-complete="off"></el-input>
                 </el-form-item>
                 <el-form-item style="text-align:center;margin-left: -80px;">
-                    <el-button @click="closeChannel()" type="danger"> 确定 </el-button>
-                    <el-button @click="isChannelInfoBoxShow = false;isConfirmCloseChannel = false;"> 取消 </el-button>
+                    <el-button @click="closeChannel()" type="danger"> {{ $t('channelList.confirm') }} </el-button>
+                    <el-button @click="isChannelInfoBoxShow = false;isConfirmCloseChannel = false;"> {{ $t('channelList.cancel') }} </el-button>
                 </el-form-item>
             </el-form>            
         </span>
@@ -255,10 +255,14 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
+    overflow-x: hidden;
+}
+.contentBox::-webkit-scrollbar {
+    display: none;
 }
 h2{
     margin: 0;

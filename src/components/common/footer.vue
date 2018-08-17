@@ -121,11 +121,12 @@ a{
     /* padding: 8px 0; */
 }
 span{
-  display: block;
-  font-size: 10px;
+    display: block;
+    font-size: 10px;
 }
 [class^="el-icon-ETH"], [class*=" el-icon-ETH"] {
     font-size: 21px;
+    margin: 0;
 }
 .container-fluid{
     width: 100%;

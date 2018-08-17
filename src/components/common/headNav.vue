@@ -3,7 +3,7 @@
         <h1 @click="testFun()">{{$t('navMenu.title')}}</h1>
         <el-row class="tac">
             <el-col :span="24">
-                <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-vertical-demo" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+                <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-vertical-demo" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" :unique-opened="true">
                 <el-submenu index="1">
                     <template slot="title">
                     <i class="el-icon-ETH-32"></i>
@@ -114,11 +114,8 @@ export default {
   mounted() {
     this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
         let _this = this;
-        _this.$store.state.vuexStore.isLogin = _this.$parent.fetchAsArray("isLogin");
-        console.log("当前登陆状态为" + _this.$store.state.vuexStore.isLogin);
-        // console.log(!_this.$store.state.vuexStore.isLogin);
         _this.isNightMode = _this.$parent.fetchAsString("isNightMode");
-        if(!_this.$store.state.vuexStore.isLogin || _this.$store.state.vuexStore.isLogin == ""){
+        if(!_this.$store.state.vuexStore.isLogin){
             _this.$router.push('/start');
         }
     })
@@ -149,6 +146,9 @@ export default {
         }
     },
     testFun() {      //用于测试
+        let a = web3.utils.isAddress('0xA37ED572438c725915357b2F1bCAfD871Fb6151d');
+        console.log(a);
+        return false;
         let _this = this;
         let redata = {
             "MessageType":"Rsmc",
@@ -170,7 +170,7 @@ export default {
             title: '消息',
             duration: 0,
             message: redata.Sender.split("@")[0] + "正在向你转账,需要你解锁钱包,点击进行解锁",
-            onClick: _this.$parent.showReceiptInfoBox
+            onClick: _this.$parent.showReceiptRsmcInfoBox
         });
         return false;
         let txData = web3.utils.soliditySha3(         //生成代签名交易数据

@@ -1,41 +1,41 @@
 <template>
   <div class="receiveForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
-        <h2>收款</h2>
+        <h2>{{ $t('receive.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-tabs type="border-card" style="width: 100%;max-width: 440px;" :stretch='true'>
-            <el-tab-pane label="链上">
+            <el-tab-pane :label="$t('receive.chain')">
                 <div class="QRCodeBox QRCodeBox-white">
-                    <h3>收款地址</h3>
+                    <h3>{{ $t('receive.receiveAddress') }}</h3>
                     <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
                     <p v-text="this.$store.state.vuexStore.walletInfo.address"></p>
                 </div>
                 <el-input id="receiveAddress" placeholder="Address" v-model="this.$store.state.vuexStore.walletInfo.address" readonly=readonly>
-                    <el-button class="btncopy" data-clipboard-target="#receiveAddress" @click="copyfun()" slot="append" icon="el-icon-share">Copy</el-button>
+                    <el-button class="btncopy" data-clipboard-target="#receiveAddress" @click="copyfun()" slot="append" icon="el-icon-share">{{ $t('receive.copy') }}</el-button>
                 </el-input>
             </el-tab-pane>
-            <el-tab-pane label="通道">
-                <el-form v-if="!isPaymentCodeBoxShow" :model="paymentCodeForm" status-icon :rules="paymentCodeRules" ref="paymentCodeForm" label-width="80px" class="demo-ruleForm" style="text-align:center;">
-                    <el-form-item label="金额" prop="amount">
+            <el-tab-pane :label="$t('receive.channel')">
+                <el-form v-if="!isPaymentCodeBoxShow" :model="paymentCodeForm" status-icon :rules="paymentCodeRules" ref="paymentCodeForm" label-width="82px" class="demo-ruleForm" style="text-align:center;">
+                    <el-form-item :label="$t('receive.amount')" prop="amount">
                         <el-input type="number" v-model.number="paymentCodeForm.amount" auto-complete="off"></el-input>
                     </el-form-item>
-                    <el-form-item label="资产类型" prop="assetType" >
-                        <el-select v-model="paymentCodeForm.assetType" placeholder="请选择资产类型" style="width:100%;">
+                    <el-form-item :label="$t('receive.assetType')" prop="assetType" >
+                        <el-select v-model="paymentCodeForm.assetType" :placeholder="$t('receive.chooseAssetType')" style="width:100%;">
                         <el-option label="TNC" value="TNC"></el-option>
                         <el-option label="ETH" value="ETH"></el-option>
                         </el-select>
                     </el-form-item>
-                    <el-button type="primary" @click="createPaymentCode()">创建</el-button>
+                    <el-button type="primary" @click="createPaymentCode()">{{ $t('receive.create') }}</el-button>
                 </el-form>
                 <div v-if="isPaymentCodeBoxShow">
-                    <el-button @click="resetForm('ruleForm')">重置</el-button>
+                    <el-button @click="resetForm('ruleForm')">{{ $t('receive.reset') }}</el-button>
                     <div class="QRCodeBox QRCodeBox-white">
-                        <h3>收款码</h3>
+                        <h3>{{ $t('receive.receiveCode') }}</h3>
                         <qriously :value="paymentCodeForm.Code" level="H" :size="210" />
                         <p style="width: 378px;text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">{{ paymentCodeForm.Code }}</p>
                     </div>
                     <el-input id="receivePaymentCode" placeholder="Receive Payment Code" v-model="paymentCodeForm.Code">
-                        <el-button class="btncopy" data-clipboard-target="#receivePaymentCode" @click="copyfun()" slot="append" icon="el-icon-search">Copy</el-button>
+                        <el-button class="btncopy" data-clipboard-target="#receivePaymentCode" @click="copyfun()" slot="append" icon="el-icon-search">{{ $t('receive.copy') }}</el-button>
                     </el-input>
                 </div>
             </el-tab-pane>
@@ -202,7 +202,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

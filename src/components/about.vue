@@ -5,12 +5,12 @@
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <div style="text-align:center;">
             <img src="./../assets/img/Trinity.png" alt="Trinity">
+            <h4>Trinity Wallet for ETH</h4>
             <p>Version: V{{ $store.state.vuexStore.version }}</p>
         </div>
         <div>
-            <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
-            <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
-            <p>从场景上说，MessageBox 的作用是美化系统自带的，因此适合展示较为简单的内容。如果需要弹出较为复杂的内容，请使用 Dialog。</p>
+            <p>The Trinity Wallet was created to be an extraordinary wallet of the state channel, it supports Trinity  Protocol to be a universal scaling solution for any blockchain.</p>
+            <p><b>Tips:  </b>Please keep your private key, and confirm that the channel has been closed before unloading the App or deleting the date of the it, otherwise the infomation of channel will be lost.</p>
         </div>
     </div>
   </div>

@@ -2,35 +2,35 @@
   <div class="addChannelBox">
     <div class="contentBox">
         <div>
-          <p v-if="addChannelForm.assetType" style="float:right;margin: 5px 0;">资产余额：{{ $store.state.vuexStore.balanceData.Chain[addChannelForm.assetType] }}{{ addChannelForm.assetType }}</p>
-          <h2>添加通道</h2>
+          <p v-if="addChannelForm.assetType" style="float:right;margin: 5px 0;">{{ $t('addChannel.assetBalance') }}：{{ $store.state.vuexStore.balanceData.Chain[addChannelForm.assetType] }}{{ addChannelForm.assetType }}</p>
+          <h2>{{ $t('addChannel.title') }}</h2>
         </div>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-form :model="addChannelForm" status-icon :rules="addChannelRules" ref="addChannelForm" label-width="100px" class="addChannelForm">
-          <el-form-item label="对端URI" prop="uri">
+          <el-form-item :label="$t('addChannel.otherUri')" prop="uri">
             <el-input v-model="addChannelForm.uri" auto-complete="off"></el-input>
           </el-form-item>
-          <el-form-item label="资产类型" prop="assetType">
-            <el-select v-model="addChannelForm.assetType" placeholder="请选择资产类型" style="width:100%;">
+          <el-form-item :label="$t('addChannel.assetType')" prop="assetType">
+            <el-select v-model="addChannelForm.assetType" :placeholder="$t('addChannel.chooseAssetType')" style="width:100%;">
               <el-option label="TNC" value="TNC"></el-option>
               <el-option label="ETH" value="ETH" disabled></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="本端押金" prop="selfDeposit">
+          <el-form-item :label="$t('addChannel.selfDeposit')" prop="selfDeposit">
             <el-input v-model.number="addChannelForm.selfDeposit"  auto-complete="off"></el-input>
           </el-form-item>
-          <el-form-item label="对端押金" prop="otherDeposit">
+          <el-form-item :label="$t('addChannel.otherDeposit')" prop="otherDeposit">
             <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" :step="0.00000001" show-input ></el-slider>
           </el-form-item>
-          <el-form-item label="通道名称" prop="alice">
+          <el-form-item :label="$t('addChannel.alice')" prop="alice">
             <el-input v-model="addChannelForm.alice" auto-complete="off"></el-input>
           </el-form-item>
-          <el-form-item label="密码" prop="keyStorePass">
+          <el-form-item :label="$t('addChannel.password')" prop="keyStorePass">
             <el-input v-model="addChannelForm.keyStorePass" type="password" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="addChannel()">添加通道</el-button>
-            <el-button @click="removeAddChannelData()">返回</el-button>
+            <el-button type="primary" @click="addChannel()">{{ $t('addChannel.addChannel') }}</el-button>
+            <el-button @click="removeAddChannelData()">{{ $t('addChannel.cancel') }}</el-button>
           </el-form-item>
         </el-form>
     </div>
@@ -323,7 +323,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
