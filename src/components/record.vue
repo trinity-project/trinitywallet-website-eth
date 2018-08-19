@@ -176,7 +176,7 @@ export default {
       return data;
     },
     testfun() {
-        let PaymentCode = "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089&48c3075df5730554ea78c5529efe279cda2a236b&0x65096f2B7A8dc1592479F1911cd2B98dae4d2218&1&PaymentCode";
+        let PaymentCode = "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089&195378745719990331&48c3075df5730554ea78c5529efe279cda2a236b&65096f2B7A8dc1592479F1911cd2B98dae4d2218&1&PaymentCode";
         console.log(PaymentCode);
         let Paymentlink = "TN" + base58encode(PaymentCode);
         console.log(Paymentlink);

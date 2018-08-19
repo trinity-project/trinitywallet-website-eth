@@ -29,7 +29,7 @@
         <span>{{ $t('channelList.otherUri') }}：{{ activeInfo.OtherUri }}</span>
         <span>{{ $t('channelList.otherBalance') }}：{{ activeInfo.OtherBalance | formatBalance }}{{ activeInfo.assetType }}</span>
         <span>{{ $t('channelList.channelState') }}：{{ activeInfo.State | formatStatus }}</span>
-        <span>{{ $t('channelList.isConnect') }}：{{ activeInfo.isConnect | formatConnect }}</span>
+        <span>{{ $t('channelList.isConnect') }}：{{ activeInfo.isConnect | formatConnect }}<a @click="reconnectWebsocket()" v-if="!activeInfo.isConnect" style="color:#F56C6C;margin-left:10px;cursor: pointer;">Reconnect</a></span>
         <span>{{ $t('channelList.isTestNet') }}：{{ activeInfo.isTestNet | formatNet}}</span>
         <span v-if="!isConfirmCloseChannel" slot="footer" class="dialog-footer">
             <el-button @click="showConfirmCloseChannelData()" type="danger"> {{ $t('channelList.closeChannel') }} </el-button>
@@ -81,6 +81,7 @@ export default {
           isConnect: '',
           isTestNet: '',
           State: '',
+          Ip: '',
           keyStorePass: ''
         },
         isConfirmCloseChannel: false,            //显示确认关闭通道
@@ -92,7 +93,7 @@ export default {
     }
   },
   computed:{
-      channelList() {
+      channelList() {                       //获取vuex中的channelList赋值给channelList
           return this.$store.state.vuexStore.channelList;
       }
   },
@@ -174,6 +175,10 @@ export default {
     showConfirmCloseChannelData() {         //显示确认关闭通道
         this.isConfirmCloseChannel = true;
     },
+    reconnectWebsocket() {         //显示确认关闭通道
+        this.$parent.reconnectWebsocket(this.activeInfo.Ip + ":8766", this.activeInfo.ChannelName);
+        this.isChannelInfoBoxShow = false;
+    },
     closeChannel() {                //关闭通道时间
         let _this = this;
         _this.$refs['activeInfo'].validate((valid) => {
@@ -188,47 +193,53 @@ export default {
                     duration: 3000
                 });
                 return;
-            } else {
+            } else {                //检测到通道,开始关闭通道
                 console.log(_this.$store.state.vuexStore.channelList[l].isConnect);
-                if(_this.$store.state.vuexStore.channelList[l].isConnect == true){          //如果为连接状态,进入快速拆通道
-                    let txData = web3.utils.soliditySha3(         //生成代签名交易数据
-                    {t: 'bytes32', v: _this.activeInfo.ChannelName},    //通道名称
-                    {t: 'uint256', v: 4294967295},                                   //TXnonce
-                    {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
-                    {t: 'uint256', v: _this.activeInfo.SelfBalance},       //本端押金
-                    {t: 'address', v: _this.activeInfo.OtherUri.split("@")[0]},                                  //对端地址
-                    {t: 'uint256', v: _this.activeInfo.OtherBalance}       //对端押金
-                    );
-                    console.log(txData);
+                if(_this.$store.state.vuexStore.channelList[l].transactionHash == undefined){     //删除无用通道
+                    _this.isChannelInfoBoxShow = false;                 //关闭当前窗口
+                    _this.isConfirmCloseChannel = false;                //关闭确认窗口
+                    _this.$store.state.vuexStore.channelList.splice(l,1);           //删除通道数据
+                    _this.activeInfo.keyStorePass = "";             //清楚数据
+                } else {
+                    if(_this.$store.state.vuexStore.channelList[l].isConnect == true){          //如果为连接状态,进入快速拆通道
+                        let txData = web3.utils.soliditySha3(         //生成代签名交易数据
+                        {t: 'bytes32', v: _this.activeInfo.ChannelName},                                             //通道名称
+                        {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce + 1},                  //TXnonce
+                        {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                          //本端地址
+                        {t: 'uint256', v: _this.activeInfo.SelfBalance},                                             //本端押金
+                        {t: 'address', v: _this.activeInfo.OtherUri.split("@")[0]},                                  //对端地址
+                        {t: 'uint256', v: _this.activeInfo.OtherBalance}                                             //对端押金
+                        );
+                        console.log(txData);
 
-                    let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.activeInfo.keyStorePass);        //解锁钱包用于签名          
-                    let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
-                    console.log(selfSignedData); 
+                        let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.activeInfo.keyStorePass);        //解锁钱包用于签名          
+                        let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
+                        console.log(selfSignedData); 
 
-                    let Message = {
-                        "MessageType":"Settle",
-                        "Sender": _this.activeInfo.SelfUri,
-                        "Receiver": _this.activeInfo.OtherUri,
-                        "TxNonce": 4294967295,              //0xFFFFFFFF,暂用
-                        "ChannelName": _this.activeInfo.ChannelName,
-                        "AssetType": _this.activeInfo.assetType,
-                        "NetMagic": _this.$store.state.vuexStore.NetMagic,
-                        "MessageBody": {
-                            "Commitment": selfSignedData,
-                            "SenderBalance": _this.activeInfo.SelfBalance / 10e7,
-                            "ReceiverBalance": _this.activeInfo.OtherBalance /10e7
-                        },
-                        "Comments": {}
+                        let Message = {
+                            "MessageType":"Settle",
+                            "Sender": _this.activeInfo.SelfUri,
+                            "Receiver": _this.activeInfo.OtherUri,
+                            "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,              
+                            "ChannelName": _this.activeInfo.ChannelName,
+                            "AssetType": _this.activeInfo.assetType,
+                            "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                            "MessageBody": {
+                                "Commitment": selfSignedData,
+                                "SenderBalance": _this.activeInfo.SelfBalance / 10e7,
+                                "ReceiverBalance": _this.activeInfo.OtherBalance /10e7
+                            },
+                            "Comments": {}
+                        }
+                        _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
+                        _this.$store.state.vuexStore.closeChannelInfo = _this.activeInfo;
+                        _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
+                        _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
+                        _this.isChannelInfoBoxShow = false;
+                        _this.isConfirmCloseChannel = false;
+                    } else {            //如果为未连接状态,进入强制拆通道
+                        console.log('进入强制拆通道');
                     }
-                    _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
-                    _this.$store.state.vuexStore.closeChannelInfo = _this.activeInfo;
-                    console.log(_this.$store.state.vuexStore.closeChannelInfo.keyStorePass);
-                    _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
-                    _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
-                    _this.isChannelInfoBoxShow = false;
-                    _this.isConfirmCloseChannel = false;
-                } else {            //如果为未连接状态,进入强制拆通道
-                    console.log('进入强制拆通道');
                 }
             }
         } else {

@@ -14,7 +14,7 @@ const cn = {
         'setting': {
             'title': '设置',
             'switchLang': 'Switch Language',
-            'switchNet': '选择网络',
+            'switchNet': '切换网络',
             'nightMode': '夜间模式',
             'changePass': '修改密码',
             'backup': '备份',
@@ -147,6 +147,22 @@ const cn = {
         'transactionHash': '交易哈希',
         'blockHash': '块哈希',
         'close': '关闭'
+    },
+    changePassword: {
+        'title': '修改密码',
+        'oldPass': '原密码',
+        'password': '新密码',
+        'checkPass': '重复新密码',
+        'changePassword': '修改密码',
+        'callback-1': '钱包密码不能为空，否则将无法修改密码',
+        'callback-2': '钱包解锁失败 - 可能是密码错误',
+        'callback-3': '请输入新密码',
+        'callback-4': '请再次输入新密码',
+        'callback-5': '两次输入密码不一致',
+        'callback-6': '成功',
+        'callback-7': '修改密码成功',
+        'callback-8': '警告',
+        'callback-9': '修改密码失败'
     },
     backup: {
         'title': '备份',

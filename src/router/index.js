@@ -12,6 +12,7 @@ import addChannelForm from '@/components/addChannel'
 import channelListForm from '@/components/channelList'
 import recordForm from '@/components/record'
 import aboutForm from '@/components/about'
+import changePasswordForm from '@/components/changePassword'
 
 Vue.use(Router)
 
@@ -81,6 +82,11 @@ export default new Router({
       name: 'recordForm',
       component: recordForm
     },
+    {
+      path: '/changePassword',
+      name: 'changePasswordForm',
+      component: changePasswordForm
+    }
   ],
-  mode: 'hash' //消除链接上的#号
+  mode: 'hash'
 })

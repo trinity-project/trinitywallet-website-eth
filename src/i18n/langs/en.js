@@ -34,7 +34,7 @@ const en = {
     create: {
         'title': 'Create Wallet',
         'password': 'Password',
-        'checkPass': 'CheckPass',
+        'checkPass': 'Repeat pass',
         'create': 'Create',
         'callback-1': 'Please input the password',
         'callback-2': 'Please repeat the password',
@@ -123,7 +123,7 @@ const en = {
         'cancel': 'Cancel'
     },
     addChannel: {
-        'title': 'addChannel',
+        'title': 'Add Channel',
         'assetBalance': 'Asset Balance',
         'otherUri': 'Other Uri',
         'assetType': 'Asset Type',
@@ -147,6 +147,22 @@ const en = {
         'transactionHash': 'Transaction hash',
         'blockHash': 'Block hash',
         'close': 'Close'
+    },
+    changePassword: {
+        'title': 'Change Password',
+        'oldPass': 'Old pass',
+        'password': 'New pass',
+        'checkPass': 'Repeat pass',
+        'changePassword': 'Change Password',
+        'callback-1': "The wallet password can not be empty",
+        'callback-2': 'Key derivation failed - possibly wrong password',
+        'callback-3': 'Please input the new password',
+        'callback-4': 'Please repeat the new password',
+        'callback-5': "Passwords don't match",
+        'callback-6': 'Succeed',
+        'callback-7': 'Change Password Succeed',
+        'callback-8': 'Warning',
+        'callback-9': 'Change Password Fail'
     },
     backup: {
         'title': 'Backup',

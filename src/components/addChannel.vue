@@ -29,7 +29,7 @@
             <el-input v-model="addChannelForm.keyStorePass" type="password" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="addChannel()">{{ $t('addChannel.addChannel') }}</el-button>
+            <el-button type="primary" @click="addChannel()" style="margin-left:-100px;">{{ $t('addChannel.addChannel') }}</el-button>
             <el-button @click="removeAddChannelData()">{{ $t('addChannel.cancel') }}</el-button>
           </el-form-item>
         </el-form>
@@ -52,7 +52,7 @@ export default {
             callback(new Error('URI格式不正确'));
           } else {
               _this.$store.state.vuexStore.channelList.forEach(function(val,index){    //判断是否已有通道
-                if(val.otherUri === _this.addChannelForm.uri){
+                if(val.OtherUri === _this.addChannelForm.uri){
                   callback(new Error('你已经和这个TNAP有一个通道了'));
                 }
               });
@@ -158,15 +158,6 @@ export default {
     }
   },
   methods: {
-    // formatTooltip(val) {      //用于自定义滑块显示内容
-    //     let multiple;
-    //     if(this.addChannelForm.selfdeposit === ''){
-    //       multiple = 1;
-    //     } else {
-    //       multiple = this.addChannelForm.selfDeposit;
-    //     }
-    //     return parseInt(val * multiple)/100;
-    // },
     addChannel() {
       let _this = this;
       _this.$refs['addChannelForm'].validate((valid) => {
@@ -209,7 +200,7 @@ export default {
               .on('transactionHash', function(hash){      //收到hash时
                   console.log(hash);
               })
-              .on('receipt', function(receipt){           //块确认后
+              .on('receipt', function(receipt){           //approve块确认后,发送Founder
                 console.log(receipt);
                 let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8766);       //截取对端Uri的Ip
                 const wsuri = "ws://" + Ip + "/";               //建立websocket连接
@@ -254,11 +245,11 @@ export default {
                   "TxNonce": 0,
                   "ChannelName": _this.addChannelForm.channelName,
                   "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                  "AssetType" : _this.addChannelForm.assetType,
                   "MessageBody": {
                       "FounderDeposit": parseInt(_this.addChannelForm.selfDeposit * 10e7) / 10e7,
                       "PartnerDeposit": parseInt(_this.addChannelForm.otherDeposit * 10e7) / 10e7,
-                      "Commitment": _this.addChannelForm.selfSignedData,
-                      "AssetType" : _this.addChannelForm.assetType
+                      "Commitment": _this.addChannelForm.selfSignedData
                   }
                 }
                 setTimeout(function (){

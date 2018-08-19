@@ -3,7 +3,7 @@
     <div class="contentBox">
         <h2>{{ $t('create.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <el-form :model="createForm" status-icon :rules="createRules" ref="createForm" label-width="80px" class="demo-ruleForm">
+        <el-form :model="createForm" status-icon :rules="createRules" ref="createForm" label-width="92px" class="demo-ruleForm">
             <el-form-item :label="$t('create.password')" prop="pass">
               <el-input type="password" v-model="createForm.pass" auto-complete="off"></el-input>
             </el-form-item>
@@ -25,7 +25,7 @@ export default {
   data () {
     var validatePass = (rule, value, callback) => {         //create 密码输入规则
       if (value === '') {
-        callback(new Error(this.$t('loginByPrivateKey.callback-1')));
+        callback(new Error(this.$t('create.callback-1')));
       } else {
         if (this.createForm.checkPass !== '') {
           this.$refs.createForm.validateField('checkPass');
@@ -35,9 +35,9 @@ export default {
     };
     var validatePass2 = (rule, value, callback) => {      //create 重复密码输入规则
       if (value === '') {
-        callback(new Error(this.$t('loginByPrivateKey.callback-2')));
+        callback(new Error(this.$t('create.callback-2')));
       } else if (value !== this.createForm.pass) {
-        callback(new Error(this.$t('loginByPrivateKey.callback-3')));
+        callback(new Error(this.$t('create.callback-3')));
       } else {
         callback();
       }
@@ -81,9 +81,9 @@ export default {
                     // console.log(this.$store.state.vuexStore.walletInfo.address);
                     this.$store.state.vuexStore.isLogin = true;
                     this.$notify({
-                        title: this.$t('loginByPrivateKey.callback-4'),
+                        title: this.$t('create.callback-4'),
                         dangerouslyUseHTMLString: true,
-                        message: this.$t('loginByPrivateKey.callback-5'),
+                        message: this.$t('create.callback-5'),
                         duration: 3000,
                         type: 'success'
                     });
@@ -110,7 +110,7 @@ export default {
     overflow: hidden;
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

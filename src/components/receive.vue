@@ -162,7 +162,7 @@ export default {
                 });
                 return false;
             }
-            let PaymentCode = _this.paymentCodeForm.selfUri + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetContractAddress + "&" + _this.paymentCodeForm.amount + "&" + "PaymentCode";
+            let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetContractAddress + "&" + _this.paymentCodeForm.amount + "&" + "PaymentCode";
             console.log(PaymentCode);
             _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
             console.log(_this.paymentCodeForm.Code);
@@ -213,7 +213,7 @@ h2{
 .QRCodeBox{
     padding: 8px 16px;
     border-radius: 4px;
-    margin: 20px 0;
+    /* margin: 20px 0; */
     width: 100%;
     text-align: center;
     box-sizing: border-box;
