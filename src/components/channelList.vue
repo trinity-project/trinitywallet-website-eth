@@ -234,6 +234,7 @@ export default {
                         _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
                         _this.$store.state.vuexStore.closeChannelInfo = _this.activeInfo;
                         _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
+                        _this.$store.state.vuexStore.closeChannelInfo.TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1;
                         _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
                         _this.isChannelInfoBoxShow = false;
                         _this.isConfirmCloseChannel = false;

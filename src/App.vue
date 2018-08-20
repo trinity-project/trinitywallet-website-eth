@@ -547,6 +547,9 @@ export default {
       case "SettleSign":
         _this.OnMesSettleSign(redata);
         break;
+      case "DeleteChannel":
+        _this.OnMesDeleteChannel(redata);
+        break;
       case "ChannelInfo":
         _this.OnMesChannelInfo(redata);
         break;
@@ -578,16 +581,30 @@ export default {
       let _this = this;
       setTimeout(function (){
         web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
-          var myContract1 = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
+          var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
               gasPrice: gasPrice        //Gas价格
           });
-          myContract1.methods.allowance(redata.Sender.split("@")[0] , _this.$store.state.vuexStore.trinityContractAddress ).call({from: _this.$store.state.vuexStore.walletInfo.address}, function(error, result){
-              console.log(result);
-              if(result >= _this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7){
-                  _this.sendDeposit(redata);
+          myContract.methods.balanceOf(redata.Sender.split("@")[0]).call({from: redata.Sender.split("@")[0]}, function(error, balance){
+              if(!error) {
+                  if(balance > _this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7){       //判断对端余额
+                    myContract.methods.allowance(redata.Sender.split("@")[0] , _this.$store.state.vuexStore.trinityContractAddress ).call({from: _this.$store.state.vuexStore.walletInfo.address}, function(error, result){
+                        console.log(result);
+                        if(result >= _this.$store.state.vuexStore.addChannelInfo.otherDeposit * 10e7){
+                            _this.sendDeposit(redata);
+                        } else {
+                            _this.confirmOtherApprove(redata);
+                        }
+                    });
+                  }
               } else {
-                  _this.confirmOtherApprove(redata);
+                  _this.$notify.error({
+                    title: '警告',
+                    dangerouslyUseHTMLString: true,
+                    message: '添加通道失败,对端余额不足',
+                    duration: 0
+                  });
+                  return false;
               }
           });
         })
@@ -1450,7 +1467,15 @@ export default {
             let functionSig = web3.eth.abi.encodeFunctionSignature('quickCloseChannel(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
             console.log(functionSig);
 
-            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.closeChannelInfo.ChannelName, 4294967295, _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.closeChannelInfo.SelfBalance, _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],_this.$store.state.vuexStore.closeChannelInfo.OtherBalance, _this.$store.state.vuexStore.closeChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
+            console.log(_this.$store.state.vuexStore.closeChannelInfo.ChannelName);
+            console.log(_this.$store.state.vuexStore.closeChannelInfo.TxNonce);
+            console.log(_this.$store.state.vuexStore.walletInfo.address);
+            console.log(_this.$store.state.vuexStore.closeChannelInfo.SelfBalance);
+            console.log(_this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0]);
+            console.log(_this.$store.state.vuexStore.closeChannelInfo.OtherBalance);
+            console.log(_this.$store.state.vuexStore.closeChannelInfo.selfSignedData);
+            console.log(redata.MessageBody.Commitment);
+            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.closeChannelInfo.ChannelName, _this.$store.state.vuexStore.closeChannelInfo.TxNonce, _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.closeChannelInfo.SelfBalance, _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],_this.$store.state.vuexStore.closeChannelInfo.OtherBalance, _this.$store.state.vuexStore.closeChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
             console.log(data);
 
             var txData = {        //组成txData数据
@@ -1524,6 +1549,34 @@ export default {
       } else {
         console.log(redata.Status);
       }
+    },
+    OnMesDeleteChannel :function(redata){
+      //收到的消息体
+      // {
+      // AssetType:"TNC"
+      // MessageBody:{
+      //   Balance:{
+      //     0xBF9905c03Ce89fc1666d3701B88a87b647b074af@106.15.91.150:8766: {…}, 0x4E801062608188F5d5805ddC3e98B766088784CE@106.15.91.150:8089: {…}
+      //   },
+      //   ChannelName:"0xb1d29d209662ce95a6af188110332c1de2bfe180ab9e6d2156856b0b46042dc7",
+      //   Founder:"0xBF9905c03Ce89fc1666d3701B88a87b647b074af@106.15.91.150:8766",
+      //   Receiver:"0x4E801062608188F5d5805ddC3e98B766088784CE@106.15.91.150:8089"
+      // },
+      // MessageType:"DeleteChannel"
+      // NetMagic:"527465737419990331"
+      // }
+      let l = _this.getChannelSerial("ChannelName", redata.MessageBody.ChannelName); //获取所需的channel在List的位置
+      _this.$notify({
+          title: '成功',
+          dangerouslyUseHTMLString: true,
+          message: '通道已关闭',
+          duration: 3000,
+          type: 'success'
+      });
+      _this.$store.state.vuexStore.channelList.splice(l,1);
+
+      _this.StoreChannel();                   //储存通道信息
+      _this.getChannelBalance();              //更新通道余额
     },
     OnMesChannelInfo:function(redata){
       let _this = this;
