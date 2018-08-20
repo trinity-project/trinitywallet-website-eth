@@ -168,7 +168,7 @@ export default {
             console.log(gasPrice);
           var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-              gasPrice: gasPrice  * 3        //Gas价格
+              gasPrice: gasPrice * _this.$store.state.vuexStore.multiple        //Gas价格
           });
           let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);
           web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
@@ -184,7 +184,7 @@ export default {
 
               var txData = {        //组成txData数据
                   nonce: web3.utils.toHex(nonce++),
-                  gasPrice: web3.utils.toHex(gasPrice  * 3), 
+                  gasPrice: web3.utils.toHex(gasPrice * _this.$store.state.vuexStore.multiple), 
                   gasLimit: web3.utils.toHex(4500000),
                   to: _this.$store.state.vuexStore.tncContractAddress,
                   from: _this.$store.state.vuexStore.walletInfo.address, 

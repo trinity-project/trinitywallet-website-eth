@@ -520,7 +520,6 @@ export default {
         _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
         _this.ShowTxOnChannelBox = false;
         _this.clearTxData();
-        _this.$refs['txOnChannelInfo'].resetFields();  
       } else if (l == -1){        //未与该Uri直连,查询路由情况
           _this.$notify.info({
             title: '提醒',
@@ -551,8 +550,7 @@ export default {
               message: '没有开通的通道,请先建立通道',
               duration: 3000
             });
-            _this.clearTxData();                        //清空当前数据
-            _this.$refs['txOnChannelInfo'].resetFields();  
+            _this.clearTxData();                        //清空当前数据 
             return false;
           } else {      //遍历到开通的通道,进入Htlc交易
             _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[i].SelfUri;            //赋值sendUri
@@ -572,7 +570,6 @@ export default {
             _this.$store.state.vuexStore.channelList[i].websock.send(JSON.stringify(Message));        //发送websocket消息
             _this.ShowTxOnChannelBox = false;           //关闭当前窗口
             _this.clearTxData();                        //清空当前数据  
-            _this.$refs['txOnChannelInfo'].resetFields();  
           }
       } else if (l == -2){
           _this.$notify.error({
