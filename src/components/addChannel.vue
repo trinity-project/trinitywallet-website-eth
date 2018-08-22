@@ -2,7 +2,7 @@
   <div class="addChannelBox">
     <div class="contentBox">
         <div>
-          <p v-if="addChannelForm.assetType" style="float:right;margin: 5px 0;">{{ $t('addChannel.assetBalance') }}：{{ $store.state.vuexStore.balanceData.Chain[addChannelForm.assetType] }}{{ addChannelForm.assetType }}</p>
+          <p v-if="addChannelForm.assetType" style="float:right;margin: 5px 0;font-size: 16px;">{{ $t('addChannel.assetBalance') }}：{{ $store.state.vuexStore.balanceData.Chain[addChannelForm.assetType] }}{{ addChannelForm.assetType }}</p>
           <h2>{{ $t('addChannel.title') }}</h2>
         </div>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -168,7 +168,7 @@ export default {
             console.log(gasPrice);
           var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
               from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-              gasPrice: gasPrice * _this.$store.state.vuexStore.multiple        //Gas价格
+              gasPrice: _this.$store.state.vuexStore.gasPrice        //Gas价格
           });
           let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);
           web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
@@ -184,7 +184,7 @@ export default {
 
               var txData = {        //组成txData数据
                   nonce: web3.utils.toHex(nonce++),
-                  gasPrice: web3.utils.toHex(gasPrice * _this.$store.state.vuexStore.multiple), 
+                  gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
                   gasLimit: web3.utils.toHex(4500000),
                   to: _this.$store.state.vuexStore.tncContractAddress,
                   from: _this.$store.state.vuexStore.walletInfo.address, 
@@ -224,7 +224,7 @@ export default {
 
                 let txData = web3.utils.soliditySha3(         //生成代签名交易数据
                   {t: 'bytes32', v: _this.addChannelForm.channelName},    //通道名称
-                  {t: 'uint256', v: 0},                                   //TXnonce
+                  {t: 'uint256', v: 1},                                   //TXnonce
                   {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
                   {t: 'uint256', v: _this.addChannelForm.selfDeposit * 10e7},       //本端押金
                   {t: 'address', v: OtherAddress},                                  //对端地址
@@ -242,7 +242,7 @@ export default {
                   "MessageType": "Founder",
                   "Sender": SelfUri,
                   "Receiver": _this.addChannelForm.uri,
-                  "TxNonce": 0,
+                  "TxNonce": 1,
                   "ChannelName": _this.addChannelForm.channelName,
                   "NetMagic": _this.$store.state.vuexStore.NetMagic,
                   "AssetType" : _this.addChannelForm.assetType,
@@ -269,7 +269,7 @@ export default {
                 _this.$store.state.vuexStore.channelList[l].isTestNet = true;             //是否为测试网
                 _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
                 _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
-                _this.$store.state.vuexStore.channelList[l].TxNonce = 0;                  //交易次数
+                _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
                 _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
                 _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
 
@@ -280,7 +280,16 @@ export default {
               .on('confirmation', function(confirmationNumber, receipt){
                 // console.log(confirmationNumber);
               })
-              .on('error', console.error);
+              .on('error', function(error){
+                _this.$notify.error({
+                    title: '警告',
+                    dangerouslyUseHTMLString: true,
+                    message: error,
+                    duration: 3000
+                });
+                _this.$parent.closeLoading();
+                return;
+              });
             })
           })
         } else {
@@ -325,6 +334,7 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 .fullPage{
     width: 100% !important;

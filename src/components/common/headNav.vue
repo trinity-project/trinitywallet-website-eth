@@ -46,9 +46,9 @@
                         <template slot="title">
                             <i class="el-icon-ETH-wangluo"></i>
                             <span>{{$t('navMenu.setting.switchNet')}}
-                                <p v-if="!$store.state.vuexStore.isTestNet" style="position: absolute;color: #C0C4CC;font-size: 10px;margin: 0;top: 0;right: 45px;" active-color="#F8D163">MainNet
+                                <p v-if="!$store.state.vuexStore.isTestNet" style="position: absolute;color: #C0C4CC;font-size: 10px;margin: 0;top: 0;right: 30px;" active-color="#F8D163">MainNet
                                 </p>
-                                <p v-if="$store.state.vuexStore.isTestNet" style="position: absolute;color: #C0C4CC;font-size: 10px;margin: 0;top: 0;right: 45px;" active-color="#F8D163">Ropsten  TsetNet 
+                                <p v-if="$store.state.vuexStore.isTestNet" style="position: absolute;color: #C0C4CC;font-size: 10px;margin: 0;top: 0;right: 30px;" active-color="#F8D163">Ropsten TsetNet 
                                 </p>
                             </span>
                         </template>
@@ -61,6 +61,24 @@
                         <el-menu-item @click="switchNet('Mainnet')" index="3-2-1">Mainnet</el-menu-item>
                         <el-menu-item @click="switchNet('Ropsten')" index="3-2-2">Ropsten</el-menu-item>
                     </el-submenu> -->
+                    <el-submenu index="3-7">
+                        <template slot="title">
+                            <i class="el-icon-ETH-wuliaojiage"></i>
+                            <span>设置Gas Price</span>
+                        </template>
+                        <el-menu-item index="3-7-1">
+                            <div class="block">
+                                <el-slider v-model="gasPrice" :min="1" :max="100"></el-slider>
+                                <p style="position: absolute;color: #C0C4CC;font-size: 10px;margin: 0;top: 0;right: 30px;"> {{ gasPrice }} Gwei
+                                </p>
+                            </div>
+                        </el-menu-item>
+                        <el-menu-item index="3-7-1">
+                            <div class="block">
+                                <p style="position: absolute;color: #ffd04b;font-size: 12px;margin: 0;top: 0;" >建议不要小于当前平均价格---{{ recommendGasPrice / 10e8 }} Gwei</p>
+                            </div>
+                        </el-menu-item>
+                    </el-submenu>
                     <el-menu-item index="3-3" style="position: relative;" disabled>
                             <i class="el-icon-ETH-pifu"></i>
                             <span>{{$t('navMenu.setting.nightMode')}}
@@ -101,7 +119,9 @@ export default {
       isLogin: false,
       isNightMode: false,
       navSelected: "1-1",          //当前active Nav
-      isSignOutBoxShow: false       //是否显示退出框
+      isSignOutBoxShow: false,       //是否显示退出框
+      gasPrice: 1,                //GasPrice
+      recommendGasPrice: 0
     }
   },
   computed: {
@@ -116,9 +136,14 @@ export default {
     isNightMode(newValue, oldValue) { 
         let _this = this;
         console.log("当前夜间模式为" + newValue);
-        _this.$store.state.vuexStore.isNightMode = newValue;
-        _this.$parent.saveAsString("isNightMode",_this.$store.state.vuexStore.isNightMode);
+        _this.$parent.saveAsString("isNightMode", newValue);
     },
+    gasPrice(newValue, oldValue) { 
+        let _this = this;
+        _this.$store.state.vuexStore.gasPrice = newValue * 10e8;
+        _this.$parent.saveAsString("gasPrice", newValue * 10e8);
+    },
+    '$store.state.vuexStore.gasPrice': 'changeGasPrice',           // 监测store中的activeNavIndex
     '$store.state.vuexStore.activeNavIndex': 'storeToNav',           // 监测store中的activeNavIndex
     '$store.state.vuexStore.walletInfo.address': 'getAddressInfo'            // 监测store中的address,出现变化时获取相关信息
   },
@@ -126,6 +151,15 @@ export default {
     this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
         let _this = this;
         _this.isNightMode = _this.$parent.fetchAsString("isNightMode");
+
+        web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
+            _this.recommendGasPrice = gasPrice;
+            if(_this.$parent.fetchAsString("gasPrice") == ""){
+                _this.$store.state.vuexStore.gasPrice = parseInt(gasPrice);
+            } else {
+                _this.$store.state.vuexStore.gasPrice = parseInt(_this.$parent.fetchAsString("gasPrice"));
+            }
+        })
         if(!_this.$store.state.vuexStore.isLogin){
             _this.$router.push('/start');
         }
@@ -157,7 +191,15 @@ export default {
             this.$router.push(router);
         }
     },
+    changeGasPrice() {      //传递GasPrice
+        this.gasPrice = this.$store.state.vuexStore.gasPrice / 10e8;
+    },
     testFun() {      //用于测试
+        let result = web3.utils.keccak256("0x4c6dc84a0bce23e93d8b40b0517801d0f9354b284e8aa0fa75ff1ba6c4ed5c68");
+        console.log(result);
+        console.log("0x8d1cb246ceeed51bf56c47c2e42f7e28811267f10ede218f168168a233067619");
+
+        return false;
         let _this = this;
         let redata = {
             "MessageType":"Rsmc",
@@ -229,8 +271,8 @@ export default {
             })
         this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
         this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");           //获取联系人列表
-        this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList");           //获取交易记录列表
-        this.getBalance();          //获取总的余额
+        this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList");                             //获取交易记录列表
+        this.getBalance();                           //获取总的余额
         this.cycleReconnectWebsocket();             //循环连接websocket
         this.BalanceCycle();                        //反复获取钱包余额
     },
@@ -259,17 +301,19 @@ export default {
     },
     getTncBalance() {       //获取TNC余额
       let _this = this;
-      var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
-          from: _this.$store.state.vuexStore.walletInfo.address, // default from address
-          gasPrice: '10000000000' // default gas price in wei, 10 gwei in this case
-      });
-      myContract.methods.balanceOf(_this.$store.state.vuexStore.walletInfo.address).call({from: _this.$store.state.vuexStore.tncContractAddress}, function(error, result){
-          if(!error) {
-              let tncBalance= (result / 10e7);
-              _this.$store.state.vuexStore.balanceData.Chain.TNC = _this.$parent.keepDecimalPlaces(tncBalance,3);
-          } else {
-              console.log(error);
-          }
+      web3.eth.getGasPrice().then(function(gasPrice){               // 获取GAS价格
+        var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
+            from: _this.$store.state.vuexStore.walletInfo.address,              //发送地址
+            gasPrice: gasPrice                                                  // GAS价格
+        });
+        myContract.methods.balanceOf(_this.$store.state.vuexStore.walletInfo.address).call({from: _this.$store.state.vuexStore.tncContractAddress}, function(error, result){
+            if(!error) {
+                let tncBalance= (result / 10e7);
+                _this.$store.state.vuexStore.balanceData.Chain.TNC = _this.$parent.keepDecimalPlaces(tncBalance,3);
+            } else {
+                console.log(error);
+            }
+        });
       });
     },
     cycleReconnectWebsocket() {             //登录后循环连接各个通道
@@ -278,7 +322,7 @@ export default {
             _this.$parent.reconnectWebsocket(val.Ip + ":8766",val.ChannelName);
         })
     },
-    showSignOutBox() {                  //显示退出提醒框
+    showSignOutBox() {                       //显示退出提醒框
         if(this.$store.state.vuexStore.isLogin == true){
             this.$parent.showSignOutBox();
         } else {

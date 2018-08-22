@@ -143,8 +143,8 @@ export default {
                 });
                 return false;
             }
-            _this.paymentCodeForm.R = createR();
-            _this.paymentCodeForm.Hr = createHr(_this.paymentCodeForm.R);
+            _this.paymentCodeForm.R = web3.utils.randomHex(32).substring(2);
+            _this.paymentCodeForm.Hr = web3.utils.keccak256(_this.paymentCodeForm.R).substring(2);          //sha3
             // this.paymentCodeForm.R = web3.utils.randomHex(32);
             // this.paymentCodeForm.Hr = web3.eth.accounts.hashMessage(web3.utils.utf8ToHex(this.paymentCodeForm.R));
             _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
@@ -162,7 +162,7 @@ export default {
                 });
                 return false;
             }
-            let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetContractAddress + "&" + _this.paymentCodeForm.amount + "&" + "PaymentCode";
+            let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetType + "&" + _this.paymentCodeForm.amount + "&" + "PaymentCode";
             console.log(PaymentCode);
             _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
             console.log(_this.paymentCodeForm.Code);
@@ -209,6 +209,7 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 .QRCodeBox{
     padding: 8px 16px;
@@ -223,12 +224,21 @@ h2{
 }
 .QRCodeBox h3{
     display: inline-block;
-    /* margin: 14px 0 0 0; */
+    font-size: 18px;
     font-weight: 400;
     /* color: #f56c6c; */
     /* border-bottom: 1px solid #CCCCCC; */
 }
+.QRCodeBox p{
+    font-size: 16px;
+}
 .fullPage{
     width: 100% !important;
+}
+/* 手机端改变某些字体大小 */
+@media screen and (max-width: 450px) {
+    .QRCodeBox p{
+        font-size: 10px;
+    }
 }
 </style>

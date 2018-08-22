@@ -2,12 +2,12 @@
   <div class="recordForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h2 @click="testfun()">{{ $t('record.title') }}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin:8px 0 0 0;" />
         <ul v-if="formatRecordList(recordList).length">
             <li @click="showRecordInfo(data,index)" v-for="(data,index) in formatRecordList(recordList)" :key="index">
                 <h3>{{ data.name | formatAddress }} - {{ data.isOnChannel | formatIsOnChannel}}</h3><br>
                 <p>{{ data.date | formatDateTime }}</p>
-                <p>State：{{ data.state | formatState }}</p>
+                <p style="min-width: 180px;">State：{{ data.state | formatState }}</p>
                 <span>{{ data.isPay | formatIsPay }}{{ data.Amount / 10e7 }}<sup>{{ data.assetType }}</sup></span>
             </li>
         </ul>
@@ -217,17 +217,21 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 h3{
     font-weight: normal;
     display: inline-block;
     margin: 0 0 10px 0;
+    font-size: 18px;
 }
 ul li{
     border-bottom:1px solid #ebeef5;
     position: relative;
     padding: 12px;
     cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
 }
 ul li:hover{
     background: #f5f7fa;
@@ -236,11 +240,13 @@ ul li p{
     display: inline-block;
     margin: 0;
     width: 20%;
-    min-width: 100px;
+    font-size: 0.54rem;
+    min-width: 80px;
 }
 ul li span{
     position: absolute;
     font-size: 36px;
+    line-height: 38px;
     right: 30px;
     top: 50%;
     margin-top: -20px;
@@ -251,7 +257,7 @@ ul li span sup {
     font-size: 34%;
 }
 .recordInfoBox{
-    min-width: 420px;
+    min-width: 375px;
 }
 .recordInfoBox span{
     display: block;
@@ -264,5 +270,14 @@ ul li span sup {
 }
 .successState{
     color: #67C23A;
+}
+/* 手机端改变某些字体大小 */
+@media screen and (max-width: 450px) {
+    h3{
+        font-size: 16px;
+    }
+    ul li span{
+        font-size: 28px;
+    }
 }
 </style>

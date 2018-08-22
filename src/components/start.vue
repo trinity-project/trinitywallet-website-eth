@@ -56,6 +56,7 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 .clooseLoginBox{
     padding: 8px 16px;
@@ -79,6 +80,7 @@ h2{
     display: inline-block;
     margin: 14px 0 0 0;
     font-weight: 400;
+    font-size: 18px;
     /* border-bottom: 1px solid #CCCCCC; */
 }
 .clooseLoginBox p{

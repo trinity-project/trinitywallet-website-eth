@@ -31,9 +31,9 @@
     </div>
     <div class="contentBox">
         <h2>{{ $t('index.title') }}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin:8px 0;" />
         <el-form class="indexForm" ref="form">
-          <label>{{ $t('index.paymentCode') }}</label>
+          <label style="line-height: 28px;font-size: 16px;">{{ $t('index.paymentCode') }}</label>
             <el-select size="mini" v-model="contact" @change="contactChange" filterable clearable :placeholder="$t('index.transferByContact')" style="float: right;margin-bottom: 12px;">
               <el-option v-for="item in $store.state.vuexStore.contactList" :key="item.address" :label="item.name" :value="item.address">
                 <span style="float: left">{{ item.name }}</span>
@@ -67,7 +67,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="txOnChain()">转账</el-button>
+        <el-button type="primary" @click="txOnChain()">转 账</el-button>
         <el-button @click="ShowTxOnChainBox = false">取 消</el-button>
       </span>
     </el-dialog>
@@ -80,7 +80,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="confirmTx()">转账</el-button>
+        <el-button type="primary" @click="confirmTx()">转 账</el-button>
         <el-button @click="ShowTxOnChannelBox = false">取 消</el-button>
       </span>
     </el-dialog>
@@ -359,7 +359,7 @@ export default {
                   // nonce每次++，以免覆盖之前pending中的交易
                   nonce: web3.utils.toHex(nonce++),
                   gasLimit: web3.utils.toHex(4500000),   
-                  gasPrice: web3.utils.toHex(gasPrice * 5),  
+                  gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice),  
                   to: _this.txOnChainInfo.address,
                   from: _this.$store.state.vuexStore.walletInfo.address,
                   value: web3.utils.toHex(_this.txOnChainInfo.amount * 10e17),         
@@ -421,7 +421,7 @@ export default {
 
           var txData = {
               nonce: web3.utils.toHex(nonce++),
-              gasPrice: web3.utils.toHex(gasPrice * 5), 
+              gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
               gasLimit: web3.utils.toHex(4500000),
               to: _this.$store.state.vuexStore.tncContractAddress,
               from: _this.$store.state.vuexStore.walletInfo.address, 
@@ -631,6 +631,7 @@ export default {
   position: relative;
 }
 .assetBox h1{
+  font-size: 32px;
   text-align: center;
   line-height: 240px;
   margin: 0;
@@ -662,6 +663,7 @@ export default {
   box-sizing: border-box;
   text-overflow: ellipsis;
   vertical-align: middle;
+  font-size: 14px;
 }
 .assetTable td {
   border-bottom: 1px solid #ebeef5;
@@ -672,6 +674,7 @@ export default {
   box-sizing: border-box;
   text-overflow: ellipsis;
   vertical-align: middle;
+  font-size: 14px;
 }
 .assetTable tr:last-child td{
   border-bottom: 0px;
@@ -685,6 +688,7 @@ export default {
 }
 h2{
   margin: 0;
+  font-size: 24px;
 }
 .indexForm{
   padding: 12px 0;

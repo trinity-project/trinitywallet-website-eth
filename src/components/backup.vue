@@ -61,6 +61,7 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 .tipBox{
     padding: 8px 16px;
@@ -77,7 +78,14 @@ h2{
     margin: 14px 0 0 0;
     font-weight: 400;
     color: #f56c6c;
+    font-size: 18px;
     /* border-bottom: 1px solid #CCCCCC; */
+}
+.tipBox p{
+    font-size: 14px;
+    color: #5e6d82;
+    line-height: 1.5em;
+    font-weight: 400;
 }
 .fullPage{
     width: 100% !important;

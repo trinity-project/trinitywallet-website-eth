@@ -2,12 +2,12 @@
   <div class="channelListForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <div>
-            <router-link to="/addChannel" style="float:right">
-                <el-button size="mini" icon="el-icon-plus" type="primary">{{ $t('channelList.addChannel') }}</el-button>
+            <router-link to="/addChannel" style="float:right;font-size: 12px;">
+                <el-button size="mini" icon="el-icon-plus" type="primary" style="font-size:12px;">{{ $t('channelList.addChannel') }}</el-button>
             </router-link>
             <h2>{{ $t('channelList.title') }}</h2>
         </div>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin: 8px 0 0 0;" />
         <ul v-if="channelList.length">
             <li @click="showChannelInfo(data,index)" v-for="(data,index) in channelList" :key="index">
                 <h3>{{ data.Alice }}</h3><br>
@@ -204,7 +204,7 @@ export default {
                     if(_this.$store.state.vuexStore.channelList[l].isConnect == true){          //如果为连接状态,进入快速拆通道
                         let txData = web3.utils.soliditySha3(         //生成代签名交易数据
                         {t: 'bytes32', v: _this.activeInfo.ChannelName},                                             //通道名称
-                        {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce + 1},                  //TXnonce
+                        {t: 'uint256', v: 0},                                                                        //TXnonce
                         {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                          //本端地址
                         {t: 'uint256', v: _this.activeInfo.SelfBalance},                                             //本端押金
                         {t: 'address', v: _this.activeInfo.OtherUri.split("@")[0]},                                  //对端地址
@@ -220,7 +220,7 @@ export default {
                             "MessageType":"Settle",
                             "Sender": _this.activeInfo.SelfUri,
                             "Receiver": _this.activeInfo.OtherUri,
-                            "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,              
+                            "TxNonce": 0,              
                             "ChannelName": _this.activeInfo.ChannelName,
                             "AssetType": _this.activeInfo.assetType,
                             "NetMagic": _this.$store.state.vuexStore.NetMagic,
@@ -234,7 +234,6 @@ export default {
                         _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
                         _this.$store.state.vuexStore.closeChannelInfo = _this.activeInfo;
                         _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
-                        _this.$store.state.vuexStore.closeChannelInfo.TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1;
                         _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
                         _this.isChannelInfoBoxShow = false;
                         _this.isConfirmCloseChannel = false;
@@ -278,6 +277,7 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 h3{
     font-weight: normal;
@@ -289,6 +289,8 @@ ul li{
     position: relative;
     padding: 12px;
     cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
 }
 ul li:hover{
     background: #f5f7fa;
@@ -297,7 +299,8 @@ ul li p{
     display: inline-block;
     margin: 0;
     width: 20%;
-    min-width: 100px;
+    font-size: 0.54rem;
+    min-width: 80px;
 }
 ul li span{
     position: absolute;
@@ -312,7 +315,7 @@ ul li span sup {
     font-size: 34%;
 }
 .channelInfoBox{
-    min-width: 420px;
+    min-width: 375px;
 }
 .channelInfoBox span{
     display: block;

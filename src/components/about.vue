@@ -54,8 +54,15 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
+}
+h4{
+    font-size: 16px;
 }
 img{
     width: 130px;
+}
+p{
+    font-size: 16px;
 }
 </style>

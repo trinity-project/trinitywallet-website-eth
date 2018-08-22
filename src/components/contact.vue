@@ -2,7 +2,7 @@
   <div class="contactBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="contentBox">
         <h2>我的联系人</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin:8px 0;" />
         <el-button @click="centerDialogVisible = true" style="margin:10px 0;" type="primary" icon="el-icon-plus" plain>添加联系人</el-button>
         <el-table ref="multipleTable" :data="contactList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="60">
@@ -172,6 +172,7 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 h3{
     text-align: center;

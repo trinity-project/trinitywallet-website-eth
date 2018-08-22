@@ -140,6 +140,7 @@ export default {
 }
 h2{
     margin: 0;
+    font-size: 24px;
 }
 .PrivateKeyBox{
     padding: 8px 16px;
