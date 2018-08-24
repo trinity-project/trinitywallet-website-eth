@@ -195,10 +195,16 @@ export default {
         this.gasPrice = this.$store.state.vuexStore.gasPrice / 10e8;
     },
     testFun() {      //用于测试
-        let result = web3.utils.keccak256("0x4c6dc84a0bce23e93d8b40b0517801d0f9354b284e8aa0fa75ff1ba6c4ed5c68");
-        console.log(result);
-        console.log("0x8d1cb246ceeed51bf56c47c2e42f7e28811267f10ede218f168168a233067619");
-
+    if(!window.localStorage) {
+        console.log('浏览器不支持localStorage');
+    }
+    var size = 0;
+    for(item in window.localStorage) {
+        if(window.localStorage.hasOwnProperty(item)) {
+            size += window.localStorage.getItem(item).length;
+        }
+    }
+    console.log('当前localStorage剩余容量为' + (size / 1024).toFixed(2) + 'KB');
         return false;
         let _this = this;
         let redata = {

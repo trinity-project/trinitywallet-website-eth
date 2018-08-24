@@ -19,6 +19,7 @@
         // if (typeof web3 !== 'undefined') {
         //     web3 = new Web3(web3.currentProvider);
         // } else {
+            // web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
            var web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); //ropsten
             // web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); //mainnet
         // }
@@ -26,10 +27,6 @@
       var clipboard;            // 申明全局变量用于复制功能
       var loading;              // 申明全局变量用于加载功能 
       
-      // function switchNav() {        //
-      //   document.getElementById("nav").style.width = "0px";
-      //   document.getElementById("rightBox").style.width = "100%";
-      // }
     </script>
   </body>
 </html>

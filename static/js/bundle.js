@@ -4,7 +4,7 @@ var crypto = require('crypto');
 // var CryptoJS = require('crypto-js');
 // var sign = crypto.createSign('SHA256');
 var secp256k1 = require('secp256k1/elliptic');
-// var createKeccakHash = require('keccak');
+var createKeccakHash = require('keccak');
 // var Web3 = require('web3');
 var Tx = require('ethereumjs-tx');
 var BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
@@ -18,6 +18,7 @@ global.ecSign = ecSign;
 global.base58decode = base58decode;     //base58解密
 global.base58encode = base58encode;     //base58加密
 global.md5encode = md5encode;
+global.ecRecover = ecRecover;
 
 function ab2ASCII(str) { 
   var result = [];
@@ -46,12 +47,6 @@ function base58decode(data) {
 
 function base58encode(data) {
     var CryptedData = base58.encode(ab2ASCII(data));
-    return CryptedData;
-}
-
-function md5encode1(data){
-    var md5 = crypto.createHash('md5');
-    var CryptedData = md5.update(data).digest('hex');
     return CryptedData;
 }
 
@@ -88,10 +83,38 @@ function ecSign(rawTx, privateKey) {
   var privateKey1 = privateKey.slice(2);
   const privateKeyBuffer = Buffer.from(privateKey1.toString(), 'hex');
   let signedData = secp256k1.sign(rawTxBuffer, privateKeyBuffer);
-
+  console.log("signedData:    " + signedData.signature.toString('hex'));
+  console.log("r:    " + signedData.recovery);
   let result = "0x" + signedData.signature.toString('hex') + addPreZero(signedData.recovery, 2);
-  console.log(result);
   return result;
+}
+
+function ecRecover(msg, signature, address) {
+  var msg1 = msg.slice(2);
+  let msgBuffer = Buffer.from(msg1.toString(),'hex');
+  var signature1 = signature.slice(2,-2);
+  var v = signature.slice(-2);
+  let signatureBuffer = Buffer.from(signature1.toString(), 'hex');
+  let publicKey = secp256k1.recover(msgBuffer, signatureBuffer, parseInt(v), false);
+  let encodeAddress = publicKey2Address(publicKey.toString('hex').slice(2));
+  console.log("0x" + encodeAddress.toString('hex'));
+  let result;
+  if ("0x" + encodeAddress.toString('hex') == address) {
+    result = true;
+    console.log(result);
+  } else {
+    result = false;
+  }
+  return result;
+}
+
+//公钥转地址
+function publicKey2Address(publicKey) {
+    var publicKeyBuffer = Buffer.from(publicKey.toString(), 'hex');
+    console.log("公钥:   " + publicKeyBuffer.toString('hex'));
+    var address = createKeccakHash("keccak256").update(publicKeyBuffer).digest().slice(-20);
+    console.log("地址:   " + address.toString('hex'));
+    return address;
 }
 
 // //随机生成私钥
@@ -104,23 +127,14 @@ function ecSign(rawTx, privateKey) {
 //私钥转公钥
 // function privateKey2PublicKey(privateKey) {
 //     var privateKeyBuffer = Buffer.from(privateKey.toString(),'hex');
-//     console.log(privateKeyBuffer);
+//     console.log("私钥:   " + privateKeyBuffer.toString('hex'));
 //     var publicKey = secp256k1.publicKeyCreate(privateKeyBuffer, false).slice(1);
-//     console.log(publicKey);
 //     return publicKey;
 // }
 
-// //公钥转地址
-// function publicKey2Address(publicKey) {
-//     var publicKeyBuffer = Buffer.from(publicKey.toString(), 'hex');
-//     console.log(publicKeyBuffer);
-//     var address = createKeccakHash("keccak256").update(publicKeyBuffer).digest().slice(-20);
-//     console.log(address);
-//     return address;
-// }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"base-x":2,"buffer":121,"crypto":129,"ethereumjs-tx":25,"secp256k1/elliptic":56}],2:[function(require,module,exports){
+},{"base-x":2,"buffer":121,"crypto":129,"ethereumjs-tx":25,"keccak":44,"secp256k1/elliptic":56}],2:[function(require,module,exports){
 // base-x encoding
 // Forked from https://github.com/cryptocoinjs/bs58
 // Originally written by Mike Hearn for BitcoinJ

@@ -133,6 +133,7 @@ export default {
         alice: '',
         channelName: '',
         selfSignedData: '',
+        txData: '',
         keyStorePass: ''
       },
       addChannelRules: {        //add Channnel输入规则
@@ -231,11 +232,12 @@ export default {
                   {t: 'uint256', v: _this.addChannelForm.otherDeposit * 10e7}       //对端押金
                 );
                 console.log(txData);
+                _this.addChannelForm.txData = txData;         //将txData保存,用于验证返回的签名
 
                 let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);        //解锁钱包用于签名          
                 let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
                 console.log(selfSignedData); 
-                _this.addChannelForm.selfSignedData = selfSignedData;
+                _this.addChannelForm.selfSignedData = selfSignedData;         //保存本端签名信息,用于后续上链
                 // return false;
 
                 var Message = {         //创建通道消息体
@@ -272,6 +274,14 @@ export default {
                 _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
                 _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
                 _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
+
+                _this.$store.state.vuexStore.TxList[channelName] = {};              //生成TxList
+                _this.$store.state.vuexStore.TxList[channelName].unconfirmed = {};
+                _this.$store.state.vuexStore.TxList[channelName].unconfirmed.selfSignedData = "";
+                _this.$store.state.vuexStore.TxList[channelName].unconfirmed.otherSignedData = "";
+                _this.$store.state.vuexStore.TxList[channelName].confirmed = {};
+                _this.$store.state.vuexStore.TxList[channelName].confirmed.selfSignedData = "";
+                _this.$store.state.vuexStore.TxList[channelName].confirmed.otherSignedData = "";
 
                 _this.$parent.StoreChannel();         //储存通道信息
                 _this.$router.push('/channelList');       //跳转到channelList页面
