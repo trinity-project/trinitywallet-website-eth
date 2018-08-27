@@ -257,9 +257,9 @@ export default {
                         console.log(_this.activeInfo.selfDeposit * 10e7);
                         console.log(_this.activeInfo.uri.split("@")[0]);
                         console.log(_this.activeInfo.otherDeposit * 10e7);
-                        console.log(_this.$store.state.vuexStore.TxList[_this.activeInfo.ChannelName].confirmed.selfSignedData);
-                        console.log(_this.$store.state.vuexStore.TxList[_this.activeInfo.ChannelName].confirmed.otherSignedData);
-                        let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.activeInfo.ChannelName, _this.$store.state.vuexStore.channelList[l].TxNonce, _this.$store.state.vuexStore.walletInfo.address, _this.activeInfo.selfDeposit * 10e7, _this.activeInfo.uri.split("@")[0], _this.activeInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.TxList[_this.activeInfo.ChannelName].confirmed.selfSignedData, _this.$store.state.vuexStore.TxList[_this.activeInfo.ChannelName].confirmed.otherSignedData]);              //abi加密参数
+                        console.log(_this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData);
+                        console.log(_this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData);
+                        let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.activeInfo.ChannelName, _this.$store.state.vuexStore.channelList[l].TxNonce, _this.$store.state.vuexStore.walletInfo.address, _this.activeInfo.selfDeposit * 10e7, _this.activeInfo.uri.split("@")[0], _this.activeInfo.otherDeposit * 10e7, _this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData, _this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData]);              //abi加密参数
                         console.log(data);
 
                         var txData = {        //组成txData数据

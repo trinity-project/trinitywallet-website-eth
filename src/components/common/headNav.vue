@@ -195,18 +195,13 @@ export default {
         this.gasPrice = this.$store.state.vuexStore.gasPrice / 10e8;
     },
     testFun() {      //用于测试
-    if(!window.localStorage) {
-        console.log('浏览器不支持localStorage');
-    }
-    var size = 0;
-    for(item in window.localStorage) {
-        if(window.localStorage.hasOwnProperty(item)) {
-            size += window.localStorage.getItem(item).length;
-        }
-    }
-    console.log('当前localStorage剩余容量为' + (size / 1024).toFixed(2) + 'KB');
-        return false;
         let _this = this;
+        let channelInfo = _this.$store.state.vuexStore.channelList[0];
+        channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
+        Vue.set(_this.$store.state.vuexStore.channelList, 0, channelInfo);            //更改通道信息
+        console.log(_this.$store.state.vuexStore.channelList[0]);
+        return false;
+        
         let redata = {
             "MessageType":"Rsmc",
             "Sender": "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089",
@@ -276,9 +271,11 @@ export default {
                 }
             })
         this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
-        this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");           //获取联系人列表
+        this.$store.state.vuexStore.TxList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@TxList");           //获取TxList列表
+        console.log( this.$store.state.vuexStore.TxList);
+        this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");                            //获取联系人列表
         this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList");                             //获取交易记录列表
-        this.getBalance();                           //获取总的余额
+        this.getBalance();                          //获取总的余额
         this.cycleReconnectWebsocket();             //循环连接websocket
         this.BalanceCycle();                        //反复获取钱包余额
     },
