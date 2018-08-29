@@ -8,7 +8,7 @@
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-form :model="addChannelForm" status-icon :rules="addChannelRules" ref="addChannelForm" label-width="100px" class="addChannelForm">
           <el-form-item :label="$t('addChannel.otherUri')" prop="uri">
-            <el-input v-model="addChannelForm.uri" auto-complete="off"></el-input>
+            <el-input v-model="addChannelForm.uri" auto-complete="off" :placeholder="$t('addChannel.otherUriPlaceHolder')"></el-input>
           </el-form-item>
           <el-form-item :label="$t('addChannel.assetType')" prop="assetType">
             <el-select v-model="addChannelForm.assetType" :placeholder="$t('addChannel.chooseAssetType')" style="width:100%;">
@@ -114,14 +114,14 @@ export default {
       if (!value) {
         return callback(new Error('钱包密码不能为空，否则将无法交易'));
       } else {
-        let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        let PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
         setTimeout(() => {
             if(PrivateKey){
             callback();
             } else {
             return callback(new Error('钱包解锁失败 - 可能是密码错误'));
             }
-        }, 2000);
+        }, 1000);
       }
     };
     return {
@@ -273,10 +273,12 @@ export default {
                 _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
                 _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
                 _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
+                _this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
                 _this.$store.state.vuexStore.channelList[l].unconfirmed = {};                       //未确认的交易信息
                 _this.$store.state.vuexStore.channelList[l].unconfirmed.selfSignedData = "";
                 _this.$store.state.vuexStore.channelList[l].unconfirmed.otherSignedData = "";
                 _this.$store.state.vuexStore.channelList[l].confirmed = {};                         //已确认的交易信息
+                _this.$store.state.vuexStore.channelList[l].confirmed.isFounder = true;
                 _this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData = "";
                 _this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData = "";
 

@@ -9,8 +9,8 @@
             <p>Version: V{{ $store.state.vuexStore.version }}</p>
         </div>
         <div>
-            <p>The Trinity Wallet was created to be an extraordinary wallet of the state channel, it supports Trinity  Protocol to be a universal scaling solution for any blockchain.</p>
-            <p><b>Tips:  </b>Please keep your private key, and confirm that the channel has been closed before unloading the App or deleting the date of the it, otherwise the infomation of channel will be lost.</p>
+            <p>{{ $t('about.content') }}</p>
+            <p><b>{{ $t('about.tipsTitle') }}  </b>{{ $t('about.tips') }}</p>
         </div>
     </div>
   </div>
@@ -64,5 +64,6 @@ img{
 }
 p{
     font-size: 16px;
+    line-height: 20px;
 }
 </style>

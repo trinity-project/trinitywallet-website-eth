@@ -195,11 +195,15 @@ export default {
         this.gasPrice = this.$store.state.vuexStore.gasPrice / 10e8;
     },
     testFun() {      //用于测试
-        let _this = this;
-        let channelInfo = _this.$store.state.vuexStore.channelList[0];
-        channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
-        Vue.set(_this.$store.state.vuexStore.channelList, 0, channelInfo);            //更改通道信息
-        console.log(_this.$store.state.vuexStore.channelList[0]);
+        let Message1 = {
+            "messageType": "monitorBlockHeight", 
+            "walletAddress": this.$store.state.vuexStore.walletInfo.address, 
+            "chainType": "ETH", 
+            "playload": 3925242, 
+            "comments": {} 
+        }
+        console.log(Message1);
+        this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //发送监控消息
         return false;
         
         let redata = {

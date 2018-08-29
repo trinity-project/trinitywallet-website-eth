@@ -119,13 +119,15 @@ const cn = {
         'closeChannel': '关闭通道',
         'password': '密码',
         'inputPassword': '在此输入密码',
-        'confirm': '确定',
+        'fastClose': '快速关闭',
+        'forcedClose': '强制关闭',
         'cancel': '取消'
     },
     addChannel: {
         'title': '添加通道',
         'assetBalance': '资产余额',
-        'otherUri': '对端地址',
+        'otherUri': 'TNAP',
+        'otherUriPlaceHolder': 'Trinity网络接入点',
         'assetType': '资产类型',
         'chooseAssetType': '请选择资产类型',
         'selfDeposit': '本端余额',
@@ -169,6 +171,11 @@ const cn = {
         'backupBtn': '备份钱包',
         'tips': '温馨提醒',
         'tipsContent': '备份当前钱包后，浏览器会生成一个钱包备份文件，当您清空数据库、或者更换 浏览器、重装系统后，可以使用钱包备份文件恢复当前钱包。同时保存好文件和 钱包密码，钱包文件丢失或忘记密码可能会导致您的资产丢失。'
+    },
+    about: {
+        'content': 'Trinity Wallet App是基于状态通道功能的钱包App。Trinity的状态通道技术通过“链上信用背书，链下进行交易”的方式可以为所有区块链网络扩容。在钱包App中，Trinity为用户提供了基于状态通道的支付服务，让基于状态通道技术的交易具备极高的转账速度和安全性。打开状态通道，便可以获得最快的付款体验。',
+        'tipsTitle': '友情提示:',
+        'tips': '请妥善管理您的私钥。若要卸载或删除APP，请您提前请确认通道已经全部关闭，否则将会面临通道信息丢失的风险。'
     }
 }
 

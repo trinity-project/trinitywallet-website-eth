@@ -119,13 +119,15 @@ const en = {
         'closeChannel': 'Close Channel',
         'password': 'Password',
         'inputPassword': 'Input password here',
-        'confirm': 'Confirm',
+        'fastClose': 'Fast Close',
+        'forcedClose': 'Forced Close',
         'cancel': 'Cancel'
     },
     addChannel: {
         'title': 'Add Channel',
         'assetBalance': 'Asset Balance',
-        'otherUri': 'Other Uri',
+        'otherUri': 'TNAP',
+        'otherUriPlaceHolder': 'Trinity Network Access Point',
         'assetType': 'Asset Type',
         'chooseAssetType': 'Choose Asset Type',
         'selfDeposit': 'Self deposit',
@@ -169,6 +171,11 @@ const en = {
         'backupBtn': 'Backup Wallet',
         'tips': 'Tips',
         'tipsContent': 'After backed up the wallet, the system will generate a wallet backup file. When you clear the data, change the browser, or reinstall the system, you can use the wallet backup file to restore the wallet. Please save the file and the wallet password. Once lost wallet files or forgotten wallet passwords you may lost your assets.'
+    },
+    about: {
+        'content': 'Trinity Wallet is a state channel based wallet App. Trinity provides users fast-speed transactions safely with “Trading off-chain, endorsement on-chain” state channels. Users can get the fastest payment experience by using this App.',
+        'tipsTitle': 'Tips:',
+        'tips': ' Carefully keep your private key, and confirm that the channel has been closed before uninstalling the App or deleting the data, otherwise you will lose the channel information.'
     }
 }
 

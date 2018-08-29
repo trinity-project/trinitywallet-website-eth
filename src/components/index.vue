@@ -1,9 +1,12 @@
 <template>
   <div class="indexBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
-    <div class="assetBox">
-      <h1>{{ $store.state.vuexStore.balanceData.Chain.TNC }} TNC</h1>
+    <div class="assetBox" :class="{ showMoreAssetBox_active :isShowMoreAsset}">
+      <div style="position: absolute;top: calc(25vh - 108px);right: 30px;" class="tncBox">
+        <h3>TNC</h3>
+        <h1>{{ $store.state.vuexStore.balanceData.Chain.TNC }}</h1>
+      </div>
       <el-collapse-transition>
-        <div v-show="isShowMoreAsset">
+        <div v-show="isShowMoreAsset" style="position: absolute;width: 100%;bottom: 0px;">
           <table class="assetTable">
             <thead>
               <tr>
@@ -73,7 +76,7 @@
     </el-dialog>
     <el-dialog class="txOnChannelBox" title="通道转账" :visible.sync="ShowTxOnChannelBox" width="30%" center :modal-append-to-body='false'>
       <span>向{{ txOnChannelInfo.receiverUri.split("@")[0] }}</span>
-      <span style="color:#F56C6C">转账{{ txOnChannelInfo.value / 10e7 }} {{ txOnChannelInfo.assetType }}</span>
+      <span style="color:#F56C6C;font-size: 16px;">转账 {{ txOnChannelInfo.value / 10e7 }} {{ txOnChannelInfo.assetType }}</span>
       <el-form :model="txOnChannelInfo" status-icon :rules="txOnChannelRules" ref="txOnChannelInfo" label-width="70px" class="demo-ruleForm">
         <el-form-item label="密码" prop="keyStorePass">
           <el-input v-model="txOnChannelInfo.keyStorePass" type="password" auto-complete="off"></el-input>
@@ -127,14 +130,14 @@ export default {
       if (!value) {
         return callback(new Error('钱包密码不能为空，否则将无法交易'));
       } else {
-        let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        let PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
         setTimeout(() => {
             if(PrivateKey){
             callback();
             } else {
             return callback(new Error('钱包解锁失败 - 可能是密码错误'));
             }
-        }, 2000);
+        }, 1000);
       }
     };
     return {
@@ -495,38 +498,49 @@ export default {
 
       let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open');
       if(l >= 0){
-          _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
-          _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[l].ChannelName;    //赋值ChannelName
-          console.log(l);
-          let Message = {                       //构造Rsmc消息体
-            "MessageType":"Rsmc",
-            "Sender": _this.txOnChannelInfo.sendUri,
-            "Receiver": _this.txOnChannelInfo.receiverUri,
-            "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
-            "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
-            "NetMagic": _this.$store.state.vuexStore.NetMagic,
-            "AssetType": _this.txOnChannelInfo.assetType,
-            "MessageBody": {
-              "PaymentCount": _this.txOnChannelInfo.value / 10e7,
-              "SenderBalance": (_this.$store.state.vuexStore.channelList[l].SelfBalance - _this.txOnChannelInfo.value) / 10e7,
-              "ReceiverBalance": (_this.$store.state.vuexStore.channelList[l].OtherBalance + _this.txOnChannelInfo.value) / 10e7,
-              "Commitment": "",
-              "RoleIndex": 0
-            },
-            "Comments": {}
+          if(_this.$store.state.vuexStore.channelList[l].SelfBalance >= _this.txOnChannelInfo.value){
+            _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
+            _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[l].ChannelName;    //赋值ChannelName
+            console.log(l);
+            let Message = {                       //构造Rsmc消息体
+              "MessageType":"Rsmc",
+              "Sender": _this.txOnChannelInfo.sendUri,
+              "Receiver": _this.txOnChannelInfo.receiverUri,
+              "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
+              "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
+              "NetMagic": _this.$store.state.vuexStore.NetMagic,
+              "AssetType": _this.txOnChannelInfo.assetType,
+              "MessageBody": {
+                "PaymentCount": _this.txOnChannelInfo.value / 10e7,
+                "SenderBalance": (_this.$store.state.vuexStore.channelList[l].SelfBalance - _this.txOnChannelInfo.value) / 10e7,
+                "ReceiverBalance": (_this.$store.state.vuexStore.channelList[l].OtherBalance + _this.txOnChannelInfo.value) / 10e7,
+                "Commitment": "",
+                "RoleIndex": 0
+              },
+              "Comments": {}
+            }
+            _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
+            console.log(_this.$store.state.vuexStore.txOnChannelInfo);
+            _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+            _this.ShowTxOnChannelBox = false;
+            _this.clearTxData();
+          } else {
+            _this.$notify.error({
+              title: '提醒',
+              dangerouslyUseHTMLString: true,
+              message: '通道余额不足',
+              duration: 3000
+            });
+            _this.ShowTxOnChannelBox = false;
+            _this.clearTxData();
           }
-        _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
-        console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-        _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
-        _this.ShowTxOnChannelBox = false;
-        _this.clearTxData();
       } else if (l == -1){        //未与该Uri直连,查询路由情况
-          _this.$notify.info({
-            title: '提醒',
-            dangerouslyUseHTMLString: true,
-            message: '未与该Uri建立通道,开始查询路由',
-            duration: 3000
-          });
+          // _this.$notify.info({
+          //   title: '提醒',
+          //   dangerouslyUseHTMLString: true,
+          //   message: '未与该Uri建立通道,开始查询路由',
+          //   duration: 3000
+          // });
           let i = -1;
           _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历通道列表,获取开通的通道
               if(data.State == 3 && data.isConnect == true){
@@ -550,6 +564,7 @@ export default {
               message: '没有开通的通道,请先建立通道',
               duration: 3000
             });
+            _this.ShowTxOnChannelBox = false;           //关闭当前窗口
             _this.clearTxData();                        //清空当前数据 
             return false;
           } else {      //遍历到开通的通道,进入Htlc交易
@@ -625,16 +640,27 @@ export default {
   overflow: hidden;
 }
 .assetBox{
-  /* height: 290px; */
+  height: 25vh;
   width: 100%;
   background-color: rgb(67, 74, 80);
   position: relative;
+  transition: 0.4s;
+}
+.showMoreAssetBox_active{
+  height: 45vh;
 }
 .assetBox h1{
-  font-size: 32px;
+  font-size: 50px;
   text-align: center;
-  line-height: 240px;
-  margin: 0;
+  font-weight: 300;
+  margin: 20px 0;
+  color: #FFFFFF;
+}
+.assetBox h3{
+  font-size: 39px;
+  text-align: right;
+  font-weight: 400;
+  margin: -17px 0;
   color: #FFFFFF;
 }
 .assetBox .showMoreAssetBtn{

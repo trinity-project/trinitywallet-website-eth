@@ -240,7 +240,7 @@ ul li p{
     display: inline-block;
     margin: 0;
     width: 20%;
-    font-size: 0.54rem;
+    font-size: 16px;
     min-width: 80px;
 }
 ul li span{
@@ -278,6 +278,9 @@ ul li span sup {
     }
     ul li span{
         font-size: 28px;
+    }
+    ul li p{
+        font-size: 12px;
     }
 }
 </style>
