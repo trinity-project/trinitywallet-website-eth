@@ -167,6 +167,12 @@ export default {
             _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
             console.log(_this.paymentCodeForm.Code);
             _this.isPaymentCodeBoxShow = true;
+            let Message = {
+                "Hr": "0x" + _this.paymentCodeForm.Hr,
+                "R": _this.paymentCodeForm.R
+            }
+            _this.$store.state.vuexStore.RList.push(Message);
+            _this.$parent.StoreRList();
           } else {
             console.log('error submit!!');
             return false;

@@ -36,6 +36,8 @@
         <el-dialog class="receiptHtlcInfoBox" title="收款" :visible.sync="isReceiptHtlcInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  回复Htlc消息框 -->
           <span>{{ activeInfo.redata.Sender }}</span><br/>
           <span style="color:#F56C6C;font-size: 16px;">向你转账 {{ activeInfo.redata.PaymentCount }} {{ activeInfo.redata.AssetType }}</span>
+          <br><br>
+          <b style="color:#F56C6C;font-size: 13px;">由于跨通道交易,你需要对数据进行两次签名</b>
           <span slot="footer" class="dialog-footer">
             <el-form :model="activeInfo" status-icon :rules="confirmReceiptRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
               <el-form-item label="密码" prop="keyStorePass">
@@ -195,7 +197,7 @@ export default {
         _this.$store.state.vuexStore.NodeUriWebSocket = new WebSocket(wsuri);
         _this.$store.state.vuexStore.NodeUriWebSocket.onmessage = _this.nodeUriWebsocketOnMessage;
         _this.$store.state.vuexStore.NodeUriWebSocket.onclose = _this.nodeUriWebsocketClose;
-        _this.$notify.info({
+        _this.connectWebSocketForNodeUriNotify = _this.$notify.info({
           title: '消息',
           duration: 2000,
           message: '正在连接至Trinity网络'
@@ -472,7 +474,7 @@ export default {
     nodeUriWebsocketOnMessage(e) {        //全节点websocket接收消息
       let _this = this;
       if(e.data === 'connected to server'){
-        _this.$notify.closeAll();
+        _this.connectWebSocketForNodeUriNotify.close();                //关闭连接至全节点notify
         _this.$notify({
             title: '成功',
             dangerouslyUseHTMLString: true,
@@ -1173,7 +1175,7 @@ export default {
       } else{
         _this.activeInfo.redata = redata; 
         _this.activeInfo.redata.PaymentCount = redata.MessageBody.PaymentCount;    
-        _this.$notify.info({
+        _this.receiptRsmcNotify = _this.$notify.info({
             title: '消息',
             duration: 0,
             dangerouslyUseHTMLString: true,
@@ -1228,6 +1230,7 @@ export default {
           _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
           _this.activeInfo.redata.selfSignedData = selfSignedData;                    //储存本端签名用于后续更新数据
           _this.isReceiptRsmcInfoBox = false;           //关闭窗口
+           _this.receiptRsmcNotify.close();            //关闭Rsmc消息框
         } else {
             console.log('error submit!!');
             return false;
@@ -1281,6 +1284,13 @@ export default {
                 //   }
                 // }
                 console.log(_this.$store.state.vuexStore.txOnChannelInfo);
+                console.log(_this.$store.state.vuexStore.channelList[l].ChannelName);
+                console.log( _this.$store.state.vuexStore.channelList[l].TxNonce + 1);
+                console.log(_this.$store.state.vuexStore.walletInfo.address);
+                console.log(_this.$store.state.vuexStore.channelList[l].SelfBalance - (_this.$store.state.vuexStore.txOnChannelInfo.value + _this.$store.state.vuexStore.txOnChannelInfo.fee));
+                console.log(_this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0]);
+                console.log(_this.$store.state.vuexStore.channelList[l].OtherBalance + (_this.$store.state.vuexStore.txOnChannelInfo.value + _this.$store.state.vuexStore.txOnChannelInfo.fee));
+
                 let txData = web3.utils.soliditySha3(         //生成代签名交易数据
                     {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[l].ChannelName},                      //通道名称
                     {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce + 1},                      //TXnonce
@@ -1343,7 +1353,9 @@ export default {
                 _this.$store.state.vuexStore.recordList.push(recordMessage);
                 _this.StoreRecordList();                //保存交易记录
 
+                _this.isReceiptRsmcInfoBox = false;
                 _this.$store.state.vuexStore.txOnChannelInfo = [];      //清空交易信息
+                // _this.$notify.closeAll(); 
                 _this.$notify({                 //消息提醒
                     title: '成功',
                     dangerouslyUseHTMLString: true,
@@ -1385,7 +1397,7 @@ export default {
                 _this.$store.state.vuexStore.recordList.push(recordMessage);
                 _this.StoreRecordList();                //保存交易记录
 
-                _this.$notify.closeAll();     
+                _this.receiptRsmcNotify.close();        //关闭接收Rsmc消息框   
                 _this.$notify({                 //消息提醒
                     title: '成功',
                     dangerouslyUseHTMLString: true,
@@ -1464,7 +1476,7 @@ export default {
       } else {
         web3.eth.getBlockNumber().then(function(blockNumber){           //获取当前块高
           console.log(blockNumber);
-          let DelayBlock = blockNumber + (_this.$store.state.vuexStore.txOnChannelInfo.Router.length - 1) * 4 * 5;         //1分钟4个块,一天
+          let DelayBlock = blockNumber + (_this.$store.state.vuexStore.txOnChannelInfo.Router.length - 1) * 4 * 60 * 24;         //1分钟4个块,一天
           console.log(DelayBlock);
           let Ip = _this.uri2Ip(_this.$store.state.vuexStore.txOnChannelInfo.Next,8766);
           let sender = _this.$store.state.vuexStore.walletInfo.address + "@" + Ip;
@@ -1545,13 +1557,13 @@ export default {
       //   "Comments": {}
       // }
       var _this = this;
-      let l = _this.$parent.getChannelSerial("ChannelName", redata.ChannelName,'open');      //获取所需的channel在List的位置
+      let l = _this.getChannelSerial("ChannelName", redata.ChannelName,'open');      //获取所需的channel在List的位置
       if(l == -1){          //当l为-1时,未遍历到通道
         _this.$notify.error({
           title: '警告',
           dangerouslyUseHTMLString: true,
           message: '未与该Uri建立通道',
-          duration: 0
+          duration: 3000
         });
         return false;
       } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
@@ -1559,16 +1571,18 @@ export default {
           title: '警告',
           dangerouslyUseHTMLString: true,
           message: '该通道未Open或者未连接上websocket',
-          duration: 0
+          duration: 3000
         });
         return false;
       } else {
-        _this.activeInfo.redata = redata;     
-        _this.$notify.info({
+        _this.activeInfo.redata = redata;
+        _this.activeInfo.redata.PaymentCount = redata.MessageBody.Payment;        
+        _this.receiptHtlcNotify = _this.$notify.info({
             title: '消息',
             duration: 0,
+            dangerouslyUseHTMLString: true,
             message: _this.$store.state.vuexStore.channelList[l].Alice + "通道有收款消息,需要你解锁钱包.<br/>点击进行解锁",
-            onClick: _this.showReceiptInfoBox        //显示接收信息框
+            onClick: _this.showReceiptHtlcInfoBox        //显示接收信息框
         });
       }
     },
@@ -1576,6 +1590,26 @@ export default {
       this.isReceiptHtlcInfoBox = true;
     },
     HtlcSign() {          //进入HtlcSign,开始对交易数据签名
+    // {
+    //   AssetType:"TNC"
+    //   ChannelName:"0xde9708995c48f9957072588d021b63194246e913b953c4a2c21c2bd471ac0177"
+    //   MessageBody:{
+    //     Commitment:"0x6cfa98c23d9c8b999093ea76fa62ae192f33a515ebf80f5e809928ded1e733b94237adb20446f4c84570bca8757278716e5d044ba8b6ec3d3d1beb12daf3878700"
+    //     DelayBlock:3943242
+    //     DelayCommitment:"0xcc56d871c0026618d2e7979c12b3f753a74767cbc3c6ed32c2337f7becac61972e318c0651a6d834a0bc7c7fbb06e841e883c4e67ced2257f5dd10aa5479337600"
+    //     HashR:"0x31d5d4233adb3bd464edce0cb8e9b6b0a4f17e254941534f376bff8db755d30b"
+    //     Payment:1
+    //     ReceiverBalance:20
+    //     SenderBalance:19
+    //   }
+    //     MessageType:"Htlc"
+    //     NetMagic:"527465737419990331"
+    //     Next:"0xBF9905c03Ce89fc1666d3701B88a87b647b074af@106.15.91.150:8766"
+    //     Receiver:"0xBF9905c03Ce89fc1666d3701B88a87b647b074af@106.15.91.150:8766"
+    //     Router:[["0xADCe15cDEc589f93D25BE13DFa9370F659e78D45@106.15.91.150:8766", 0],…]
+    //     Sender:"0x4E801062608188F5d5805ddC3e98B766088784CE@106.15.91.150:8089"
+    //     TxNonce:"2"
+    // }
       let _this = this;
       _this.$refs['activeInfo'].validate((valid) => {
         if (valid) {
@@ -1583,11 +1617,11 @@ export default {
 
           let txData = web3.utils.soliditySha3(         //生成代签名交易数据
               {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[l].ChannelName},    //通道名称
-              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce},                                //TXnonce
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce + 1},                                //TXnonce
               {t: 'address', v: _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0]},                 //本端地址
-              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].OtherBalance - ((_this.activeInfo.redata.PaymentCount).mul(10e7))},       //本端押金
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].OtherBalance - (Number(_this.activeInfo.redata.PaymentCount).mul(10e7))},       //本端押金
               {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                                    //对端地址
-              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].SelfBalance + ((_this.activeInfo.redata.PaymentCount).mul(10e7))}       //对端押金
+              {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].SelfBalance + (Number(_this.activeInfo.redata.PaymentCount).mul(10e7))}       //对端押金
           );
           console.log(txData);
 
@@ -1595,76 +1629,95 @@ export default {
           let commitment = ecSign(txData,decryptPK.privateKey);         //签名
           console.log(commitment); 
 
-          if(_this.activeInfo.redata.SenderBalance == _this.$store.state.vuexStore.channelList[l].SelfBalance && _this.activeInfo.redata.ReceiverBalance == _this.$store.state.vuexStore.channelList[l].OtherBalance){      //判断通道余额是否正确
-            let Message = {
-              "MessageType":"HtlcSign",
-              "Sender": _this.activeInfo.redata.Receiver,
-              "Receiver": _this.activeInfo.redata.Sender,
-              "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce,
-              "ChannelName": _this.activeInfo.redata.ChannelName,
-              "NetMagic": _this.$store.state.vuexStore.NetMagic,
-              "MessageBody": {
-                "AssetType": _this.$store.state.vuexStore.channelList[l].assetType,
-                "PaymentCount": _this.activeInfo.redata.PaymentCount,
-                "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance,
-                "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance,
-                "Commitment": commitment,
-                "RoleIndex": 0,
-              },
-              "Comments": {},
-              "Status": "RESPONSE_OK",
-            }
-            _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
-            
-            let MessageBody = redata.MessageBody;
-            let l = _this.getChannelSerial("ChannelName",redata.ChannelName);
-            if(l == -1){          //当l为-1时,未遍历到通道
-              _this.$notify.error({
-                title: '警告',
-                dangerouslyUseHTMLString: true,
-                message: '未与该Uri建立通道',
-                duration: 0
-              });
-              return false;
-            } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
-              _this.$notify.error({
-                title: '警告',
-                dangerouslyUseHTMLString: true,
-                message: '该通道未Open或者未连接上websocket',
-                duration: 0
-              });
-              return false;
-            } else {                //当l为正确值时,保存签名,回复RResponse
-              console.log(l);
+          console.log(_this.activeInfo.redata.MessageBody.SenderBalance);
+          console.log((_this.$store.state.vuexStore.channelList[l].OtherBalance - (Number(_this.activeInfo.redata.PaymentCount).mul(10e7))).div(10e7));
+          console.log(_this.activeInfo.redata.MessageBody.ReceiverBalance);
+          console.log(_this.$store.state.vuexStore.channelList[l].SelfBalance.div(10e7));
+
+          if(_this.activeInfo.redata.MessageBody.SenderBalance == (_this.$store.state.vuexStore.channelList[l].OtherBalance - (Number(_this.activeInfo.redata.PaymentCount).mul(10e7))).div(10e7) && _this.activeInfo.redata.MessageBody.ReceiverBalance == (_this.$store.state.vuexStore.channelList[l].SelfBalance).div(10e7)){      //判断通道余额是否正确
+            web3.eth.getBlockNumber().then(function(blockNumber){           //获取当前块高
+              console.log(blockNumber);
+              let DelayBlock = blockNumber + (_this.activeInfo.redata.Router.length - 1) * 4 * 60 * 24;         //1分钟4个块,一天
+              console.log(DelayBlock);
+              let delayTxData = web3.utils.soliditySha3(         //生成代签名Htlc交易数据
+                  {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[l].ChannelName},    //通道名称
+                  {t: 'uint256', v: _this.$store.state.vuexStore.channelList[l].TxNonce + 1},                                //TXnonce
+                  {t: 'address', v: _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0]},                 //本端地址
+                  {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                                    //对端地址
+                  {t: 'uint256', v: DelayBlock},                                                                         //锁定块高
+                  {t: 'uint256', v: (_this.activeInfo.redata.PaymentCount).mul(10e7)},                                   //锁定块高
+                  {t: 'bytes32', v: _this.activeInfo.redata.MessageBody.HashR}       //对端押金
+              );
+              console.log(delayTxData);
+              console.log(_this.$store.state.vuexStore.txOnChannelInfo.keyStorePass);       
+              let delayCommitment = ecSign(delayTxData,decryptPK.privateKey);         //签名
+
+              console.log(delayCommitment); 
+              let Message = {                     
+                "MessageType": "HtlcSign", 
+                "Sender": _this.activeInfo.redata.Receiver,
+                "Receiver": _this.activeInfo.redata.Sender,
+                "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1, 
+                "ChannelName": _this.activeInfo.redata.ChannelName,
+                "AssetType": _this.$store.state.vuexStore.AssetType,  
+                "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                "Router": _this.activeInfo.redata.Router,
+                "Next": _this.activeInfo.redata.Sender,
+                "MessageBody": { 
+                    "SenderBalance": (_this.$store.state.vuexStore.channelList[l].OtherBalance - (Number(_this.activeInfo.redata.PaymentCount).mul(10e7))).div(10e7), 
+                    "ReceiverBalance": (_this.$store.state.vuexStore.channelList[l].SelfBalance).div(10e7),
+                    "Commitment": commitment,
+                    "Payment": _this.activeInfo.redata.PaymentCount,
+                    "DelayBlock": DelayBlock, 
+                    "DelayCommitment": delayCommitment, 
+                    "HashR": _this.activeInfo.redata.MessageBody.HashR
+                },
+                "Comments": {},
+                "Status": "RESPONSE_OK",
+              }
+              _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+              
               let R = "";           //获取HashR所对应的R
-              console.log("HashR:" + redata.MessageBody.HashR);
-              _this.RList.forEach(function(data,index){
-                  if(data.Hr === MessageBody.HashR){
+              console.log("HashR:" + _this.activeInfo.redata.MessageBody.HashR);
+              _this.$store.state.vuexStore.RList.forEach(function(data,index){
+                  if(data.Hr === _this.activeInfo.redata.MessageBody.HashR){
                     console.log(data.Hr);
                     R = data.R
                   }
                 });
-              console.log(R);
+              console.log("R:" + R);
               console.log("此处回复RResponse");
-              let Message = {
+              let Message1 = {
                 "MessageType":"RResponse",
-                "Sender": redata.Receiver,
-                "Receiver":redata.Sender,
-                "TxNonce": redata.TxNonce,
-                "ChannelName":redata.ChannelName,
-                "Router":redata.RouterInfo,
-                "Next":redata.Next,
+                "Sender": _this.activeInfo.redata.Receiver,
+                "Receiver":_this.activeInfo.redata.Sender,
+                "TxNonce": _this.activeInfo.redata.TxNonce,
+                "ChannelName":_this.activeInfo.redata.ChannelName,
+                "AssetType": _this.activeInfo.redata.AssetType,
+                "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                "Router":_this.activeInfo.redata.Router,
+                "Next":_this.activeInfo.redata.Next,
                 "MessageBody": {
                         "RoleIndex":0,
                         "Comments":"",
-                        "Count":redata.MessageBody.Count,
-                        "AssetType":redata.MessageBody.AssetType,
-                        "R":R,
-                        "HR":redata.MessageBody.HashR
+                        "PaymentCount": _this.activeInfo.redata.PaymentCount,
+                        "AssetType": _this.$store.state.vuexStore.AssetType,
+                        "R": R,
+                        "HashR": _this.activeInfo.redata.MessageBody.HashR
                     }
                 }
-              _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
-            }
+              _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message1));        //发送websocket消息
+
+              let channelInfo = _this.$store.state.vuexStore.channelList[l];
+              channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
+              Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+              console.log(_this.$store.state.vuexStore.channelList[l]);
+              _this.StoreChannel();           //保存通道信息
+
+              _this.activeInfo.keyStorePass = "";     //清空当前密码
+              _this.isReceiptHtlcInfoBox = false;         //关闭当前窗口
+              _this.receiptHtlcNotify.close();            //关闭Htlc消息框
+            })
           }
         } else {
             console.log('error submit!!');
@@ -1905,113 +1958,111 @@ export default {
       // }
       var _this = this;
       if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，上链并提交给全节点监控
-        // console.log(_this.$store.state.vuexStore.closeChannelInfo);
-        // let l = _this.getChannelSerial("ChannelName",redata.ChannelName);
-        // let channelInfo = _this.$store.state.vuexStore.channelList[l];
-        // channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
-        // Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
-        // console.log(_this.$store.state.vuexStore.closeChannelInfo);
-
-        web3.eth.getGasPrice().then(function(gasPrice){             // 获取GAS价格
-          console.log(gasPrice);
-          var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.trinityContractAbi, _this.$store.state.vuexStore.trinityContractAddress, {       //声明合约
-              from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-              gasPrice: _this.$store.state.vuexStore.gasPrice       //Gas价格
-          });
-          web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
-          // 获取交易次数
-            console.log(nonce);
-
-            let functionSig = web3.eth.abi.encodeFunctionSignature('quickCloseChannel(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
-            console.log(functionSig);
-
-            console.log(_this.$store.state.vuexStore.closeChannelInfo.ChannelName);
-            console.log(0);
-            console.log(_this.$store.state.vuexStore.walletInfo.address);
-            console.log(_this.$store.state.vuexStore.closeChannelInfo.SelfBalance);
-            console.log(_this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0]);
-            console.log(_this.$store.state.vuexStore.closeChannelInfo.OtherBalance);
-            console.log(_this.$store.state.vuexStore.closeChannelInfo.selfSignedData);
-            console.log(redata.MessageBody.Commitment);
-            let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.closeChannelInfo.ChannelName, 0, _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.closeChannelInfo.SelfBalance, _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],_this.$store.state.vuexStore.closeChannelInfo.OtherBalance, _this.$store.state.vuexStore.closeChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
-            console.log(data);
-
-            var txData = {        //组成txData数据
-                nonce: web3.utils.toHex(nonce++),
-                gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
-                gasLimit: web3.utils.toHex(4500000),
-                to: _this.$store.state.vuexStore.trinityContractAddress,
-                from: _this.$store.state.vuexStore.walletInfo.address, 
-                value: '0x00', 
-                data: functionSig + data.substr(2)
-            };
-            console.log(txData);
-
-            web3.eth.estimateGas({                        //估算Gas使用
-                to: _this.$store.state.vuexStore.trinityContractAddress,
-                from: _this.$store.state.vuexStore.walletInfo.address,
-                data: functionSig + data.substr(2)
-            })
-            .then(console.log);
-
-            let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.closeChannelInfo.keyStorePass);             //解锁KeyStore
-            let signedData = signData(txData,decryptPK.privateKey);
-            console.log(signedData);
-            
-
-            let date = new Date().getTime();        //获取当前时间戳
-            web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
-                if (!err) {
-                    console.log(hash);
-                    _this.$notify({
-                        title: '成功',
-                        dangerouslyUseHTMLString: true,
-                        message: '上链成功，请交易确认',
-                        duration: 3000,
-                        type: 'success'
-                    });
-                    let recordMessage = {           //构造链上record消息
-                      date: date,
-                      name: _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],
-                      Amount: _this.$store.state.vuexStore.closeChannelInfo.SelfBalance,
-                      assetType: 'TNC',
-                      isOnChannel: true,
-                      isPay: true,
-                      state: 0,
-                      isTestNet: _this.$store.state.vuexStore.isTestNet,
-                      transactionHash : hash,
-                      blockHash: ""
-                    }
-                    _this.$store.state.vuexStore.recordList.push(recordMessage);
-                    let recordMessage1 = {           //构造通道record消息
-                      date: date,
-                      name: _this.$store.state.vuexStore.trinityContractAddress,
-                      Amount: _this.$store.state.vuexStore.closeChannelInfo.SelfBalance,
-                      assetType: 'TNC',
-                      isOnChannel: false,
-                      isPay: false,
-                      state: 0,
-                      isTestNet: _this.$store.state.vuexStore.isTestNet,
-                      transactionHash : hash,
-                      blockHash: ""
-                    }
-                    _this.$store.state.vuexStore.recordList.push(recordMessage1);
-                    _this.StoreRecordList();
-                    _this.cycleGetTransactionReceipt(hash);
-                } else {
-                    console.log(err)
-                }
+        console.log(_this.$store.state.vuexStore.closeChannelInfo.txData);
+        if(ecRecover(_this.$store.state.vuexStore.closeChannelInfo.txData, redata.MessageBody.Commitment, redata.Sender.split("@")[0].toLowerCase())){       //验证签名成功时,查询对端余额和Approve情况
+          web3.eth.getGasPrice().then(function(gasPrice){             // 获取GAS价格
+            console.log(gasPrice);
+            var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.trinityContractAbi, _this.$store.state.vuexStore.trinityContractAddress, {       //声明合约
+                from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
+                gasPrice: _this.$store.state.vuexStore.gasPrice       //Gas价格
             });
-            let Message = {
-              'messageType': 'monitorQuickCloseChannel',
-              "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
-              'chainType': redata.MessageBody.AssetType,
-              'playload': redata.ChannelName,
-              'comments': ''
-            };
-            _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
+            web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
+            // 获取交易次数
+              console.log(nonce);
+
+              let functionSig = web3.eth.abi.encodeFunctionSignature('quickCloseChannel(bytes32,uint256,address,uint256,address,uint256,bytes,bytes)');     //获取functionSig
+              console.log(functionSig);
+
+              console.log(_this.$store.state.vuexStore.closeChannelInfo.ChannelName);
+              console.log(0);
+              console.log(_this.$store.state.vuexStore.walletInfo.address);
+              console.log(_this.$store.state.vuexStore.closeChannelInfo.SelfBalance);
+              console.log(_this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0]);
+              console.log(_this.$store.state.vuexStore.closeChannelInfo.OtherBalance);
+              console.log(_this.$store.state.vuexStore.closeChannelInfo.selfSignedData);
+              console.log(redata.MessageBody.Commitment);
+              let data = web3.eth.abi.encodeParameters(['bytes32','uint256','address','uint256','address','uint256','bytes','bytes'], [_this.$store.state.vuexStore.closeChannelInfo.ChannelName, 0, _this.$store.state.vuexStore.walletInfo.address, _this.$store.state.vuexStore.closeChannelInfo.SelfBalance, _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],_this.$store.state.vuexStore.closeChannelInfo.OtherBalance, _this.$store.state.vuexStore.closeChannelInfo.selfSignedData, redata.MessageBody.Commitment]);        //abi加密参数
+              console.log(data);
+
+              var txData = {        //组成txData数据
+                  nonce: web3.utils.toHex(nonce++),
+                  gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
+                  gasLimit: web3.utils.toHex(4500000),
+                  to: _this.$store.state.vuexStore.trinityContractAddress,
+                  from: _this.$store.state.vuexStore.walletInfo.address, 
+                  value: '0x00', 
+                  data: functionSig + data.substr(2)
+              };
+              console.log(txData);
+
+              web3.eth.estimateGas({                        //估算Gas使用
+                  to: _this.$store.state.vuexStore.trinityContractAddress,
+                  from: _this.$store.state.vuexStore.walletInfo.address,
+                  data: functionSig + data.substr(2)
+              })
+              .then(console.log);
+
+              let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.closeChannelInfo.keyStorePass);             //解锁KeyStore
+              let signedData = signData(txData,decryptPK.privateKey);
+              console.log(signedData);
+              
+
+              let date = new Date().getTime();        //获取当前时间戳
+              web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
+                  if (!err) {
+                      console.log(hash);
+                      _this.$notify({
+                          title: '成功',
+                          dangerouslyUseHTMLString: true,
+                          message: '上链成功，请交易确认',
+                          duration: 3000,
+                          type: 'success'
+                      });
+                      let recordMessage = {           //构造链上record消息
+                        date: date,
+                        name: _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],
+                        Amount: _this.$store.state.vuexStore.closeChannelInfo.SelfBalance,
+                        assetType: 'TNC',
+                        isOnChannel: true,
+                        isPay: true,
+                        state: 0,
+                        isTestNet: _this.$store.state.vuexStore.isTestNet,
+                        transactionHash : hash,
+                        blockHash: ""
+                      }
+                      _this.$store.state.vuexStore.recordList.push(recordMessage);
+                      let recordMessage1 = {           //构造通道record消息
+                        date: date,
+                        name: _this.$store.state.vuexStore.trinityContractAddress,
+                        Amount: _this.$store.state.vuexStore.closeChannelInfo.SelfBalance,
+                        assetType: 'TNC',
+                        isOnChannel: false,
+                        isPay: false,
+                        state: 0,
+                        isTestNet: _this.$store.state.vuexStore.isTestNet,
+                        transactionHash : hash,
+                        blockHash: ""
+                      }
+                      _this.$store.state.vuexStore.recordList.push(recordMessage1);
+                      _this.StoreRecordList();
+                      _this.cycleGetTransactionReceipt(hash);
+                  } else {
+                      console.log(err)
+                  }
+              });
+              let Message = {
+                'messageType': 'monitorQuickCloseChannel',
+                "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
+                'chainType': redata.MessageBody.AssetType,
+                'playload': redata.ChannelName,
+                'comments': ''
+              };
+              _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
+            })
           })
-        })
+        } else {
+          console.log("对端签名验证未通过,停止交易");
+        }
       } else {
         console.log(redata.Status);
       }
@@ -2127,6 +2178,10 @@ export default {
     StoreRecordList() {     //localstorage储存Record信息
       console.log(this.$store.state.vuexStore.recordList);
       this.saveAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList",this.$store.state.vuexStore.recordList);
+    },
+    StoreRList() {     //localstorage储存Record信息
+      console.log(this.$store.state.vuexStore.RList);
+      this.saveAsArray(this.$store.state.vuexStore.walletInfo.address + "@RList",this.$store.state.vuexStore.RList);
     },
     updateTxList(channelName, newSelfSignedData, newOtherSignedData, isFounder) {          //更新TxList信息
       let _this = this;

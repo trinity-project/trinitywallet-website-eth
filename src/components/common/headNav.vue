@@ -279,6 +279,7 @@ export default {
         console.log( this.$store.state.vuexStore.TxList);
         this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");                            //获取联系人列表
         this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList");                             //获取交易记录列表
+        this.$store.state.vuexStore.RList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@RList");
         this.getBalance();                          //获取总的余额
         this.cycleReconnectWebsocket();             //循环连接websocket
         this.BalanceCycle();                        //反复获取钱包余额
