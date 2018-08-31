@@ -162,7 +162,7 @@ export default {
                 });
                 return false;
             }
-            let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetType + "&" + _this.paymentCodeForm.amount + "&" + "PaymentCode";
+            let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetType + "&" + (_this.paymentCodeForm.amount).mul(10e7) + "&" + "PaymentCode";
             console.log(PaymentCode);
             _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
             console.log(_this.paymentCodeForm.Code);

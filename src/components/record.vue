@@ -149,20 +149,14 @@ export default {
         console.log(data);
     },
     formatRecordList(val) {
+      let _this = this;
       let data = [];
-      if(this.$store.state.vuexStore.isTestNet){
-        val.forEach(function(val1,index){
-          if(val1.isTestNet){
+
+      val.forEach(function(val1,index){
+          if(val1.isTestNet == _this.$store.state.vuexStore.isTestNet){
             data.push(val1);
           }
-        });
-      } else {
-        val.forEach(function(val1,index){
-          if(val1.isTestNet === false){
-            data.push(val1);
-          }
-        });
-      }
+      });
       var min;
       for(var i = 0; i < data.length; i++){
           for(var j = i; j < data.length;j++){
@@ -176,17 +170,7 @@ export default {
       return data;
     },
     testfun() {
-        let PaymentCode = "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089&195378745719990331&48c3075df5730554ea78c5529efe279cda2a236b&65096f2B7A8dc1592479F1911cd2B98dae4d2218&1&PaymentCode";
-        console.log(PaymentCode);
-        let Paymentlink = "TN" + base58encode(PaymentCode);
-        console.log(Paymentlink);
 
-        let Message = {
-            'messageType': 'test',
-            "walletAddress": this.$store.state.vuexStore.walletInfo.address,
-            'comments': ''
-        }
-        this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
     }
   }
 }

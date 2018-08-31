@@ -203,7 +203,7 @@ export default {
               })
               .on('receipt', function(receipt){           //approve块确认后,发送Founder
                 console.log(receipt);
-                let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8766);       //截取对端Uri的Ip
+                let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8866);       //截取对端Uri的Ip
                 const wsuri = "ws://" + Ip + "/";               //建立websocket连接
                 var l = _this.$store.state.vuexStore.channelList.length;      //获取channelList长度
                 console.log(l);
@@ -248,8 +248,8 @@ export default {
                   "NetMagic": _this.$store.state.vuexStore.NetMagic,
                   "AssetType" : _this.addChannelForm.assetType,
                   "MessageBody": {
-                      "FounderDeposit": _this.addChannelForm.selfDeposit.mul(10e7).div(10e7),
-                      "PartnerDeposit": _this.addChannelForm.otherDeposit.mul(10e7).div(10e7),
+                      "FounderDeposit": _this.addChannelForm.selfDeposit.mul(10e7),
+                      "PartnerDeposit": _this.addChannelForm.otherDeposit.mul(10e7),
                       "Commitment": _this.addChannelForm.selfSignedData
                   }
                 }
@@ -267,7 +267,7 @@ export default {
                 _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit.mul(10e7);      //本端余额
                 _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit.mul(10e7);     //对端余额
                 _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
-                _this.$store.state.vuexStore.channelList[l].isTestNet = true;             //是否为测试网
+                _this.$store.state.vuexStore.channelList[l].isTestNet = _this.$store.state.vuexStore.isTestNet;             //是否为测试网
                 _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
                 _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
                 _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数

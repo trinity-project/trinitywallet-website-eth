@@ -8,8 +8,8 @@
             <h2>{{ $t('channelList.title') }}</h2>
         </div>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin: 8px 0 0 0;" />
-        <ul v-if="channelList.length">
-            <li @click="showChannelInfo(data,index)" v-for="(data,index) in channelList" :key="index">
+        <ul v-if="formatChannelList(channelList).length">
+            <li @click="showChannelInfo(data,index)" v-for="(data,index) in formatChannelList(channelList)" :key="index">
                 <h3>{{ data.Alice }}</h3><br>
                 <p>{{ data.date | formatDateTime }}</p>
                 <p v-if="data.isConnect" style="min-width: 180px;">State：{{ data.State | formatStatus }}</p>
@@ -17,7 +17,7 @@
                 <span>{{ data.SelfBalance | formatBalance }}<sup>{{ data.assetType }}</sup></span>
             </li>
         </ul>
-        <p v-if="!channelList.length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
+        <p v-if="!formatChannelList(channelList).length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
             {{ $t('channelList.noChannel') }}
         </p>
     </div>
@@ -177,15 +177,25 @@ export default {
     showConfirmCloseChannelData() {         //显示确认关闭通道
         this.isConfirmCloseChannel = true;
     },
+    formatChannelList(list) {
+        let _this = this;
+        let p = [];
+        list.forEach(function(data,index){
+            if(data.isTestNet == _this.$store.state.vuexStore.isTestNet){
+                p.push(data);
+            }
+        });
+        return p;
+    },
     reconnectWebsocket() {         //显示确认关闭通道
-        this.$parent.reconnectWebsocket(this.activeInfo.Ip + ":8766", this.activeInfo.ChannelName);
+        this.$parent.reconnectWebsocket(this.activeInfo.Ip + ":8866", this.activeInfo.ChannelName);
         this.isChannelInfoBoxShow = false;
     },
     closeChannel() {                //快速关闭通道
       let _this = this;
       _this.$refs['activeInfo'].validate((valid) => {
         if (valid) {
-          let l = this.$parent.getChannelSerial('ChannelName',_this.activeInfo.ChannelName);
+          let l = _this.$parent.getChannelSerial('ChannelName',_this.activeInfo.ChannelName);
           console.log(l);
           if(l === -1){             //如果未检测到通道,给出提醒
             _this.$notify.error({
@@ -227,8 +237,8 @@ export default {
                   "NetMagic": _this.$store.state.vuexStore.NetMagic,
                   "MessageBody": {
                     "Commitment": selfSignedData,
-                    "SenderBalance": _this.activeInfo.SelfBalance / 10e7,
-                    "ReceiverBalance": _this.activeInfo.OtherBalance /10e7
+                    "SenderBalance": _this.activeInfo.SelfBalance,
+                    "ReceiverBalance": _this.activeInfo.OtherBalance
                     },
                     "Comments": {}
                   }

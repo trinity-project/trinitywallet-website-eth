@@ -255,7 +255,7 @@ export default {
             _this.txOnChannelInfo.netMagic = LinkDataList[1];                           //NetMagic
             _this.txOnChannelInfo.hr = LinkDataList[2];                                 //hashR
             _this.txOnChannelInfo.assetType = LinkDataList[3];        //资产类型
-            _this.txOnChannelInfo.value = LinkDataList[4] * 10e7;                 //支付金额
+            _this.txOnChannelInfo.value = LinkDataList[4];                 //支付金额
             _this.txOnChannelInfo.description = LinkDataList[5];                  //备注
             console.log(_this.txOnChannelInfo);
             if(_this.txOnChannelInfo.netMagic == _this.$store.state.vuexStore.NetMagic){          //判断NetMagic是否符合
@@ -365,7 +365,7 @@ export default {
                   gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice),  
                   to: _this.txOnChainInfo.address,
                   from: _this.$store.state.vuexStore.walletInfo.address,
-                  value: web3.utils.toHex(_this.txOnChainInfo.amount * 10e17),         
+                  value: web3.utils.toHex(_this.txOnChainInfo.amount.mul(10e17)),         
                   data: ''
               }
               console.log(txData);
@@ -389,7 +389,7 @@ export default {
                   let recordMessage = {       //构造交易记录信息
                     date: date,
                     name: _this.txOnChainInfo.address,
-                    Amount: _this.txOnChainInfo.amount * 10e7,
+                    Amount: _this.txOnChainInfo.amount.mul(10e7),
                     assetType: 'ETH',
                     isOnChannel: false,
                     isPay: true,
@@ -429,7 +429,7 @@ export default {
               to: _this.$store.state.vuexStore.tncContractAddress,
               from: _this.$store.state.vuexStore.walletInfo.address, 
               value: '0x00', 
-              data: '0x' + functionSig + web3.utils.padLeft(_this.txOnChainInfo.address.slice(2), 64) + web3.utils.padLeft(web3.utils.toHex(_this.txOnChainInfo.amount * 10e7).substr(2), 64)
+              data: '0x' + functionSig + web3.utils.padLeft(_this.txOnChainInfo.address.slice(2), 64) + web3.utils.padLeft(web3.utils.toHex(_this.txOnChainInfo.amount.mul(10e7)).substr(2), 64)
           };
           console.log(txData);
 
@@ -511,9 +511,9 @@ export default {
               "NetMagic": _this.$store.state.vuexStore.NetMagic,
               "AssetType": _this.txOnChannelInfo.assetType,
               "MessageBody": {
-                "PaymentCount": _this.txOnChannelInfo.value / 10e7,
-                "SenderBalance": (_this.$store.state.vuexStore.channelList[l].SelfBalance - _this.txOnChannelInfo.value) / 10e7,
-                "ReceiverBalance": (_this.$store.state.vuexStore.channelList[l].OtherBalance + _this.txOnChannelInfo.value) / 10e7,
+                "PaymentCount": _this.txOnChannelInfo.value,
+                "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance - Number(_this.txOnChannelInfo.value),
+                "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance + Number(_this.txOnChannelInfo.value),
                 "Commitment": "",
                 "RoleIndex": 0
               },

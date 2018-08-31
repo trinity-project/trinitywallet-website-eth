@@ -175,8 +175,42 @@ export default {
         this.$parent.saveAsString("isNightMode",this.$store.state.vuexStore.isNightMode);
     },
     switchNet() {        //切换网络
-        this.$store.state.vuexStore.isTestNet === true ? this.$store.state.vuexStore.isTestNet = false : this.$store.state.vuexStore.isTestNet = true;
-        console.log("切换网络");
+        let _this = this;
+        _this.$store.state.vuexStore.NodeUriWebSocket.close();
+        _this.$store.state.vuexStore.isTestNet === true ? _this.$store.state.vuexStore.isTestNet = false : _this.$store.state.vuexStore.isTestNet = true;
+        
+        if(_this.$store.state.vuexStore.isTestNet){          //测试网
+          console.log("切换到测试网");
+          web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); 
+          _this.$store.state.vuexStore.NetMagic = "527465737419990331";                                                //修改网络号
+          _this.$store.state.vuexStore.tncContractAddress = "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218";            //修改token合约地址
+          _this.$store.state.vuexStore.trinityContractAddress = "0xB38758094373f9C6651a765e7bbB38722a07c63a";        //修改trinity合约地址
+          _this.$store.state.vuexStore.trinityDataContractAddress = "0xF928BA6a908207BF6C0Cd73eba2f165B6115AbD9";    //修改trinity合约地址
+          _this.$store.state.vuexStore.rpcIp = "47.104.81.20:9000";                                              //修改全节点IP
+        } else {                //主网
+          console.log("切换到主网");
+          web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d"));
+          _this.$store.state.vuexStore.NetMagic = "4061696020030515";                                                  //修改网络号
+          _this.$store.state.vuexStore.tncContractAddress = "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac";            //修改token合约地址
+          _this.$store.state.vuexStore.trinityContractAddress = "0x7A332beF593d6bd6B9d314959295239c46D5C127";        //修改trinity合约地址
+          _this.$store.state.vuexStore.trinityDataContractAddress = "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5";    //修改trinity合约地址
+          _this.$store.state.vuexStore.rpcIp = "47.97.96.192:9000";
+        }
+        setTimeout(function (){                                           //修改全节点IP
+          _this.$parent.connectWebSocketForNodeUri(); 
+        },1500);
+
+        setTimeout(function (){                                           //修改全节点IP
+        if(_this.$store.state.vuexStore.isLogin == true){
+          let Message = {
+              "messageType":"init", 
+              "walletAddress":_this.$store.state.vuexStore.walletInfo.address
+          }
+          _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+          _this.cycleReconnectWebsocket();
+        }
+        },3000);
+
     },
     storeToNav() {      //传递activeNavIndex
         this.navSelected = this.$store.state.vuexStore.activeNavIndex;
@@ -195,71 +229,8 @@ export default {
         this.gasPrice = this.$store.state.vuexStore.gasPrice / 10e8;
     },
     testFun() {      //用于测试
-        let Message1 = {
-            "messageType": "monitorBlockHeight", 
-            "walletAddress": this.$store.state.vuexStore.walletInfo.address, 
-            "chainType": "ETH", 
-            "playload": 3925242, 
-            "comments": {} 
-        }
-        console.log(Message1);
-        this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //发送监控消息
-        return false;
-        
-        let redata = {
-            "MessageType":"Rsmc",
-            "Sender": "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089",
-            "Receiver": "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf@106.15.91.150:8089",
-            "TxNonce": 1,
-            "ChannelName": 0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf,
-            "NetMagic": this.$store.state.vuexStore.NetMagic,
-            "MessageBody": {
-            "AssetType": "TNC",
-            "PaymentCount": 2,
-            "SenderBalance": 10,
-            "ReceiverBalance": 10,
-            "Commitment": "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf"
-            },
-            "Comments": {}
-        }
-        _this.$notify.info({
-            title: '消息',
-            duration: 0,
-            message: redata.Sender.split("@")[0] + "正在向你转账,需要你解锁钱包,点击进行解锁",
-            onClick: _this.$parent.showReceiptRsmcInfoBox
-        });
-        return false;
-        let txData = web3.utils.soliditySha3(         //生成代签名交易数据
-            {t: 'bytes32', v: _this.$store.state.vuexStore.channelList[0].ChannelName},    //通道名称
-            {t: 'uint256', v: 1},                                   //TXnonce
-            {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
-            {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].SelfBalance - (0.2 * 10e7)},       //本端押金
-            {t: 'address', v: _this.$store.state.vuexStore.channelList[0].OtherUri.split("@")[0]},                       //对端地址
-            {t: 'uint256', v: _this.$store.state.vuexStore.channelList[0].OtherBalance + (0.2 * 10e7)}       //对端押金
-        );
-        console.log(txData);
-
-        let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,"123");        //解锁钱包用于签名          
-        let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
-        console.log(selfSignedData); 
-
-        let Message = {
-            "MessageType":"Rsmc",
-            "Sender": _this.$store.state.vuexStore.channelList[0].SelfUri,
-            "Receiver": _this.$store.state.vuexStore.channelList[0].OtherUri,
-            "TxNonce": 1,
-            "ChannelName": _this.$store.state.vuexStore.channelList[0].ChannelName,
-            "NetMagic": _this.$store.state.vuexStore.NetMagic,
-            "MessageBody": {
-                "AssetType": "TNC",
-                "PaymentCount": 0.2,
-                "SenderBalance": (_this.$store.state.vuexStore.channelList[0].SelfBalance - (0.2 * 10e7)) / 10e7,
-                "ReceiverBalance": (_this.$store.state.vuexStore.channelList[0].OtherBalance + (0.2 * 10e7)) / 10e7,
-                "Commitment": selfSignedData,
-            },
-            "Comments": {}
-        }
-        _this.$store.state.vuexStore.channelList[0].websock.send(JSON.stringify(Message));
+        this.$store.state.vuexStore.channelList[0].State = 3;
+        this.$parent.StoreChannel();
     },
     getAddressInfo() {      // 监测store中的address,出现变化时获取相关信息
         let Message = {
@@ -327,7 +298,9 @@ export default {
     cycleReconnectWebsocket() {             //登录后循环连接各个通道
         var _this = this;
         _this.$store.state.vuexStore.channelList.forEach(function(val,index){           //遍历channelList
-            _this.$parent.reconnectWebsocket(val.Ip + ":8766",val.ChannelName);
+            if(val.isTestNet == _this.$store.state.vuexStore.isTestNet){
+                _this.$parent.reconnectWebsocket(val.Ip + ":8866",val.ChannelName);
+            }
         })
     },
     showSignOutBox() {                       //显示退出提醒框
