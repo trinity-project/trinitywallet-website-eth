@@ -140,19 +140,34 @@ export default {
     },
     gasPrice(newValue, oldValue) { 
         let _this = this;
-        _this.$store.state.vuexStore.gasPrice = newValue * 10e8;
-        _this.$parent.saveAsString("gasPrice", newValue * 10e8);
+        _this.$store.state.vuexStore.gasPrice = Number(newValue).mul(10e8);
+        _this.$parent.saveAsString("gasPrice", Number(newValue).mul(10e8));
     },
-    '$store.state.vuexStore.gasPrice': 'changeGasPrice',           // 监测store中的activeNavIndex
+    '$store.state.vuexStore.gasPrice': 'changeGasPrice',             // 监测store中的activeNavIndex
     '$store.state.vuexStore.activeNavIndex': 'storeToNav',           // 监测store中的activeNavIndex
-    '$store.state.vuexStore.walletInfo.address': 'getAddressInfo'            // 监测store中的address,出现变化时获取相关信息
+    '$store.state.vuexStore.walletInfo.address': 'getAddressInfo'    // 监测store中的address,出现变化时获取相关信息
   },
   mounted() {
     this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
         let _this = this;
-        _this.isNightMode = _this.$parent.fetchAsString("isNightMode");
+        _this.isNightMode = _this.$parent.fetchAsString("isNightMode");                                     //获取夜间主题
 
-        web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
+        _this.$store.state.vuexStore.isTestNet = _this.$parent.fetchAsString("isTestNet");                  //获取网络
+        console.log(_this.$store.state.vuexStore.isTestNet);
+        if(_this.$store.state.vuexStore.isTestNet == "" || _this.$store.state.vuexStore.isTestNet == 'true'){
+          _this.$store.state.vuexStore.isTestNet = true;
+        } else {
+          console.log("切换到主网");
+          _this.$store.state.vuexStore.isTestNet = false;
+          web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d"));
+          _this.$store.state.vuexStore.NetMagic = "4061696020030515";                                                  //修改网络号
+          _this.$store.state.vuexStore.tncContractAddress = "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac";            //修改token合约地址
+          _this.$store.state.vuexStore.trinityContractAddress = "0x7A332beF593d6bd6B9d314959295239c46D5C127";        //修改trinity合约地址
+          _this.$store.state.vuexStore.trinityDataContractAddress = "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5";    //修改trinity合约地址
+          _this.$store.state.vuexStore.rpcIp = "47.97.96.192:9000";
+        }
+
+        web3.eth.getGasPrice().then(function(gasPrice){                                     // 获取GAS价格
             _this.recommendGasPrice = gasPrice;
             if(_this.$parent.fetchAsString("gasPrice") == ""){
                 _this.$store.state.vuexStore.gasPrice = parseInt(gasPrice);
@@ -160,7 +175,7 @@ export default {
                 _this.$store.state.vuexStore.gasPrice = parseInt(_this.$parent.fetchAsString("gasPrice"));
             }
         })
-        if(!_this.$store.state.vuexStore.isLogin){
+        if(!_this.$store.state.vuexStore.isLogin){                                          // 当未登录时,都跳转到开始界面
             _this.$router.push('/start');
         }
     })
@@ -178,7 +193,8 @@ export default {
         let _this = this;
         _this.$store.state.vuexStore.NodeUriWebSocket.close();
         _this.$store.state.vuexStore.isTestNet === true ? _this.$store.state.vuexStore.isTestNet = false : _this.$store.state.vuexStore.isTestNet = true;
-        
+        _this.$parent.saveAsString("isTestNet", _this.$store.state.vuexStore.isTestNet);
+
         if(_this.$store.state.vuexStore.isTestNet){          //测试网
           console.log("切换到测试网");
           web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); 

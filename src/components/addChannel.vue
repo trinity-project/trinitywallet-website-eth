@@ -163,46 +163,6 @@ export default {
       let _this = this;
       _this.$refs['addChannelForm'].validate((valid) => {
         if (valid) {
-          _this.$parent.showLoading();
-
-          web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
-            console.log(gasPrice);
-          var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
-              from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
-              gasPrice: _this.$store.state.vuexStore.gasPrice        //Gas价格
-          });
-          let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);
-          web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
-            // 获取交易次数
-              console.log(nonce);
-
-              // approve押金金额
-              let functionSig = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)');     //获取functionSig
-              console.log(functionSig);
-
-              let data = web3.eth.abi.encodeParameters(['address','uint256'], [ _this.$store.state.vuexStore.trinityDataContractAddress, _this.addChannelForm.selfDeposit.mul(10e7)]);        //abi加密参数
-              console.log(data);
-
-              var txData = {        //组成txData数据
-                  nonce: web3.utils.toHex(nonce++),
-                  gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
-                  gasLimit: web3.utils.toHex(4500000),
-                  to: _this.$store.state.vuexStore.tncContractAddress,
-                  from: _this.$store.state.vuexStore.walletInfo.address, 
-                  value: '0x00', 
-                  data: functionSig + data.substr(2)
-              };
-              console.log(txData);
-
-              let signedData = signData(txData,decryptPK.privateKey);     //签名
-              console.log(signedData);
-
-              web3.eth.sendSignedTransaction('0x' + signedData)         //上链
-              .on('transactionHash', function(hash){      //收到hash时
-                  console.log(hash);
-              })
-              .on('receipt', function(receipt){           //approve块确认后,发送Founder
-                console.log(receipt);
                 let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8866);       //截取对端Uri的Ip
                 const wsuri = "ws://" + Ip + "/";               //建立websocket连接
                 var l = _this.$store.state.vuexStore.channelList.length;      //获取channelList长度
@@ -284,24 +244,8 @@ export default {
 
                 _this.$parent.StoreChannel();         //储存通道信息
                 _this.$router.push('/channelList');       //跳转到channelList页面
-                _this.$parent.closeLoading();
+
                 return;
-              })
-              .on('confirmation', function(confirmationNumber, receipt){
-                // console.log(confirmationNumber);
-              })
-              .on('error', function(error){
-                _this.$notify.error({
-                    title: '警告',
-                    dangerouslyUseHTMLString: true,
-                    message: error,
-                    duration: 3000
-                });
-                _this.$parent.closeLoading();
-                return;
-              });
-            })
-          })
         } else {
           console.log('error submit!!');
           return false;

@@ -8,74 +8,74 @@
           <footer-box/>
       </div>
       <head-nav/>
-        <el-dialog title="注意" :visible.sync="isFeeInfoBoxShow" width="30%" center>
-          <span>你将支付<b style="color:#F56C6C">{{ $store.state.vuexStore.txOnChannelInfo.fee / 10e7 }}{{ $store.state.vuexStore.txOnChannelInfo.assetType }}</b>作为本次交易的路由费用</span><br>
-          <el-tooltip class="item" effect="dark" content="交易的路由费用由于通过多个路由节点而产生" placement="top">
-            <span style="margin-top:20px;display: inline-block;text-decoration: underline;">什么是路由费用</span>
+        <el-dialog :title="$t('common.attention')" :visible.sync="isFeeInfoBoxShow" width="30%" center>
+          <span>{{ $t('common.fee-1') }}<b style="color:#F56C6C">{{ $store.state.vuexStore.txOnChannelInfo.fee / 10e7 }}{{ $store.state.vuexStore.txOnChannelInfo.assetType }}</b>{{ $t('common.fee-2') }}</span><br>
+          <el-tooltip class="item" effect="dark" :content="$t('common.whyFeeTips')" placement="top">
+            <span style="margin-top:20px;display: inline-block;text-decoration: underline;">{{ $t('common.whyFee') }}</span>
           </el-tooltip>
           <span slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="sendHtlcMes()">确 定</el-button>
-            <el-button @click="isFeeInfoBoxShow = false">取 消</el-button>
+            <el-button type="primary" @click="sendHtlcMes()">{{ $t('common.continue') }}</el-button>
+            <el-button @click="isFeeInfoBoxShow = false">{{ $t('common.cancel') }}</el-button>
           </span>
         </el-dialog>
-        <el-dialog class="receiptRsmcInfoBox" title="收款" :visible.sync="isReceiptRsmcInfoBox" width="30%" center :modal-append-to-body='false'>                    <!--  回复Rsmc消息框 -->
+        <el-dialog class="receiptRsmcInfoBox" :title="$t('common.receive')" :visible.sync="isReceiptRsmcInfoBox" width="30%" center :modal-append-to-body='false'>                    <!--  回复Rsmc消息框 -->
           <span>{{ activeInfo.redata.Sender }}</span><br/>
-          <span style="color:#F56C6C;font-size: 16px;">向你转账 {{ activeInfo.redata.PaymentCount / 10e7 }} {{ activeInfo.redata.AssetType }}</span>
+          <span style="color:#F56C6C;font-size: 16px;">{{ $t('common.send-1') }} {{ activeInfo.redata.PaymentCount / 10e7 }} {{ activeInfo.redata.AssetType }}{{ $t('common.send-2') }}</span>
           <span slot="footer" class="dialog-footer">
             <el-form :model="activeInfo" status-icon :rules="confirmReceiptRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
-              <el-form-item label="密码" prop="keyStorePass">
-                <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+              <el-form-item :label="$t('common.password')" prop="keyStorePass">
+                <el-input v-model="activeInfo.keyStorePass" :placeholder="$t('common.inputPassword')" type="password" auto-complete="off"></el-input>
               </el-form-item>
               <el-form-item style="text-align:center;margin-left: -80px;">
-                <el-button @click="RsmcSign()" type="primary">确 定</el-button>
-                <el-button @click="isReceiptRsmcInfoBox = false;">取 消</el-button>
+                <el-button @click="RsmcSign()" type="primary">{{ $t('common.continue') }}</el-button>
+                <el-button @click="isReceiptRsmcInfoBox = false;">{{ $t('common.cancel') }}</el-button>
               </el-form-item>
             </el-form>            
           </span>
         </el-dialog>
-        <el-dialog class="receiptHtlcInfoBox" title="收款" :visible.sync="isReceiptHtlcInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  回复Htlc消息框 -->
+        <el-dialog class="receiptHtlcInfoBox" :title="$t('common.receive')" :visible.sync="isReceiptHtlcInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  回复Htlc消息框 -->
           <span>{{ activeInfo.redata.Sender }}</span><br/>
-          <span style="color:#F56C6C;font-size: 16px;">向你转账 {{ activeInfo.redata.PaymentCount / 10e7 }} {{ activeInfo.redata.AssetType }}</span>
+          <span style="color:#F56C6C;font-size: 16px;">{{ $t('common.send-1') }}  {{ activeInfo.redata.PaymentCount / 10e7 }} {{ activeInfo.redata.AssetType }}{{ $t('common.send-2') }} </span>
           <br><br>
-          <b style="color:#F56C6C;font-size: 13px;">由于跨通道交易,你需要对数据进行两次签名</b>
+          <b style="color:#F56C6C;font-size: 13px;">{{ $t('common.twoPassword') }} </b>
           <span slot="footer" class="dialog-footer">
             <el-form :model="activeInfo" status-icon :rules="confirmReceiptRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
-              <el-form-item label="密码" prop="keyStorePass">
-                <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+              <el-form-item :label="$t('common.password')" prop="keyStorePass">
+                <el-input v-model="activeInfo.keyStorePass" :placeholder="$t('common.inputPassword')" type="password" auto-complete="off"></el-input>
               </el-form-item>
               <el-form-item style="text-align:center;margin-left: -80px;">
-                <el-button @click="HtlcSign()" type="primary">确 定</el-button>
-                <el-button @click="isReceiptHtlcInfoBox = false;">取 消</el-button>
+                <el-button @click="HtlcSign()" type="primary">{{ $t('common.continue') }}</el-button>
+                <el-button @click="isReceiptHtlcInfoBox = false;">{{ $t('common.cancel') }}</el-button>
               </el-form-item>
             </el-form>            
           </span>
         </el-dialog>
-        <el-dialog class="settleInfoBox" title="关闭通道" :visible.sync="isSettleInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  回复Settle消息框 -->
-          <span>{{ activeInfo.redata.Sender }}申请关闭通道</span>
-          <span style="color:#F56C6C;font-size: 16px;">本端余额: {{ activeInfo.redata.ReceiverBalance / 10e7 }} {{ activeInfo.redata.AssetType }}</span>
-          <span style="color:#F56C6C;font-size: 16px;">对端余额: {{ activeInfo.redata.SenderBalance / 10e7 }} {{ activeInfo.redata.AssetType }}</span>
+        <el-dialog class="settleInfoBox" :title="$t('common.closeChannel')" :visible.sync="isSettleInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  回复Settle消息框 -->
+          <span>{{ activeInfo.redata.Sender }}{{ $t('common.closeChannel-1') }} </span>
+          <span style="color:#F56C6C;font-size: 16px;">{{ $t('common.selfBalance') }} : {{ activeInfo.redata.ReceiverBalance / 10e7 }} {{ activeInfo.redata.AssetType }}</span>
+          <span style="color:#F56C6C;font-size: 16px;">{{ $t('common.otherBalance') }} : {{ activeInfo.redata.SenderBalance / 10e7 }} {{ activeInfo.redata.AssetType }}</span>
           <span slot="footer" class="dialog-footer">
             <el-form :model="activeInfo" status-icon :rules="confirmReceiptRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
-              <el-form-item label="密码" prop="keyStorePass">
-                <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+              <el-form-item :label="$t('common.password')" prop="keyStorePass">
+                <el-input v-model="activeInfo.keyStorePass" :placeholder="$t('common.inputPassword')" type="password" auto-complete="off"></el-input>
               </el-form-item>
               <el-form-item style="text-align:center;margin-left: -80px;">
-                <el-button @click="SettleSign()" type="danger">确 定</el-button>
-                <el-button @click="isSettleInfoBox = false;">取 消</el-button>
+                <el-button @click="SettleSign()" type="danger">{{ $t('common.continue') }}</el-button>
+                <el-button @click="isSettleInfoBox = false;">{{ $t('common.cancel') }}</el-button>
               </el-form-item>
             </el-form>            
           </span>
         </el-dialog>
-        <el-dialog class="settleInfoBox" title="强制关闭通道" :visible.sync="isSettleTransactionInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  Settle块高到达消息框 -->
+        <el-dialog class="settleInfoBox" title="$t('common.forceCloseChannel')" :visible.sync="isSettleTransactionInfoBox" width="30%" center :modal-append-to-body='false'>                       <!--  Settle块高到达消息框 -->
           <span>强制关闭通道已到达指定块高</span>
           <span slot="footer" class="dialog-footer">
             <el-form :model="SettleTransaction" status-icon :rules="settleTransactionRules" ref="SettleTransaction" label-width="80px" class="demo-ruleForm">
-              <el-form-item label="密码" prop="keyStorePass">
-                <el-input v-model="SettleTransaction.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+              <el-form-item :label="$t('common.password')" prop="keyStorePass">
+                <el-input v-model="SettleTransaction.keyStorePass" :placeholder="$t('common.inputPassword')" type="password" auto-complete="off"></el-input>
               </el-form-item>
               <el-form-item style="text-align:center;margin-left: -80px;">
-                <el-button @click="sendSettleTransaction()" type="danger">确 定</el-button>
-                <el-button @click="isSettleTransactionInfoBox = false;">取 消</el-button>
+                <el-button @click="sendSettleTransaction()" type="danger">{{ $t('common.continue') }}</el-button>
+                <el-button @click="isSettleTransactionInfoBox = false;">{{ $t('common.cancel') }}</el-button>
               </el-form-item>
             </el-form>            
           </span>
@@ -84,21 +84,21 @@
           <span>对端强制关闭通道数据不正确,发送制裁交易</span>
           <span slot="footer" class="dialog-footer">
             <el-form :model="activeInfo" status-icon :rules="confirmReceiptRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">
-              <el-form-item label="密码" prop="keyStorePass">
-                <el-input v-model="activeInfo.keyStorePass" placeholder="在此输入密码" type="password" auto-complete="off"></el-input>
+              <el-form-item :label="$t('common.password')" prop="keyStorePass">
+                <el-input v-model="activeInfo.keyStorePass" :placeholder="$t('common.inputPassword')" type="password" auto-complete="off"></el-input>
               </el-form-item>
               <el-form-item style="text-align:center;margin-left: -80px;">
-                <el-button @click="sendUpdateTransaction()" type="danger">确 定</el-button>
-                <el-button @click="isUpdateTransactionInfoBox = false;">取 消</el-button>
+                <el-button @click="sendUpdateTransaction()" type="danger">{{ $t('common.continue') }}</el-button>
+                <el-button @click="isUpdateTransactionInfoBox = false;">{{ $t('common.cancel') }}</el-button>
               </el-form-item>
             </el-form>            
           </span>
         </el-dialog>
         <el-dialog title="退出" :visible.sync="isSignOutBoxShow" width="30%" center>
-          <span>即将退出钱包</span>
+          <span>{{ $t('common.signOut') }} </span>
           <span slot="footer" class="dialog-footer">
-            <el-button type="danger" @click="SignOut()"> 确定 </el-button>
-            <el-button @click="isSignOutBoxShow = false"> 取消 </el-button>
+            <el-button type="danger" @click="SignOut()">{{ $t('common.continue') }}</el-button>
+            <el-button @click="isSignOutBoxShow = false">{{ $t('common.cancel') }}</el-button>
           </span>
         </el-dialog>
     </div>
@@ -117,28 +117,28 @@ export default {
   data () {
       var validatePass = (rule, value, callback) => {         //Receipt 密码输入规则
       if (!value) {
-        return callback(new Error('钱包密码不能为空，否则将无法交易'));
+        return callback(new Error(this.$t('common.callback-1')));
       } else {
         let PrivateKey = this.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore,this.activeInfo.keyStorePass);
         setTimeout(() => {
             if(PrivateKey){
             callback();
             } else {
-            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+            return callback(new Error(this.$t('common.callback-2')));
             }
         }, 1000);
       }
     };
     var validatePass1 = (rule, value, callback) => {         //Receipt 密码输入规则
       if (!value) {
-        return callback(new Error('钱包密码不能为空，否则将无法交易'));
+        return callback(new Error(this.$t('common.callback-1')));
       } else {
         let PrivateKey = this.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore,this.SettleTransaction.keyStorePass);
         setTimeout(() => {
             if(PrivateKey){
             callback();
             } else {
-            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+            return callback(new Error(this.$t('common.callback-2')));
             }
         }, 1000);
       }
@@ -200,7 +200,7 @@ export default {
         _this.connectWebSocketForNodeUriNotify = _this.$notify.info({
           title: '消息',
           duration: 2000,
-          message: '正在连接至Trinity网络'
+          message: _this.$t('common.callback-3')
         });
         if(_this.$store.state.vuexStore.isLogin == true){
           let Message = {
@@ -283,15 +283,15 @@ export default {
       } catch (e) {
           if(e.message == 'Key derivation failed - possibly wrong password'){
               _this.$notify.error({
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '钱包解锁失败 - 可能是密码错误',
+                  message: _this.$t('common.callback-2'),
                   duration: 3000
               });
               return false;
           } else {
               _this.$notify.error({
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
                   message: e.message,
                   duration: 3000
@@ -427,9 +427,9 @@ export default {
             console.log(result);
             if(result.status == true){
               _this.$notify({
-                  title: '成功',
+                  title: _this.$t('common.success'),
                   dangerouslyUseHTMLString: true,
-                  message: '交易已确认',
+                  message: _this.$t('common.callback-4'),
                   duration: 3000,
                   type: 'success'
               });
@@ -451,9 +451,9 @@ export default {
               return result;
             } else if(result.status == false){
               _this.$notify({
-                  title: '失败',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '交易确认失败',
+                  message: _this.$t('common.callback-5'),
                   duration: 3000,
                   type: 'error'
               });
@@ -479,9 +479,9 @@ export default {
           _this.loseWebSocketForNodeUriNotify.close();                //关闭连接至全节点notify
         }
         _this.$notify({
-            title: '成功',
+            title: _this.$t('common.success'),
             dangerouslyUseHTMLString: true,
-            message: '已连接到Trinity网络',
+            message: _this.$t('common.callback-6'),
             duration: 3000,
             type: 'success'
         });
@@ -527,9 +527,9 @@ export default {
       console.log(l);
       if(l === null){             //如果未检测到通道,给出提醒
           _this.$notify.error({
-              title: '警告',
+              title: _this.$t('common.warning'),
               dangerouslyUseHTMLString: true,
-              message: '未找到该通道,请重试一次',
+              message: _this.$t('common.callback-7'),
               duration: 3000
           });
           return;
@@ -540,9 +540,9 @@ export default {
           console.log(_this.$store.state.vuexStore.channelList[l].OtherBalance);
           if(redata.amountA == _this.$store.state.vuexStore.channelList[l].SelfBalance && redata.amountB == _this.$store.state.vuexStore.channelList[l].OtherBalance){
             _this.$notify({
-                title: '成功',
+                title: _this.$t('common.success'),
                 dangerouslyUseHTMLString: true,
-                message: '通道已开通',
+                message: _this.$t('common.callback-8'),
                 duration: 3000,
                 type: 'success'
             });
@@ -570,9 +570,9 @@ export default {
       console.log(l);
       if(l === null){             //如果未检测到通道,给出提醒
           _this.$notify.error({
-              title: '警告',
+              title: _this.$t('common.warning'),
               dangerouslyUseHTMLString: true,
-              message: '未找到该通道,请重试一次',
+              message: _this.$t('common.callback-7'),
               duration: 3000
           });
           return;
@@ -583,9 +583,9 @@ export default {
           console.log(_this.$store.state.vuexStore.channelList[l].OtherBalance);
           if(redata.amountA == _this.$store.state.vuexStore.channelList[l].SelfBalance && redata.amountB ==_this.$store.state.vuexStore.channelList[l].OtherBalance){
             _this.$notify({
-                title: '成功',
+                title: _this.$t('common.success'),
                 dangerouslyUseHTMLString: true,
-                message: '通道已关闭',
+                message: _this.$t('common.callback-9'),
                 duration: 3000,
                 type: 'success'
             });
@@ -617,16 +617,16 @@ export default {
         console.log("本端nonce:" + _this.$store.state.vuexStore.channelList[l].TxNonce);
         if(_this.$store.state.vuexStore.channelList[l].TxNonce <= redata.nonce){
           _this.$notify.info({
-              title: '消息',
+              title: _this.$t('common.info'),
               dangerouslyUseHTMLString: true,
-              message: redata.channelId + '正在强制关闭通道,数据正确',
+              message: redata.channelId + _this.$t('common.callback-10'),
               duration: 3000
           });
         } else {
           _this.settleTransactionNotify = _this.$notify({
-              title: '警告',
+              title: _this.$t('common.warning'),
               dangerouslyUseHTMLString: true,
-              message: redata.channelId + '正在强制关闭通道,数据不正确,点击解锁钱包进行制裁',
+              message: redata.channelId + _this.$t('common.callback-11'),
               duration: 0,
               type: 'error',
               onClick: _this.showUpdateTransactionInfoBox        //显示接收信息框
@@ -640,18 +640,18 @@ export default {
       this.$store.state.vuexStore.channelList.splice(l,1);
       this.StoreChannel();
       this.$notify({
-          title: '成功',
+          title: _this.$t('common.success'),
           dangerouslyUseHTMLString: true,
-          message: '通道已分配余额,通道关闭',
+          message: _this.$t('common.callback-12'),
           duration: 3000,
           type: 'success'
       });
     },
     OnMesMonitorBlockHeight(redata) {           //收到全节点监控块高事件
       this.$notify({
-          title: '消息',
+          title: _this.$t('common.info'),
           dangerouslyUseHTMLString: true,
-          message: '强制拆链已到达指定块高，点击输入密码确认',
+          message: _this.$t('common.callback-13'),
           duration: 0,
           type: 'info',
           onClick: this.showSettleTransactionInfoBox        //显示接收信息框
@@ -708,9 +708,9 @@ export default {
               .on('transactionHash', function(hash){              //收到交易hash时
                   console.log(hash);
                   _this.$notify({
-                      title: '成功',
+                      title: _this.$t('common.success'),
                       dangerouslyUseHTMLString: true,
-                      message: '制裁交易上链成功，请交易确认',
+                      message: _this.$t('common.callback-14'),
                       duration: 3000,
                       type: 'success'
                   });
@@ -824,9 +824,9 @@ export default {
               .on('transactionHash', function(hash){              //收到交易hash时
                   console.log(hash);
                   _this.$notify({
-                      title: '成功',
+                      title: _this.$t('common.success'),
                       dangerouslyUseHTMLString: true,
-                      message: '制裁交易上链成功，请交易确认',
+                      message: _this.$t('common.callback-14'),
                       duration: 3000,
                       type: 'success'
                   });
@@ -855,9 +855,9 @@ export default {
       console.log("已断开websocket");
       console.log(val);
       this.loseWebSocketForNodeUriNotify = this.$notify({
-          title: '警告',
+          title: this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '与Trinity网络断开连接,点击进行重连',
+          message: this.$t('common.callback-15'),
           duration: 0,
           type: 'error',
           onClick: this.connectWebSocketForNodeUri
@@ -901,9 +901,9 @@ export default {
       case "SettleSign":
         _this.OnMesSettleSign(redata);
         break;
-      case "DeleteChannel":                       //用于全节点监控不到时
-        _this.OnMesDeleteChannel(redata);
-        break;
+      // case "DeleteChannel":                       //用于全节点监控不到时
+      //   _this.OnMesDeleteChannel(redata);
+      //   break;
       case "ChannelInfo":
         _this.OnMesChannelInfo(redata);
         break;
@@ -925,14 +925,77 @@ export default {
       //   Status:"RESPONSE_OK"
       //   TxNonce:0
       // }
+      let _this = this;
       if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，上链并提交给全节点监控
-        console.log(this.$store.state.vuexStore.addChannelInfo.txData);
+        console.log(_this.$store.state.vuexStore.addChannelInfo.txData);
         console.log(redata.MessageBody.Commitment);
         console.log(redata.Sender.split("@")[0].toLowerCase());
-        if(ecRecover(this.$store.state.vuexStore.addChannelInfo.txData, redata.MessageBody.Commitment, redata.Sender.split("@")[0].toLowerCase())){       //验证签名成功时,查询对端余额和Approve情况
-          this.confirmOtherApprove(redata);
+        if(ecRecover(_this.$store.state.vuexStore.addChannelInfo.txData, redata.MessageBody.Commitment, redata.Sender.split("@")[0].toLowerCase())){       //验证签名成功时,查询对端余额和Approve情况
+          _this.showLoading();
+          web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
+          console.log(gasPrice);
+          var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
+              from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
+              gasPrice: _this.$store.state.vuexStore.gasPrice        //Gas价格
+          });
+          let decryptPK = _this.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.$store.state.vuexStore.addChannelInfo.keyStorePass);
+          web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
+            // 获取交易次数
+              console.log(nonce);
+
+              // approve押金金额
+              let functionSig = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)');     //获取functionSig
+              console.log(functionSig);
+
+              let data = web3.eth.abi.encodeParameters(['address','uint256'], [ _this.$store.state.vuexStore.trinityDataContractAddress, _this.$store.state.vuexStore.addChannelInfo.selfDeposit.mul(10e7)]);        //abi加密参数
+              console.log(data);
+
+              var txData = {        //组成txData数据
+                  nonce: web3.utils.toHex(nonce++),
+                  gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
+                  gasLimit: web3.utils.toHex(4500000),
+                  to: _this.$store.state.vuexStore.tncContractAddress,
+                  from: _this.$store.state.vuexStore.walletInfo.address, 
+                  value: '0x00', 
+                  data: functionSig + data.substr(2)
+              };
+              console.log(txData);
+
+              let signedData = signData(txData,decryptPK.privateKey);     //签名
+              console.log(signedData);
+
+              web3.eth.sendSignedTransaction('0x' + signedData)         //上链
+              .on('transactionHash', function(hash){      //收到hash时
+                  console.log(hash);
+              })
+              .on('receipt', function(receipt){           //approve块确认后,发送Founder
+                console.log(receipt);
+                _this.confirmOtherApprove(redata);
+              })
+              .on('confirmation', function(confirmationNumber, receipt){
+                // console.log(confirmationNumber);
+              })
+              .on('error', function(error){
+                _this.$notify.error({
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: error,
+                    duration: 3000
+                });
+                _this.closeLoading();
+                return;
+              });
+            })
+          })
         } else {                //当签名验证失败时
           console.log("对端签名验证未通过,停止交易");
+          _this.$notify({
+            title: _this.$t('common.warning'),
+            dangerouslyUseHTMLString: true,
+            message: _this.$t('common.verifyFail'),
+            duration: 3000,
+            type: 'error'
+          });
         }
       } else {                  //当Status不为OK时
         console.log(redata.Status);
@@ -954,15 +1017,16 @@ export default {
                         console.log(result);
                         if(result >= _this.$store.state.vuexStore.addChannelInfo.otherDeposit.mul(10e7)){    //当Approve成功后发送建立通道
                             _this.sendDeposit(redata);
+                            _this.closeLoading();
                         } else {                          //当没有Approve时,反复查询
                             _this.confirmOtherApprove(redata);
                         }
                     });
                   } else {                  //当对端地址余额不足时给出提醒,并返回
                     _this.$notify.error({
-                      title: '警告',
+                      title: _this.$t('common.warning'),
                       dangerouslyUseHTMLString: true,
-                      message: '添加通道失败,对端余额不足',
+                      message: _this.$t('common.callback-16'),
                       duration: 0
                     });
                     return false;
@@ -1030,9 +1094,9 @@ export default {
           .on('transactionHash', function(hash){                      //收到交易hash时
               console.log(hash);
               _this.$notify({
-                  title: '成功',
+                  title: _this.$t('common.success'),
                   dangerouslyUseHTMLString: true,
-                  message: '上链成功，请交易确认',
+                  message: _this.$t('common.callback-14'),
                   duration: 3000,
                   type: 'success'
               });
@@ -1161,17 +1225,17 @@ export default {
       let l = _this.getChannelSerial("ChannelName", redata.ChannelName,'open');      //获取所需的channel在List的位置
       if(l == -1){          //当l为-1时,未遍历到通道
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '未与该Uri建立通道',
+          message: _this.$t('common.callback-17'),
           duration: 0
         });
         return false;
       } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '该通道未Open或者未连接上websocket',
+          message: _this.$t('common.callback-18'),
           duration: 0
         });
         return false;
@@ -1179,10 +1243,10 @@ export default {
         _this.activeInfo.redata = redata; 
         _this.activeInfo.redata.PaymentCount = redata.MessageBody.PaymentCount;    
         _this.receiptRsmcNotify = _this.$notify.info({
-            title: '消息',
+            title: _this.$t('common.info'),
             duration: 0,
             dangerouslyUseHTMLString: true,
-            message: _this.$store.state.vuexStore.channelList[l].Alice + "通道有收款消息,需要你解锁钱包.<br/>点击进行解锁",
+            message: _this.$store.state.vuexStore.channelList[l].Alice + _this.$t('common.callback-19'),
             onClick: _this.showReceiptRsmcInfoBox        //显示接收信息框
         });
       }
@@ -1266,9 +1330,9 @@ export default {
           console.log(l);
           if(l == -1){             //如果未检测到通道,给出提醒
               _this.$notify.error({
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '未找到该通道',
+                  message: _this.$t('common.callback-17'),
                   duration: 3000
               });
               return;
@@ -1361,14 +1425,21 @@ export default {
                 _this.$store.state.vuexStore.txOnChannelInfo = [];      //清空交易信息
                 // _this.$notify.closeAll(); 
                 _this.$notify({                 //消息提醒
-                    title: '成功',
+                    title: _this.$t('common.success'),
                     dangerouslyUseHTMLString: true,
-                    message: '转账确认',
+                    message: _this.$t('common.callback-20'),
                     duration: 3000,
                     type: 'success'
                 });
               } else {
                 console.log("对端签名验证未通过,停止交易");
+                _this.$notify({
+                  title: _this.$t('common.warning'),
+                  dangerouslyUseHTMLString: true,
+                  message: _this.$t('common.verifyFail'),
+                  duration: 3000,
+                  type: 'error'
+                });
               }
             } else if (redata.MessageBody.RoleIndex == 1){       //如果RoleIndex为1,更新通道余额
               if(ecRecover(_this.activeInfo.txData, redata.MessageBody.Commitment, redata.Sender.split("@")[0].toLowerCase())){       //验证签名
@@ -1403,9 +1474,9 @@ export default {
 
                 _this.receiptRsmcNotify.close();        //关闭接收Rsmc消息框   
                 _this.$notify({                 //消息提醒
-                    title: '成功',
+                    title: _this.$t('common.success'),
                     dangerouslyUseHTMLString: true,
-                    message: '收款确认',
+                    message: _this.$t('common.callback-21'),
                     duration: 3000,
                     type: 'success'
                 });
@@ -1416,6 +1487,13 @@ export default {
                 }
               } else {
                 console.log("对端签名验证未通过,停止交易");
+                _this.$notify({
+                  title: _this.$t('common.warning'),
+                  dangerouslyUseHTMLString: true,
+                  message: _this.$t('common.verifyFail'),
+                  duration: 3000,
+                  type: 'error'
+                });
               }
             }
           }
@@ -1428,9 +1506,9 @@ export default {
       let _this = this;
       if(redata.RouterInfo === null){               //当路由为空,返回
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: "路由为空,没有可用的通道",
+          message: _this.$t('common.callback-22'),
           duration: 3000
         });
         _this.$store.state.vuexStore.txOnChannelInfo = [];      //清空交易信息
@@ -1463,17 +1541,17 @@ export default {
       let l = _this.getChannelSerial("OtherUri",_this.$store.state.vuexStore.txOnChannelInfo.Next,"open");       //遍历当前通道位置
       if(l == -1){          //当l为-1时,未遍历到通道
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '未与该Uri建立通道',
+          message: _this.$t('common.callback-17'),
           duration: 0
         });
         return false;
       } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '该通道未Open或者未连接上websocket',
+          message: _this.$t('common.callback-18'),
           duration: 0
         });
         return false;
@@ -1564,17 +1642,17 @@ export default {
       let l = _this.getChannelSerial("ChannelName", redata.ChannelName,'open');      //获取所需的channel在List的位置
       if(l == -1){          //当l为-1时,未遍历到通道
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '未与该Uri建立通道',
+          message: _this.$t('common.callback-17'),
           duration: 3000
         });
         return false;
       } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '该通道未Open或者未连接上websocket',
+          message: _this.$t('common.callback-18'),
           duration: 3000
         });
         return false;
@@ -1582,10 +1660,10 @@ export default {
         _this.activeInfo.redata = redata;
         _this.activeInfo.redata.PaymentCount = redata.MessageBody.Payment;        
         _this.receiptHtlcNotify = _this.$notify.info({
-            title: '消息',
+            title: _this.$t('common.info'),
             duration: 0,
             dangerouslyUseHTMLString: true,
-            message: _this.$store.state.vuexStore.channelList[l].Alice + "通道有收款消息,需要你解锁钱包.<br/>点击进行解锁",
+            message: _this.$store.state.vuexStore.channelList[l].Alice + _this.$t('common.callback-19'),
             onClick: _this.showReceiptHtlcInfoBox        //显示接收信息框
         });
       }
@@ -1788,17 +1866,17 @@ export default {
         let l = _this.getChannelSerial("ChannelName",redata.ChannelName);
         if(l == -1){          //当l为-1时,未遍历到通道
           _this.$notify.error({
-            title: '警告',
+            title: _this.$t('common.warning'),
             dangerouslyUseHTMLString: true,
-            message: '未与该Uri建立通道',
+            message: _this.$t('common.callback-17'),
             duration: 3000
           });
           return false;
         } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
           _this.$notify.error({
-            title: '警告',
+            title: _this.$t('common.warning'),
             dangerouslyUseHTMLString: true,
-            message: '该通道未Open或者未连接上websocket',
+            message: _this.$t('common.callback-18'),
             duration: 3000
           });
           return false;
@@ -1865,17 +1943,17 @@ export default {
       let l = _this.getChannelSerial("ChannelName", redata.ChannelName,'open');      //获取所需的channel在List的位置
       if(l == -1){          //当l为-1时,未遍历到通道
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '未与该Uri建立通道',
+          message: _this.$t('common.callback-17'),
           duration: 3000
         });
         return false;
       } else if (l == -2){    //当l为-2时,通道未打开或者未连接websocket
         _this.$notify.error({
-          title: '警告',
+          title: _this.$t('common.warning'),
           dangerouslyUseHTMLString: true,
-          message: '该通道未Open或者未连接上websocket',
+          message: _this.$t('common.callback-18'),
           duration: 3000
         });
         return false;
@@ -1885,10 +1963,10 @@ export default {
         _this.activeInfo.redata.SenderBalance = redata.MessageBody.SenderBalance;         //将消息保存在redata层,防止模态框报错
         
         _this.$notify.info({
-            title: '消息',
+            title: _this.$t('common.info'),
             duration: 0,
             dangerouslyUseHTMLString: true,
-            message: _this.$store.state.vuexStore.channelList[l].Alice + "通道申请关闭通道,需要你解锁钱包.<br/>点击查看详情",
+            message: _this.$store.state.vuexStore.channelList[l].Alice + _this.$t('common.callback-19'),
             onClick: _this.showSettleInfoBox        //显示接收信息框
         });
       }
@@ -2016,9 +2094,9 @@ export default {
                   if (!err) {
                       console.log(hash);
                       _this.$notify({
-                          title: '成功',
+                          title: _this.$t('common.success'),
                           dangerouslyUseHTMLString: true,
-                          message: '上链成功，请交易确认',
+                          message: _this.$t('common.callback-14'),
                           duration: 3000,
                           type: 'success'
                       });
@@ -2054,18 +2132,17 @@ export default {
                       console.log(err)
                   }
               });
-              let Message = {
-                'messageType': 'monitorQuickCloseChannel',
-                "walletAddress": _this.$store.state.vuexStore.walletInfo.address,
-                'chainType': redata.MessageBody.AssetType,
-                'playload': redata.ChannelName,
-                'comments': ''
-              };
-              _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));
             })
           })
         } else {
           console.log("对端签名验证未通过,停止交易");
+          _this.$notify({
+            title: _this.$t('common.warning'),
+            dangerouslyUseHTMLString: true,
+            message: _this.$t('common.verifyFail'),
+            duration: 3000,
+            type: 'error'
+          });
         }
       } else {
         console.log(redata.Status);
@@ -2089,9 +2166,9 @@ export default {
       let _this = this;
       let l = _this.getChannelSerial("ChannelName", redata.MessageBody.ChannelName); //获取所需的channel在List的位置
       _this.$notify({
-          title: '成功',
+          title: _this.$t('common.success'),
           dangerouslyUseHTMLString: true,
-          message: '通道已关闭',
+          message: _this.$t('common.callback-23'),
           duration: 3000,
           type: 'success'
       });
@@ -2120,18 +2197,18 @@ export default {
       let l = _this.getChannelSerial("Ip",Ip);
       console.log(l);
       if(l === null){             //如果未检测到通道,给出提醒
-          _this.$notify.error({
-              title: '警告',
-              dangerouslyUseHTMLString: true,
-              message: '未找到该通道,请重试一次',
-              duration: 3000
-          });
+          // _this.$notify.error({
+          //     title: _this.$t('common.warning'),
+          //     dangerouslyUseHTMLString: true,
+          //     message: '未找到该通道,请重试一次',
+          //     duration: 3000
+          // });
           return;
       } else {
         _this.$notify.error({
-            title: '警告',
+            title: _this.$t('common.warning'),
             dangerouslyUseHTMLString: true,
-            message: '与' + Ip + '断开连接',
+            message: Ip + _this.$t('common.callback-24'),
             duration: 3000
         });
         let channelInfo = _this.$store.state.vuexStore.channelList[l];
@@ -2149,9 +2226,9 @@ export default {
       console.log(l);
       if(l === null){             //如果未检测到通道,给出提醒
           _this.$notify.error({
-              title: '警告',
+              title: _this.$t('common.warning'),
               dangerouslyUseHTMLString: true,
-              message: '未找到该通道,请重试一次',
+              message: _this.$t('common.callback-7'),
               duration: 3000
           });
           return;
