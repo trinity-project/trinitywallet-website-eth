@@ -140,18 +140,18 @@ export default {
     formatConnect:function(val) {          //格式化连接状态
         let result;
         if(val){
-            result = "已连接";
+            result = "True";
         } else {
-            result = "未连接";
+            result = "False";
         }
         return result;
     },
     formatNet:function(val) {          //格式化网络
         let result;
         if(val){
-            result = "测试网";
+            result = "TestNet";
         } else {
-            result = "主网";
+            result = "MainNet";
         }
         return result;
     }

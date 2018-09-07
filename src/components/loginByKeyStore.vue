@@ -40,15 +40,28 @@ export default {
         if (file.raw) {                    
             let reader = new FileReader()  
             reader.onload = function (e) {
-                _this.keyStoreContent = JSON.parse(e.target.result);
-                if(_this.keyStoreContent.address.length !== 40){
-                    _this.$notify.error({
-                        title: _this.$t('loginByKeyStore.callback-1'),
-                        dangerouslyUseHTMLString: true,
-                        message: _this.$t('loginByKeyStore.callback-2'),
-                        duration: 3000
-                    });
-                    _this.keyStoreContent = "";
+                if(_this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
+                    _this.keyStoreContent = JSON.parse(e.target.result);
+                    if(_this.keyStoreContent.address.length !== 40){
+                        _this.$notify.error({
+                            title: _this.$t('loginByKeyStore.callback-1'),
+                            dangerouslyUseHTMLString: true,
+                            message: _this.$t('loginByKeyStore.callback-2'),
+                            duration: 3000
+                        });
+                        _this.keyStoreContent = "";
+                    }
+                } else if (_this.$store.state.vuexStore.baseChain == "NEO"){          //当前为NEO钱包时
+                    _this.keyStoreContent = JSON.parse(e.target.result);
+                    if(_this.keyStoreContent.accounts[0].address.length !== 34){        //当地址长度错误时给出提醒
+                        _this.$notify.error({
+                            title: _this.$t('loginByKeyStore.callback-1'),
+                            dangerouslyUseHTMLString: true,
+                            message: _this.$t('loginByKeyStore.callback-2'),
+                            duration: 3000
+                        });
+                        _this.keyStoreContent = "";
+                    }
                 }
             };
             reader.readAsText(file.raw,'gb2312');
@@ -72,33 +85,89 @@ export default {
             });
             return false;
         }
-        let loading = this.$loading({
-            lock: true,
-            text: 'Loading',
-            spinner: 'el-icon-loading',
-            background: 'rgba(0, 0, 0, 0.7)',
-            target: document.querySelector('.loginByKeyStoreContentBox')
-        });
-        let _this = this;
-        setTimeout(function () {
-            _this.loginByKeyStore();
-            loading.close();
-        }, 2000);
+        // let loading = this.$loading({
+        //     lock: true,
+        //     text: 'Loading',
+        //     spinner: 'el-icon-loading',
+        //     background: 'rgba(0, 0, 0, 0.7)',
+        //     target: document.querySelector('.loginByKeyStoreContentBox')
+        // });
+        // let _this = this;
+        // setTimeout(function () {
+            this.loginByKeyStore();
+            //loading.close();
+        // }, 2000);
     },
     loginByKeyStore() {              //解锁Ketstore
-        let decryptPK;
-        try {
-            decryptPK = web3.eth.accounts.decrypt(this.keyStoreContent, this.keyStorePass);
-        } catch (e) {
-            if(e.message == 'Key derivation failed - possibly wrong password'){
-                this.$notify.error({
-                    title: this.$t('loginByKeyStore.callback-7'),
+        if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
+            let decryptPK;
+            try {
+                decryptPK = web3.eth.accounts.decrypt(this.keyStoreContent, this.keyStorePass);
+            } catch (e) {
+                if(e.message == 'Key derivation failed - possibly wrong password'){
+                    this.$notify.error({
+                        title: this.$t('loginByKeyStore.callback-7'),
+                        dangerouslyUseHTMLString: true,
+                        message: this.$t('loginByKeyStore.callback-8'),
+                        duration: 3000
+                    });
+                    return false;
+                } else {
+                    this.$notify.error({
+                        title: this.$t('loginByKeyStore.callback-9'),
+                        dangerouslyUseHTMLString: true,
+                        message: e.message,
+                        duration: 3000
+                    });
+                    return false;
+                }
+            }
+
+            let privateKey1 = new Buffer(decryptPK.privateKey.substring(2),'hex');
+            let privateKey = privateKey1.toString('hex')
+            // console.log(privateKey);
+
+            let address = web3.eth.accounts.privateKeyToAccount('0x' + privateKey).address;
+            address = web3.utils.toChecksumAddress(address);        //转化为校验和地址
+            //console.log(address);
+
+            if(web3.utils.checkAddressChecksum(address)){
+                this.$store.state.vuexStore.walletInfo.keyStore = this.keyStoreContent;
+                // this.$store.state.vuexStore.walletInfo.publicKey = privateKey2PublicKey(privateKey).toString('hex');   //存入publicKey
+                // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
+                this.$store.state.vuexStore.walletInfo.address = address;       //存入地址
+                // console.log(this.$store.state.vuexStore.walletInfo.address);
+                this.$store.state.vuexStore.isLogin = true;
+                this.$notify({
+                    title: this.$t('loginByKeyStore.callback-10'),
                     dangerouslyUseHTMLString: true,
-                    message: this.$t('loginByKeyStore.callback-8'),
+                    message: this.$t('loginByKeyStore.callback-11'),
+                    duration: 3000,
+                    type: 'success'
+                });
+                this.$router.push('/');         //跳转到首页
+                this.$store.state.vuexStore.activeNavIndex = "1-1";
+            } else {
+                this.$notify.error({
+                    title: this.$t('loginByKeyStore.callback-12'),
+                    dangerouslyUseHTMLString: true,
+                    message: this.$t('loginByKeyStore.callback-13'),
                     duration: 3000
                 });
-                return false;
-            } else {
+            }
+            this.keyStoreContent = '';      //清空数据
+            this.keyStorePass = '';
+        } else if (this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
+            console.log(this.keyStoreContent);
+            let decryptPK;
+            try {
+                decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
+                    'WalletScript':this.keyStoreContent.accounts[0].key,
+                    'password': this.keyStorePass,
+                    'address': this.keyStoreContent.accounts[0].address
+                });
+                console.log(decryptPK);
+            } catch (e) {
                 this.$notify.error({
                     title: this.$t('loginByKeyStore.callback-9'),
                     dangerouslyUseHTMLString: true,
@@ -107,23 +176,11 @@ export default {
                 });
                 return false;
             }
-        }
 
-        let privateKey1 = new Buffer(decryptPK.privateKey.substring(2),'hex');
-        let privateKey = privateKey1.toString('hex')
-        // console.log(privateKey);
-
-        let address = web3.eth.accounts.privateKeyToAccount('0x' + privateKey).address;
-        address = web3.utils.toChecksumAddress(address);        //转化为校验和地址
-        //console.log(address);
-
-        if(web3.utils.checkAddressChecksum(address)){
-            this.$store.state.vuexStore.walletInfo.keyStore = this.keyStoreContent;
-            // this.$store.state.vuexStore.walletInfo.publicKey = privateKey2PublicKey(privateKey).toString('hex');   //存入publicKey
-            // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
-            this.$store.state.vuexStore.walletInfo.address = address;       //存入地址
-            // console.log(this.$store.state.vuexStore.walletInfo.address);
-            this.$store.state.vuexStore.isLogin = true;
+            this.$store.state.vuexStore.NEOwalletInfo.keyStore = this.keyStoreContent;                        //存入KeyStore
+            this.$store.state.vuexStore.NEOwalletInfo.publicKey = ab2hexstring(getPublicKey(decryptPK, 0));   //存入publicKey
+            this.$store.state.vuexStore.NEOwalletInfo.address = this.keyStoreContent.accounts[0].address;       //存入地址
+            this.$store.state.vuexStore.isLogin = true;                     //登录标志
             this.$notify({
                 title: this.$t('loginByKeyStore.callback-10'),
                 dangerouslyUseHTMLString: true,
@@ -131,18 +188,11 @@ export default {
                 duration: 3000,
                 type: 'success'
             });
+            this.keyStoreContent = '';      //清空数据
+            this.keyStorePass = '';
             this.$router.push('/');         //跳转到首页
             this.$store.state.vuexStore.activeNavIndex = "1-1";
-        } else {
-            this.$notify.error({
-                title: this.$t('loginByKeyStore.callback-12'),
-                dangerouslyUseHTMLString: true,
-                message: this.$t('loginByKeyStore.callback-13'),
-                duration: 3000
-            });
         }
-        this.keyStoreContent = '';      //清空数据
-        this.keyStorePass = '';
     }
   }
 }

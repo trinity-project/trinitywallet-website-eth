@@ -44,16 +44,16 @@ export default {
     var checkUri = (rule, value, callback) => {         //add Channel Uri输入规则
       let _this = this;
       if (!value) {
-        return callback(new Error('对端URI不能为空'));
+        return callback(new Error(_this.$t('addChannel.callback-1')));
       } else {
           if (value.indexOf('@') < -1) {
-            callback(new Error('URI格式不正确'));
+            callback(new Error(_this.$t('addChannel.callback-2')));
           } else if(value.split('@')[0].length !== 42){
-            callback(new Error('URI格式不正确'));
+            callback(new Error(_this.$t('addChannel.callback-2')));
           } else {
               _this.$store.state.vuexStore.channelList.forEach(function(val,index){    //判断是否已有通道
                 if(val.OtherUri === _this.addChannelForm.uri){
-                  callback(new Error('你已经和这个TNAP有一个通道了'));
+                  callback(new Error(_this.$t('addChannel.callback-3')));
                 }
               });
             callback();
@@ -62,26 +62,26 @@ export default {
     };
     var checkAssetType = (rule, value, callback) => {     //add Channel assetType输入规则
       if (value === '') {
-        callback(new Error('请选择资产类型'));
+        callback(new Error(this.$t('index.inputAssetType')));
       } else {
         callback();
       }
     };
     var checkSelfDeposit = (rule, value, callback) => {         //add Channel 本端Deposit输入规则
       if (value === '') {
-        callback(new Error('本端押金数量不能为空'));
+        callback(new Error(this.$t('addChannel.callback-4')));
       } else {
         if (value <= 0) {
-          callback(new Error('本端押金数量必须大于0'));
+          callback(new Error(this.$t('addChannel.callback-5')));
         } else {
           if(value > this.$store.state.vuexStore.balanceData.Chain[this.addChannelForm.assetType]){
-            callback(new Error('押金数量不能大于钱包余额'));
+            callback(new Error(this.$t('addChannel.callback-6')));
           } else {
             if(String(value).indexOf(".") > -1){              //判断是否为小数,若为小数,则限制小数长度为8位
               let length = String(value).indexOf(".") + 1;//获取小数点的位置
               var num = String(value).length - length;//获取小数点后的个数
               if(num > 8){
-                  callback(new Error('本端押金小数最多为8位'));
+                  callback(new Error(this.$t('addChannel.callback-7')));
               } else {
                   callback();
               }
@@ -94,10 +94,10 @@ export default {
     };
     var checkOtherDeposit = (rule, value, callback) => {          //add Channel 对端Deposit输入规则
       if (value === '') {
-        callback(new Error('对端押金数量不能为空'));
+        callback(new Error(this.$t('addChannel.callback-8')));
       } else {
         if (value <= 0) {
-          callback(new Error('对端押金数量必须大于0'));
+          callback(new Error(this.$t('addChannel.callback-9')));
         } else {
             callback();
           }
@@ -105,21 +105,21 @@ export default {
     };
     var checkAlice = (rule, value, callback) => {         //add Channel Alice输入规则
       if (value === '') {
-        callback(new Error('通道名称不能为空'));
+        callback(new Error(_this.$t('addChannel.callback-10')));
       } else {
         callback();
       }
     };
     var checkKeyStorePass = (rule, value, callback) => {        //验证钱包密码
       if (!value) {
-        return callback(new Error('钱包密码不能为空，否则将无法交易'));
+        return callback(new Error(this.$t('common.callback-1')));
       } else {
         let PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
         setTimeout(() => {
             if(PrivateKey){
             callback();
             } else {
-            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+            return callback(new Error(this.$t('common.callback-2')));
             }
         }, 1000);
       }

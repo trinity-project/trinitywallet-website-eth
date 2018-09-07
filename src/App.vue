@@ -193,7 +193,7 @@ export default {
     connectWebSocketForNodeUri() {          //连接至全节点
         let _this = this;
         _this.$notify.closeAll();
-        let wsuri = "ws://" + _this.$store.state.vuexStore.rpcIp + "/";               //建立websocket连接
+        let wsuri = "ws://" + _this.$store.state.vuexStore.NodeUriWebSocket + "/";               //建立websocket连接
         _this.$store.state.vuexStore.NodeUriWebSocket = new WebSocket(wsuri);
         _this.$store.state.vuexStore.NodeUriWebSocket.onmessage = _this.nodeUriWebsocketOnMessage;
         _this.$store.state.vuexStore.NodeUriWebSocket.onclose = _this.nodeUriWebsocketClose;
@@ -381,6 +381,42 @@ export default {
         }
       }
       return assetContractAddress;
+    },
+    AssetTypeToAssetId(AssetType) {                  //NEO.资产类型转AssetId
+      let AssetId = "";
+      if(this.isTestNet){
+        switch(AssetType)
+        {
+        case "TNC":
+          AssetId = "0x849d095d07950b9e56d0c895ec48ec5100cfdff1";
+          break;
+        case "GAS":
+          AssetId = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
+          break;
+        case "NEO":
+          AssetId = "0xc56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b";
+          break;
+        default:
+          AssetId = Error;
+        }
+      } else {
+        switch(AssetType)
+        {
+        case "TNC":
+          AssetId = "0x08e8c4400f1af2c20c28e0018f29535eb85d15b6";
+          break;
+        case "GAS":
+          AssetId = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
+          break;
+        case "NEO":
+          AssetId = "0xc56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b";
+          break;
+        default:
+          AssetId = Error;
+        }
+      }
+      
+      return AssetId;
     },
     getChannelSerial(type,value,open) {      //获取所需的channel在List的位置,参数为key,value,是否为open状态
         let _this = this;
@@ -2394,6 +2430,7 @@ nav .el-slider__runway {
 }
 .el-dialog{
   min-width: 360px;
+  max-width: 440px;
 }
 .el-dialog--center .el-dialog__body {
   word-wrap: break-word;

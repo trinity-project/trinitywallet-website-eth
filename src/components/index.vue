@@ -15,7 +15,7 @@
                 <th>{{ $t('index.balanceOnChannel') }}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody v-if="$store.state.vuexStore.baseChain == 'ETH'">
               <tr>
                 <td>TNC</td>
                 <td>{{ balanceData.Chain.TNC }}</td>
@@ -25,6 +25,23 @@
                 <td>ETH</td>
                 <td>{{ balanceData.Chain.ETH }}</td>
                 <td>{{ balanceData.Channel.ETH }}</td>
+              </tr>
+            </tbody>
+            <tbody v-if="$store.state.vuexStore.baseChain == 'NEO'">
+              <tr>
+                <td>TNC</td>
+                <td>{{ balanceData.Chain.TNC }}</td>
+                <td>{{ balanceData.Channel.TNC }}</td>
+              </tr>
+              <tr>
+                <td>NEO</td>
+                <td>{{ balanceData.Chain.NEO }}</td>
+                <td>{{ balanceData.Channel.NEO }}</td>
+              </tr>
+              <tr>
+                <td>GAS</td>
+                <td>{{ balanceData.Chain.GAS }}</td>
+                <td>{{ balanceData.Channel.GAS }}</td>
               </tr>
             </tbody>
           </table>
@@ -51,40 +68,42 @@
           </el-form-item>
         </el-form>
     </div>
-    <el-dialog class="txOnChainBox" title="链上转账" :visible.sync="ShowTxOnChainBox" width="30%" center :modal-append-to-body='false'>
-      <el-form :model="txOnChainInfo" status-icon :rules="txOnChainRules" ref="txOnChainInfo" label-width="70px" class="demo-ruleForm">
-        <el-form-item label="地址" prop="address">
+    <el-dialog class="txOnChainBox" :title="$t('index.transferOnChian')" :visible.sync="ShowTxOnChainBox" width="30%" center :modal-append-to-body='false'>
+      <el-form :model="txOnChainInfo" status-icon :rules="txOnChainRules" ref="txOnChainInfo" label-width="90px" class="demo-ruleForm">
+        <el-form-item :label="$t('index.address')" prop="address">
           <el-input v-model="txOnChainInfo.address" readonly="readonly" auto-complete="off"></el-input>
         </el-form-item>
-        <el-form-item label="资产类型" prop="assetType">
-          <el-select v-model="txOnChainInfo.assetType" placeholder="请选择资产类型" style="width:100%;">
+        <el-form-item :label="$t('index.assetType')" prop="assetType">
+          <el-select v-model="txOnChainInfo.assetType" :placeholder="$t('index.inputAssetType')" style="width:100%;">
             <el-option label="TNC" value="TNC"></el-option>
-            <el-option label="ETH" value="ETH"></el-option>
+            <el-option v-if="$store.state.vuexStore.baseChain == 'ETH'" label="ETH" value="ETH"></el-option>
+            <el-option v-if="$store.state.vuexStore.baseChain == 'NEO'" label="NEO" value="NEO"></el-option>
+            <el-option v-if="$store.state.vuexStore.baseChain == 'NEO'" label="GAS" value="GAS"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="金额" prop="amount">
+        <el-form-item :label="$t('index.amount')" prop="amount">
           <el-input v-model.number.trim="txOnChainInfo.amount" auto-complete="off"></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="keyStorePass">
+        <el-form-item :label="$t('index.password')" prop="keyStorePass">
           <el-input v-model="txOnChainInfo.keyStorePass" type="password" auto-complete="off"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="txOnChain()">转 账</el-button>
-        <el-button @click="ShowTxOnChainBox = false">取 消</el-button>
+        <el-button type="primary" @click="txOnChain()">{{ $t('index.transfer') }}</el-button>
+        <el-button @click="ShowTxOnChainBox = false">{{ $t('index.cancel') }}</el-button>
       </span>
     </el-dialog>
-    <el-dialog class="txOnChannelBox" title="通道转账" :visible.sync="ShowTxOnChannelBox" width="30%" center :modal-append-to-body='false'>
-      <span>向{{ txOnChannelInfo.receiverUri.split("@")[0] }}</span>
-      <span style="color:#F56C6C;font-size: 16px;">转账 {{ txOnChannelInfo.value / 10e7 }} {{ txOnChannelInfo.assetType }}</span>
-      <el-form :model="txOnChannelInfo" status-icon :rules="txOnChannelRules" ref="txOnChannelInfo" label-width="70px" class="demo-ruleForm">
-        <el-form-item label="密码" prop="keyStorePass">
+    <el-dialog class="txOnChannelBox" :title="$t('index.transferOnChannel')" :visible.sync="ShowTxOnChannelBox" width="30%" center :modal-append-to-body='false'>
+      <span>{{ $t('index.transfer-1') }}{{ txOnChannelInfo.receiverUri.split("@")[0] }}</span>
+      <span style="color:#F56C6C;font-size: 16px;">{{ $t('index.transfer-2') }} {{ txOnChannelInfo.value / 10e7 }} {{ txOnChannelInfo.assetType }}</span>
+      <el-form :model="txOnChannelInfo" status-icon :rules="txOnChannelRules" ref="txOnChannelInfo" label-width="90px" class="demo-ruleForm">
+        <el-form-item :label="$t('index.password')" prop="keyStorePass">
           <el-input v-model="txOnChannelInfo.keyStorePass" type="password" auto-complete="off"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="confirmTx()">转 账</el-button>
-        <el-button @click="ShowTxOnChannelBox = false">取 消</el-button>
+        <el-button type="primary" @click="confirmTx()">{{ $t('index.transfer') }}</el-button>
+        <el-button @click="ShowTxOnChannelBox = false">{{ $t('index.cancel') }}</el-button>
       </span>
     </el-dialog>
   </div>
@@ -96,24 +115,32 @@ export default {
   data () {
     var checkTxOnChainAddress = (rule, value, callback) => {    //验证链上转账地址
       if (!value) {
-        return callback(new Error('地址不能为空'));
+        return callback(new Error(this.$t('index.callback-1')));
       } else {
-        if (value.length !== 42) {
-            callback(new Error('请输入正确的地址'));
-        } else {
-            callback();
+        if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
+          if (value.length !== 42) {
+              callback(new Error(this.$t('index.callback-2')));
+          } else {
+              callback();
+          }
+        } else if(this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
+          if (value.length !== 34) {
+              callback(new Error(this.$t('index.callback-2')));
+          } else {
+              callback();
+          }
         }
       }
     };
     var checkTxOnChainAmount = (rule, value, callback) => {    //验证链上转账金额
         if (!value) {
-          return callback(new Error('金额不能为空'));
+          return callback(new Error(this.$t('index.callback-3')));
         }
         if (isNaN(value)) {
-            callback(new Error('请输入数字值'));
+            callback(new Error(this.$t('index.callback-4')));
           } else {
             if (value < 0) {
-              callback(new Error('金额必须大于0'));
+              callback(new Error(this.$t('index.callback-5')));
             } else {
               callback();
             }
@@ -121,21 +148,30 @@ export default {
     };
     var checkTxOnChainAssets = (rule, value, callback) => {    //验证链上转账资产类型
       if (!value) {
-        return callback(new Error('资产类型不能为空'));
+        return callback(new Error(this.$t('index.callback-6')));
       } else {
         callback();
       }
     };
     var checkKeyStorePass = (rule, value, callback) => {        //验证钱包密码
       if (!value) {
-        return callback(new Error('钱包密码不能为空，否则将无法交易'));
+        return callback(new Error(this.$t('index.callback-7')));
       } else {
-        let PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        let PrivateKey;
+        if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+          PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        } else if (this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为ETH钱包时
+          PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
+              'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
+              'password': value,
+              'address': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
+          });
+        }
         setTimeout(() => {
             if(PrivateKey){
             callback();
             } else {
-            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+            return callback(new Error(this.$t('index.callback-8')));
             }
         }, 1000);
       }
@@ -210,27 +246,13 @@ export default {
       let _this = this;
       if (_this.paymentCode.length == "") {       //判断paymentCode是否为空
           _this.$notify.error({
-            title: '警告',
+            title: _this.$t('common.warning'),
             dangerouslyUseHTMLString: true,
-            message: '付款码/地址不能为空',
+            message: _this.$t('index.callback-9'),
             duration: 3000
           });
           return;
-      } else if (_this.paymentCode.length === 42) {       //判断paymentCode是否为地址
-        if (_this.paymentCode === _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '收付款地址不能相同',
-            duration: 3000
-          });
-          return;
-        } else {
-          _this.txOnChainInfo.address = _this.paymentCode;
-          _this.ShowTxOnChainBox = true;
-          return;
-        }
-      } else {
+      } else{
         if(_this.paymentCode.substr(0,2) == "TN"){        //判断开头是否为"TN",如是进入交易码解析
           console.log("进入通道交易");
             let LinkData;
@@ -238,9 +260,9 @@ export default {
               LinkData = base58decode(_this.paymentCode.substring(2)).toString();
             } catch (e) {
               _this.$notify.error({
-                title: '警告',
+                title: _this.$t('common.warning'),
                 dangerouslyUseHTMLString: true,
-                message: '付款码解析错误1',
+                message: _this.$t('index.callback-11') + '1',
                 duration: 3000
               });
               return false;
@@ -261,41 +283,41 @@ export default {
             if(_this.txOnChannelInfo.netMagic == _this.$store.state.vuexStore.NetMagic){          //判断NetMagic是否符合
               if (!web3.utils.isAddress(_this.txOnChannelInfo.receiverUri.split("@")[0])) {       //当地址解析错误时
                 _this.$notify.error({
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '付款码解析错误2',
+                  message: _this.$t('index.callback-11') + '2',
                   duration: 3000
                 });
                 return;
               } else if (_this.txOnChannelInfo.hr == "") {          //当hashR解析错误时
                 _this.$notify.error({
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '付款码解析错误3',
+                  message: _this.$t('index.callback-11') + '3',
                   duration: 3000
                 });
                 return;
               } else if (_this.txOnChannelInfo.assetType == "") {         //当资产类型解析错误时
                 _this.$notify.error({
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '付款码解析错误4',
+                  message: _this.$t('index.callback-11') + '4',
                   duration: 3000
                 });
                 return;
               } else if (_this.txOnChannelInfo.value == 0) {        //当金额解析错误时
                 _this.$notify.error({ 
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '付款码解析错误5',
+                  message: _this.$t('index.callback-11') + '5',
                   duration: 3000
                 });
                 return;
               } else if (_this.$store.state.vuexStore.walletInfo.address === _this.txOnChannelInfo.receiverUri.split("@")[0]) {   //当转账和收款地址相同时
                 _this.$notify.error({
-                  title: '警告',
+                  title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: '收付款地址不能相同',
+                  message: _this.$t('index.callback-10'),
                   duration: 3000
                 });
                 return;
@@ -303,31 +325,73 @@ export default {
               _this.ShowTxOnChannelBox = true;      ///关闭通道交易窗口
             } else {                //如NetMagic错误,给出提示并返回
               _this.$notify.error({
-                title: '警告',
+                title: _this.$t('common.warning'),
                 dangerouslyUseHTMLString: true,
-                message: '非本网络付款码,请确认',
+                message: _this.$t('index.callback-12'),
                 duration: 3000
               });
               return;
             }
           } else {                  //如果没有&隔离符,给出提醒 终止
             _this.$notify.error({
-              title: '警告',
+              title: _this.$t('common.warning'),
               dangerouslyUseHTMLString: true,
-              message: '付款码解析错误，请确认',
+              message: _this.$t('index.callback-11'),
               duration: 3000
             });
             return false;
           }
-        } else {      //开头不是"TN",给出提示并返回
-        this.$notify.error({
-          title: '警告',
-          dangerouslyUseHTMLString: true,
-          message: '付款码错误，请确认',
-          duration: 3000
-        });
-        return;
-      }
+        } else {      //开头不是"TN",判断是否为地址给出提示并返回
+          if(_this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
+            if (_this.paymentCode.length === 42) {           //判断paymentCode是否为ETH地址
+              if (_this.paymentCode === _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
+                _this.$notify.error({
+                  title: _this.$t('common.warning'),
+                  dangerouslyUseHTMLString: true,
+                  message: _this.$t('index.callback-10'),
+                  duration: 3000
+                });
+                return;
+              } else {
+                _this.txOnChainInfo.address = _this.paymentCode;
+                _this.ShowTxOnChainBox = true;
+                return;
+              }
+            } else {
+              _this.$notify.error({
+                title: _this.$t('common.warning'),
+                dangerouslyUseHTMLString: true,
+                message: _this.$t('index.callback-11'),
+                duration: 3000
+              });
+              return;
+            }
+          } else if(_this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
+            if (_this.paymentCode.length === 34) {            //判断paymentCode是否为NEO地址
+              if (_this.paymentCode === _this.$store.state.vuexStore.NEOwalletInfo.address){    //判断是否为本端地址
+                _this.$notify.error({
+                  title: _this.$t('common.warning'),
+                  dangerouslyUseHTMLString: true,
+                  message: _this.$t('index.callback-10'),
+                  duration: 3000
+                });
+                return;
+              } else {
+                _this.txOnChainInfo.address = _this.paymentCode;
+                _this.ShowTxOnChainBox = true;
+                return;
+              }
+            } else {
+              _this.$notify.error({
+                title: _this.$t('common.warning'),
+                dangerouslyUseHTMLString: true,
+                message: _this.$t('index.callback-11'),
+                duration: 3000
+              });
+              return;
+            }
+          }
+        }
       }
     },
     contactChange() {       //当选中联系人时将值赋给payment code
@@ -337,10 +401,14 @@ export default {
       let _this = this;
       _this.$refs['txOnChainInfo'].validate((valid) => {
         if (valid) {
-          if(_this.txOnChainInfo.assetType == "ETH"){
-            _this.txEthOnChain();
-          } else {
-            _this.txTncOnChain();
+          if(_this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
+            if(_this.txOnChainInfo.assetType == "ETH"){
+              _this.txEthOnChain();
+            } else {
+              _this.txTncOnChain();
+            }
+          } else if(_this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为ETH钱包时
+            _this.NEOtxOnChain();
           }
         } else {
           console.log('error submit!!');
@@ -378,9 +446,9 @@ export default {
                 if (!err) {       //当不错误的时候
                   console.log(hash);
                   _this.$notify({
-                      title: '成功',
+                      title: _this.$t('common.success'),
                       dangerouslyUseHTMLString: true,
-                      message: '上链成功，请交易确认',
+                      message: _this.$t('common.callback-14'),
                       duration: 3000,
                       type: 'success'
                   });
@@ -441,9 +509,9 @@ export default {
             if (!err) {
               console.log(hash);
               _this.$notify({
-                  title: '成功',
+                  title: _this.$t('common.success'),
                   dangerouslyUseHTMLString: true,
-                  message: '上链成功，请交易确认',
+                  message: _this.$t('common.callback-14'),
                   duration: 3000,
                   type: 'success'
               });
@@ -472,6 +540,95 @@ export default {
             }
           })
         })   
+      })
+    },
+    NEOtxOnChain() {          //NEO链上转账方法
+      let _this = this;
+      let AssetId = _this.$parent.AssetTypeToAssetId(_this.txOnChainInfo.assetType);
+      axios({                     //发送构造交易消息
+        method: 'post',
+        url: _this.$store.state.vuexStore.NodeRpcUri,
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+        },
+        data: JSON.stringify({
+          "jsonrpc": "2.0",
+          "method": "constructTx",
+          "params":[_this.$store.state.vuexStore.NEOwalletInfo.address, _this.txOnChainInfo.address, _this.txOnChainInfo.amount, AssetId],
+          "id": 1
+        })
+      }).then(function(res){
+        // console.log(res.data);
+        if(res.data.error){
+          _this.$notify({
+              title: _this.$t('common.warning'),
+              dangerouslyUseHTMLString: true,
+              message: _this.$t('common.callback-25'),
+              duration: 3000,
+              type: 'warning'
+          });
+          _this.ShowTxOnChainBox = false;
+          _this.clearTxData();                                      //清空交易数据
+        } else {
+          let txData = res.data.result.txData;
+          let decryptPK;                                    //解锁钱包
+          try {
+              decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
+                  'WalletScript': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
+                  'password': _this.txOnChainInfo.keyStorePass,
+                  'address': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
+              });
+              console.log(decryptPK);
+          } catch (e) {
+              _this.$notify.error({
+                  title: _this.$t('loginByKeyStore.callback-9'),
+                  dangerouslyUseHTMLString: true,
+                  message: _this.$t('loginByKeyStore.callback-8'),
+                  duration: 3000
+              });
+              return false;
+          }
+          console.log(decryptPK);
+          let txDataSign = signatureData(txData, decryptPK);
+          console.log(txDataSign);
+          let witness1 = res.data.result.witness.split("{signature}")[1];
+          let witness = txData + res.data.result.witness.split("{signature}")[0] + txDataSign + witness1.split("{pubkey}")[0] + _this.$store.state.vuexStore.NEOwalletInfo.publicKey + witness1.split("{pubkey}")[1];           //拼凑交易体
+          axios({     //上链
+            method: 'post',
+            url: _this.$store.state.vuexStore.NodeSendrawUri,
+            headers: {
+              'Content-Type': 'application/json;charset=UTF-8'
+            },
+            data: JSON.stringify({
+              "jsonrpc": "2.0",
+              "method": "sendrawtransaction",
+              "params":[witness],
+              "id": 1
+            })
+          }).then(function(res){
+              if(res.data.result == true){
+                _this.$notify({
+                    title: _this.$t('common.success'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('common.callback-14'),
+                    duration: 3000,
+                    type: 'success'
+                });
+                _this.ShowTxOnChainBox = false;
+                _this.clearTxData();                                      //清空交易数据
+              } else {
+                _this.$notify({
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('common.callback-25'),
+                    duration: 3000,
+                    type: 'warning'
+                });
+                _this.ShowTxOnChainBox = false;
+                _this.clearTxData();                                      //清空交易数据
+              }
+          })
+        }
       })
     },
     confirmTx() {
@@ -526,9 +683,9 @@ export default {
             _this.clearTxData();
           } else {
             _this.$notify.error({
-              title: '提醒',
+              title: _this.$t('common.info'),
               dangerouslyUseHTMLString: true,
-              message: '通道余额不足',
+              message:  _this.$t('index.callback-14'),
               duration: 3000
             });
             _this.ShowTxOnChannelBox = false;
@@ -559,9 +716,9 @@ export default {
 
           if(i < 0){        //当l小于0时,未遍历到通道,给出提醒
             _this.$notify.error({
-              title: '提醒',
+              title: _this.$t('common.warning'),
               dangerouslyUseHTMLString: true,
-              message: '没有开通的通道,请先建立通道',
+              message: _this.$t('common.callback-14'),
               duration: 3000
             });
             _this.ShowTxOnChannelBox = false;           //关闭当前窗口
@@ -588,21 +745,21 @@ export default {
           }
       } else if (l == -2){
           _this.$notify.error({
-            title: '警告',
+            title: _this.$t('common.warning'),
             dangerouslyUseHTMLString: true,
-            message: '通道未打开',
+            message: _this.$t('common.callback-15'),
             duration: 3000
           });
           _this.ShowTxOnChannelBox = false;
           _this.clearTxData();
           return;
       } else {
-          _this.$notify.error({
-            title: '警告',
-            dangerouslyUseHTMLString: true,
-            message: '未知错误,l值为' + l,
-            duration: 3000
-          });
+          // _this.$notify.error({
+          //   title: _this.$t('common.warning'),
+          //   dangerouslyUseHTMLString: true,
+          //   message: '未知错误,l值为' + l,
+          //   duration: 3000
+          // });
           return;
       }
     },

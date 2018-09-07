@@ -2,6 +2,7 @@ export default {
   state: {
     version: '0.0.1',
     isLogin: false,                //登录标志
+    baseChain: 'NEO',              //底层主链
     isTestNet: true,               //是否为测试网
     isNightMode: false,           //夜间模式
     activeNavIndex: '1-1',        //当前active Nav
@@ -9,9 +10,15 @@ export default {
     isMessageBoxShow: false,      //MessageBox显示
     NetMagic: "527465737419990331",        //网络magic
     gasPrice: 5000000000,       //Gas Price倍数
-    NodeUriWebSocket: "",
-    rpcIp: "47.104.81.20:9000", //全节点调用ip
+    NodeUriWebSocket: "47.104.81.20:9000",        //全节点websocket IP
+    NodeRpcUri: 'http://47.254.64.251:21332', //全节点通用RPC接口   NEO
+    NodeSendrawUri: 'http://47.254.64.251:20332', //全节点上链RPC接口   NEO
     walletInfo: {               //钱包信息
+      keyStore: "",
+      publicKey: "",
+      address: ""
+    },
+    NEOwalletInfo: {            //NEO钱包消息
       keyStore: "",
       publicKey: "",
       address: ""
@@ -19,11 +26,15 @@ export default {
     balanceData: {              //余额信息
       Chain: {
         "TNC": 0,
-        "ETH": 0
+        "ETH": 0,
+        "NEO": 0,
+        "GAS": 0
       },
       Channel: {
         "TNC": 0,
-        "ETH": 0
+        "ETH": 0,
+        "NEO": 0,
+        "GAS": 0
       }
     },
     channelList: [],            //通道列表

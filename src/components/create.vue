@@ -66,6 +66,7 @@ export default {
     toLoginForm() {       //切换到登录窗口
         this.$refs['createForm'].validate((valid) => {
             if (valid) {
+              if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
                 let privateKey = web3.eth.accounts.create().privateKey.slice(2);
                 console.log(privateKey);
                 let keyStore = web3.eth.accounts.encrypt('0x' + privateKey, this.createForm.pass);
@@ -89,6 +90,31 @@ export default {
                     });
                 }
                 this.$router.push('/backup');
+              } else if(this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
+                let privateKey = ab2hexstring(generatePrivateKey());
+                console.log(privateKey);
+                let keyStore = scrypt_module_factory(generateWalletFileBlob, {}, {'privateKey':privateKey,'password':this.createForm.pass});
+                console.log(keyStore);
+                let address = keyStore.accounts[0].address;
+                console.log(address);
+                if(address.length == 34){
+                    this.$store.state.vuexStore.NEOwalletInfo.keyStore = keyStore;
+                    // console.log(this.$store.state.vuexStore.walletInfo.keyStore);
+                    this.$store.state.vuexStore.NEOwalletInfo.publicKey = ab2hexstring(getPublicKey(privateKey, 0));   //存入publicKey
+                    // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
+                    this.$store.state.vuexStore.NEOwalletInfo.address = address;       //存入地址
+                    // console.log(this.$store.state.vuexStore.walletInfo.address);
+                    this.$store.state.vuexStore.isLogin = true;
+                    this.$notify({
+                        title: this.$t('create.callback-4'),
+                        dangerouslyUseHTMLString: true,
+                        message: this.$t('create.callback-5'),
+                        duration: 3000,
+                        type: 'success'
+                    });
+                }
+                this.$router.push('/backup');
+              }
             } else {
                 console.log('error submit!!');
                 return false;
