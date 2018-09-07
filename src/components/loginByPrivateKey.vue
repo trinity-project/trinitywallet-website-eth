@@ -120,9 +120,10 @@ export default {
             } else if (this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
               let keyStore = scrypt_module_factory(generateWalletFileBlob, {}, {'privateKey':this.loginByPrivateKeyForm.privateKey,'password':this.loginByPrivateKeyForm.pass});
               console.log(keyStore);
-              if(keyStore.accounts[0].address.length == 34){          //判断钱包地址长度
+              if(keyStore.accounts[0].address.length == 34){                                  //判断钱包地址长度
                 this.$store.state.vuexStore.NEOwalletInfo.keyStore = keyStore;                //保存keystore
-                this.$store.state.vuexStore.NEOwalletInfo.publicKey = ab2hexstring(getPublicKey(this.loginByPrivateKeyForm.privateKey, 0));   //存入publicKey
+                this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(this.loginByPrivateKeyForm.privateKey, 0)));                                //存入publicKey
+                console.log(this.$store.state.vuexStore.NEOwalletInfo.keyStore);
                 this.$store.state.vuexStore.NEOwalletInfo.address = keyStore.accounts[0].address;       //存入地址
                 this.$store.state.vuexStore.isLogin = true;
                 this.$notify({

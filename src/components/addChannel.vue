@@ -12,14 +12,21 @@
           </el-form-item>
           <el-form-item :label="$t('addChannel.assetType')" prop="assetType">
             <el-select v-model="addChannelForm.assetType" :placeholder="$t('addChannel.chooseAssetType')" style="width:100%;">
-              <el-option label="TNC" value="TNC"></el-option>
-              <el-option label="ETH" value="ETH" disabled></el-option>
+              <template v-if="$store.state.vuexStore.baseChain == 'ETH'">
+                <el-option label="TNC" value="TNC"></el-option>
+                <el-option label="ETH" value="ETH" disabled></el-option>
+              </template>
+              <template v-if="$store.state.vuexStore.baseChain == 'NEO'">
+                <el-option label="TNC" value="TNC"></el-option>
+                <el-option label="NEO" value="NEO"></el-option>
+                <el-option label="GAS" value="GAS"></el-option>
+              </template>
             </el-select>
           </el-form-item>
           <el-form-item :label="$t('addChannel.selfDeposit')" prop="selfDeposit">
             <el-input v-model.number="addChannelForm.selfDeposit"  auto-complete="off"></el-input>
           </el-form-item>
-          <el-form-item :label="$t('addChannel.otherDeposit')" prop="otherDeposit">
+          <el-form-item v-if="$store.state.vuexStore.baseChain == 'ETH'" :label="$t('addChannel.otherDeposit')" prop="otherDeposit">
             <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" :step="0.00000001" show-input ></el-slider>
           </el-form-item>
           <el-form-item :label="$t('addChannel.alice')" prop="alice">
@@ -46,19 +53,26 @@ export default {
       if (!value) {
         return callback(new Error(_this.$t('addChannel.callback-1')));
       } else {
-          if (value.indexOf('@') < -1) {
-            callback(new Error(_this.$t('addChannel.callback-2')));
-          } else if(value.split('@')[0].length !== 42){
+        if (value.indexOf('@') < -1) {
             callback(new Error(_this.$t('addChannel.callback-2')));
           } else {
-              _this.$store.state.vuexStore.channelList.forEach(function(val,index){    //判断是否已有通道
-                if(val.OtherUri === _this.addChannelForm.uri){
-                  callback(new Error(_this.$t('addChannel.callback-3')));
-                }
-              });
+            if(_this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+              if(value.split('@')[0].length !== 42){
+                callback(new Error(_this.$t('addChannel.callback-2')));
+              }
+            } else if(_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时
+              if(value.split('@')[0].length !== 66){
+                callback(new Error(_this.$t('addChannel.callback-2')));
+              }
+            }
+            _this.$store.state.vuexStore.channelList.forEach(function(val,index){    //判断是否已有通道
+              if(val.OtherUri === _this.addChannelForm.uri){
+                callback(new Error(_this.$t('addChannel.callback-3')));
+              }
+            });
             callback();
-          }
         }
+      }
     };
     var checkAssetType = (rule, value, callback) => {     //add Channel assetType输入规则
       if (value === '') {
@@ -114,7 +128,16 @@ export default {
       if (!value) {
         return callback(new Error(this.$t('common.callback-1')));
       } else {
-        let PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        let PrivateKey;
+        if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+          PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        } else if (this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为ETH钱包时
+          PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
+              'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
+              'password': value,
+              'address': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
+          });
+        }
         setTimeout(() => {
             if(PrivateKey){
             callback();
@@ -163,89 +186,89 @@ export default {
       let _this = this;
       _this.$refs['addChannelForm'].validate((valid) => {
         if (valid) {
-                let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8866);       //截取对端Uri的Ip
-                const wsuri = "ws://" + Ip + "/";               //建立websocket连接
-                var l = _this.$store.state.vuexStore.channelList.length;      //获取channelList长度
-                console.log(l);
-                let SelfUri = _this.$store.state.vuexStore.walletInfo.address + "@" + Ip;     //得到本端URI
-                let OtherAddress = _this.addChannelForm.uri.split('@')[0];      //截取对端URI得到对端地址
-                let date = new Date().getTime();        //获取当前时间戳
-                let ChannelNamePart1 = md5encode(_this.addChannelForm.uri, date);
-                let ChannelNamePart2 = md5encode(SelfUri, date);
-                _this.addChannelForm.channelName = "0x" + ChannelNamePart1 + ChannelNamePart2;       //生成ChannelName
-                console.log(_this.addChannelForm.channelName);
+          let Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,8866);       //截取对端Uri的Ip
+          const wsuri = "ws://" + Ip + "/";               //建立websocket连接
+          var l = _this.$store.state.vuexStore.channelList.length;      //获取channelList长度
+          console.log(l);
+          let SelfUri = _this.$store.state.vuexStore.walletInfo.address + "@" + Ip;     //得到本端URI
+          let OtherAddress = _this.addChannelForm.uri.split('@')[0];      //截取对端URI得到对端地址
+          let date = new Date().getTime();        //获取当前时间戳
+          let ChannelNamePart1 = md5encode(_this.addChannelForm.uri, date);
+          let ChannelNamePart2 = md5encode(SelfUri, date);
+          _this.addChannelForm.channelName = "0x" + ChannelNamePart1 + ChannelNamePart2;       //生成ChannelName
+          console.log(_this.addChannelForm.channelName);
 
-                var channelInfo = {
-                  "websock":new WebSocket(wsuri)
-                }
-                console.log(channelInfo);
-                _this.$store.state.vuexStore.channelList.push(channelInfo);
-                _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.$parent.websocketOnmessage;
-                _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.$parent.websocketClose;
+          var channelInfo = {
+            "websock":new WebSocket(wsuri)
+          }
+          console.log(channelInfo);
+          _this.$store.state.vuexStore.channelList.push(channelInfo);
+          _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.$parent.websocketOnmessage;
+          _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.$parent.websocketClose;
 
-                let txData = web3.utils.soliditySha3(         //生成代签名交易数据
-                  {t: 'bytes32', v: _this.addChannelForm.channelName},    //通道名称
-                  {t: 'uint256', v: 1},                                   //TXnonce
-                  {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
-                  {t: 'uint256', v: _this.addChannelForm.selfDeposit.mul(10e7)},       //本端押金
-                  {t: 'address', v: OtherAddress},                                  //对端地址
-                  {t: 'uint256', v: _this.addChannelForm.otherDeposit.mul(10e7)}       //对端押金
-                );
-                console.log(txData);
-                _this.addChannelForm.txData = txData;         //将txData保存,用于验证返回的签名
+          let txData = web3.utils.soliditySha3(         //生成代签名交易数据
+            {t: 'bytes32', v: _this.addChannelForm.channelName},    //通道名称
+            {t: 'uint256', v: 1},                                   //TXnonce
+            {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},       //本端地址
+            {t: 'uint256', v: _this.addChannelForm.selfDeposit.mul(10e7)},       //本端押金
+            {t: 'address', v: OtherAddress},                                  //对端地址
+            {t: 'uint256', v: _this.addChannelForm.otherDeposit.mul(10e7)}       //对端押金
+          );
+          console.log(txData);
+          _this.addChannelForm.txData = txData;         //将txData保存,用于验证返回的签名
 
-                let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);        //解锁钱包用于签名          
-                let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
-                console.log(selfSignedData); 
-                _this.addChannelForm.selfSignedData = selfSignedData;         //保存本端签名信息,用于后续上链
+          let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.addChannelForm.keyStorePass);        //解锁钱包用于签名          
+          let selfSignedData = ecSign(txData,decryptPK.privateKey);         //签名
+          console.log(selfSignedData); 
+          _this.addChannelForm.selfSignedData = selfSignedData;         //保存本端签名信息,用于后续上链
 
-                var Message = {         //创建通道消息体
-                  "MessageType": "Founder",
-                  "Sender": SelfUri,
-                  "Receiver": _this.addChannelForm.uri,
-                  "TxNonce": 1,
-                  "ChannelName": _this.addChannelForm.channelName,
-                  "NetMagic": _this.$store.state.vuexStore.NetMagic,
-                  "AssetType" : _this.addChannelForm.assetType,
-                  "MessageBody": {
-                      "FounderDeposit": _this.addChannelForm.selfDeposit.mul(10e7),
-                      "PartnerDeposit": _this.addChannelForm.otherDeposit.mul(10e7),
-                      "Commitment": _this.addChannelForm.selfSignedData
-                  }
-                }
-                setTimeout(function (){
-                    _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
-                }, 2000);
-                
-                _this.$store.state.vuexStore.addChannelInfo = _this.addChannelForm;     //保存信息,用于后续信息来回传输
-                console.log(_this.$store.state.vuexStore.addChannelInfo);
+          var Message = {         //创建通道消息体
+            "MessageType": "Founder",
+            "Sender": SelfUri,
+            "Receiver": _this.addChannelForm.uri,
+            "TxNonce": 1,
+            "ChannelName": _this.addChannelForm.channelName,
+            "NetMagic": _this.$store.state.vuexStore.NetMagic,
+            "AssetType" : _this.addChannelForm.assetType,
+            "MessageBody": {
+                "FounderDeposit": _this.addChannelForm.selfDeposit.mul(10e7),
+                "PartnerDeposit": _this.addChannelForm.otherDeposit.mul(10e7),
+                "Commitment": _this.addChannelForm.selfSignedData
+            }
+          }
+          setTimeout(function (){
+              _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+          }, 2000);
+          
+          _this.$store.state.vuexStore.addChannelInfo = _this.addChannelForm;     //保存信息,用于后续信息来回传输
+          console.log(_this.$store.state.vuexStore.addChannelInfo);
 
-                _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
-                _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
-                _this.$store.state.vuexStore.channelList[l].State = 2;            //通道初始状态
-                _this.$store.state.vuexStore.channelList[l].isConnect = true;         //是否连接上websocket
-                _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit.mul(10e7);      //本端余额
-                _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit.mul(10e7);     //对端余额
-                _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
-                _this.$store.state.vuexStore.channelList[l].isTestNet = _this.$store.state.vuexStore.isTestNet;             //是否为测试网
-                _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
-                _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
-                _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
-                _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
-                _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
-                _this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
-                _this.$store.state.vuexStore.channelList[l].unconfirmed = {};                       //未确认的交易信息
-                _this.$store.state.vuexStore.channelList[l].unconfirmed.selfSignedData = "";
-                _this.$store.state.vuexStore.channelList[l].unconfirmed.otherSignedData = "";
-                _this.$store.state.vuexStore.channelList[l].confirmed = {};                         //已确认的交易信息
-                _this.$store.state.vuexStore.channelList[l].confirmed.isFounder = true;
-                _this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData = "";
-                _this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData = "";
+          _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
+          _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
+          _this.$store.state.vuexStore.channelList[l].State = 2;            //通道初始状态
+          _this.$store.state.vuexStore.channelList[l].isConnect = true;         //是否连接上websocket
+          _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit.mul(10e7);      //本端余额
+          _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit.mul(10e7);     //对端余额
+          _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
+          _this.$store.state.vuexStore.channelList[l].isTestNet = _this.$store.state.vuexStore.isTestNet;             //是否为测试网
+          _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
+          _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
+          _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
+          _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
+          _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
+          _this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
+          _this.$store.state.vuexStore.channelList[l].unconfirmed = {};                       //未确认的交易信息
+          _this.$store.state.vuexStore.channelList[l].unconfirmed.selfSignedData = "";
+          _this.$store.state.vuexStore.channelList[l].unconfirmed.otherSignedData = "";
+          _this.$store.state.vuexStore.channelList[l].confirmed = {};                         //已确认的交易信息
+          _this.$store.state.vuexStore.channelList[l].confirmed.isFounder = true;
+          _this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData = "";
+          _this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData = "";
 
-                _this.$parent.StoreChannel();         //储存通道信息
-                _this.$router.push('/channelList');       //跳转到channelList页面
+          _this.$parent.StoreChannel();         //储存通道信息
+          _this.$router.push('/channelList');       //跳转到channelList页面
 
-                return;
+          return;
         } else {
           console.log('error submit!!');
           return false;

@@ -5,14 +5,26 @@
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <el-tabs type="border-card" style="width: 100%;max-width: 440px;" :stretch='true'>
             <el-tab-pane :label="$t('receive.chain')">
-                <div class="QRCodeBox QRCodeBox-white">
-                    <h3>{{ $t('receive.receiveAddress') }}</h3>
-                    <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
-                    <p v-text="this.$store.state.vuexStore.walletInfo.address"></p>
-                </div>
-                <el-input id="receiveAddress" placeholder="Address" v-model="this.$store.state.vuexStore.walletInfo.address" readonly=readonly>
-                    <el-button class="btncopy" data-clipboard-target="#receiveAddress" @click="copyfun()" slot="append" icon="el-icon-share">{{ $t('receive.copy') }}</el-button>
-                </el-input>
+                <template v-if="$store.state.vuexStore.baseChain == 'ETH'">
+                    <div class="QRCodeBox QRCodeBox-white">
+                        <h3>{{ $t('receive.receiveAddress') }}</h3>
+                        <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
+                        <p v-text="this.$store.state.vuexStore.walletInfo.address"></p>
+                    </div>
+                    <el-input id="receiveAddress" placeholder="Address" v-model="this.$store.state.vuexStore.walletInfo.address" readonly=readonly>
+                        <el-button class="btncopy" data-clipboard-target="#receiveAddress" @click="copyfun()" slot="append" icon="el-icon-share">{{ $t('receive.copy') }}</el-button>
+                    </el-input>
+                </template>
+                <template v-if="$store.state.vuexStore.baseChain == 'NEO'">
+                    <div class="QRCodeBox QRCodeBox-white">
+                        <h3>{{ $t('receive.receiveAddress') }}</h3>
+                        <qriously :value="this.$store.state.vuexStore.NEOwalletInfo.address" level="H" :size="210" />
+                        <p v-text="this.$store.state.vuexStore.NEOwalletInfo.address"></p>
+                    </div>
+                    <el-input id="receiveAddress1" placeholder="Address" v-model="this.$store.state.vuexStore.NEOwalletInfo.address" readonly=readonly>
+                        <el-button class="btncopy" data-clipboard-target="#receiveAddress1" @click="copyfun()" slot="append" icon="el-icon-share">{{ $t('receive.copy') }}</el-button>
+                    </el-input>
+                </template>
             </el-tab-pane>
             <el-tab-pane :label="$t('receive.channel')">
                 <el-form v-if="!isPaymentCodeBoxShow" :model="paymentCodeForm" status-icon :rules="paymentCodeRules" ref="paymentCodeForm" label-width="82px" class="demo-ruleForm" style="text-align:center;">

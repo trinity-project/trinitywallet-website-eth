@@ -193,21 +193,54 @@ export default {
     connectWebSocketForNodeUri() {          //连接至全节点
         let _this = this;
         _this.$notify.closeAll();
-        let wsuri = "ws://" + _this.$store.state.vuexStore.NodeUriWebSocket + "/";               //建立websocket连接
-        _this.$store.state.vuexStore.NodeUriWebSocket = new WebSocket(wsuri);
-        _this.$store.state.vuexStore.NodeUriWebSocket.onmessage = _this.nodeUriWebsocketOnMessage;
-        _this.$store.state.vuexStore.NodeUriWebSocket.onclose = _this.nodeUriWebsocketClose;
-        _this.connectWebSocketForNodeUriNotify = _this.$notify.info({
-          title: '消息',
-          duration: 2000,
-          message: _this.$t('common.callback-3')
-        });
-        if(_this.$store.state.vuexStore.isLogin == true){
-          let Message = {
-              "messageType":"init", 
-              "walletAddress":_this.$store.state.vuexStore.walletInfo.address
+        if(_this.$store.state.vuexStore.baseChain == "ETH"){                   //当前为ETH钱包时
+          let wsuri = "ws://" + _this.$store.state.vuexStore.NodeUriWebSocket + "/";               //建立websocket连接
+          _this.$store.state.vuexStore.NodeUriWebSocket = new WebSocket(wsuri);
+          _this.$store.state.vuexStore.NodeUriWebSocket.onmessage = _this.nodeUriWebsocketOnMessage;
+          _this.$store.state.vuexStore.NodeUriWebSocket.onclose = _this.nodeUriWebsocketClose;
+          _this.connectWebSocketForNodeUriNotify = _this.$notify.info({
+            title: _this.$t('common.info'),
+            duration: 2000,
+            message: _this.$t('common.callback-3')
+          });
+          if(_this.$store.state.vuexStore.isLogin == true){
+            let Message = {
+                "messageType":"init", 
+                "walletAddress":_this.$store.state.vuexStore.walletInfo.address
+            }
+            _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
           }
-          _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+        } else if(_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时,测试RPC服务
+          _this.connectWebSocketForNodeUriNotify = _this.$notify.info({
+            title: _this.$t('common.info'),
+            duration: 2000,
+            message: _this.$t('common.callback-3')
+          });
+          axios({
+            method: 'post',
+            url: _this.$store.state.vuexStore.NodeRpcUri,
+            headers: {
+              'Content-Type': 'application/json;charset=UTF-8'
+            },
+            data: JSON.stringify({
+              "jsonrpc": "2.0",
+              "method": "getBalance",
+              "params": ["AW25dxZZRJYjgXApEacYAEQDNPGDuFGCWF"],
+              "id": 1
+            })
+          }).then(function(res){
+            _this.connectWebSocketForNodeUriNotify.close();                //关闭连接至全节点notify
+            if(_this.loseWebSocketForNodeUriNotify){
+              _this.loseWebSocketForNodeUriNotify.close();                //关闭连接至全节点notify
+            }
+            _this.$notify({
+                title: _this.$t('common.success'),
+                dangerouslyUseHTMLString: true,
+                message: _this.$t('common.callback-6'),
+                duration: 3000,
+                type: 'success'
+            });
+          })
         }
     },
     backToStart() {
@@ -383,8 +416,10 @@ export default {
       return assetContractAddress;
     },
     AssetTypeToAssetId(AssetType) {                  //NEO.资产类型转AssetId
+      let _this = this;
       let AssetId = "";
-      if(this.isTestNet){
+      console.log(_this.$store.state.vuexStore.isTestNet);
+      if(_this.$store.state.vuexStore.isTestNet){
         switch(AssetType)
         {
         case "TNC":
@@ -1012,6 +1047,7 @@ export default {
                 // console.log(confirmationNumber);
               })
               .on('error', function(error){
+                console.log(error);
                 _this.$notify.error({
                     title: _this.$t('common.warning'),
                     dangerouslyUseHTMLString: true,

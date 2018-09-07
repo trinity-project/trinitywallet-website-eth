@@ -578,7 +578,6 @@ export default {
                   'password': _this.txOnChainInfo.keyStorePass,
                   'address': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
               });
-              console.log(decryptPK);
           } catch (e) {
               _this.$notify.error({
                   title: _this.$t('loginByKeyStore.callback-9'),
@@ -591,17 +590,19 @@ export default {
           console.log(decryptPK);
           let txDataSign = signatureData(txData, decryptPK);
           console.log(txDataSign);
-          let witness1 = res.data.result.witness.split("{signature}")[1];
-          let witness = txData + res.data.result.witness.split("{signature}")[0] + txDataSign + witness1.split("{pubkey}")[0] + _this.$store.state.vuexStore.NEOwalletInfo.publicKey + witness1.split("{pubkey}")[1];           //拼凑交易体
+          console.log(_this.$store.state.vuexStore.NEOwalletInfo.publicKey);
+          let witness1 = res.data.result.witness.replace('{signature}', txDataSign);
+          let witness2 = witness1.replace('{pubkey}', _this.$store.state.vuexStore.NEOwalletInfo.publicKey);
+          let witness = txData + witness2;
           axios({     //上链
             method: 'post',
-            url: _this.$store.state.vuexStore.NodeSendrawUri,
+            url: _this.$store.state.vuexStore.NodeRpcUri,
             headers: {
               'Content-Type': 'application/json;charset=UTF-8'
             },
             data: JSON.stringify({
               "jsonrpc": "2.0",
-              "method": "sendrawtransaction",
+              "method": "sendRawTx",
               "params":[witness],
               "id": 1
             })

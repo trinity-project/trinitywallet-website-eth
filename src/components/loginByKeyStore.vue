@@ -178,7 +178,8 @@ export default {
             }
 
             this.$store.state.vuexStore.NEOwalletInfo.keyStore = this.keyStoreContent;                        //存入KeyStore
-            this.$store.state.vuexStore.NEOwalletInfo.publicKey = ab2hexstring(getPublicKey(decryptPK, 0));   //存入publicKey
+            this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(decryptPK, 0)));   //存入publicKey
+            console.log(this.$store.state.vuexStore.NEOwalletInfo.publicKey);
             this.$store.state.vuexStore.NEOwalletInfo.address = this.keyStoreContent.accounts[0].address;       //存入地址
             this.$store.state.vuexStore.isLogin = true;                     //登录标志
             this.$notify({

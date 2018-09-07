@@ -22,18 +22,32 @@ export default {
   },
   methods: {
       backup() {            //备份事件,生成json文件
-          console.log(this.$store.state.vuexStore.walletInfo.keyStore);
-          if(this.$store.state.vuexStore.walletInfo.keyStore){
-            var content = JSON.stringify(this.$store.state.vuexStore.walletInfo.keyStore);
-            var blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-            saveAs(blob, this.$store.state.vuexStore.walletInfo.keyStore.id + ".json");//saveAs(blob,filename)
-          } else {
-            this.$notify.error({
-                title: '警告',
-                dangerouslyUseHTMLString: true,
-                message: '备份失败，请确认正确导入钱包',
-                duration: 3000
-            });
+          if(this.$store.state.vuexStore.baseChain == "ETH"){
+            if(this.$store.state.vuexStore.walletInfo.keyStore){
+                var content = JSON.stringify(this.$store.state.vuexStore.walletInfo.keyStore);
+                var blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+                saveAs(blob, this.$store.state.vuexStore.walletInfo.keyStore.id + ".json");//saveAs(blob,filename)
+            } else {
+                this.$notify.error({
+                    title: '警告',
+                    dangerouslyUseHTMLString: true,
+                    message: '备份失败，请确认正确导入钱包',
+                    duration: 3000
+                });
+            }
+          } else if(this.$store.state.vuexStore.baseChain == "NEO"){
+            if(this.$store.state.vuexStore.NEOwalletInfo.keyStore){
+                var content = JSON.stringify(this.$store.state.vuexStore.NEOwalletInfo.keyStore);
+                var blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+                saveAs(blob, this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address + ".json");//saveAs(blob,filename)
+            } else {
+                this.$notify.error({
+                    title: '警告',
+                    dangerouslyUseHTMLString: true,
+                    message: '备份失败，请确认正确导入钱包',
+                    duration: 3000
+                });
+            }
           }
       }
   }

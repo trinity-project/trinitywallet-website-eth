@@ -98,12 +98,10 @@ export default {
                 let address = keyStore.accounts[0].address;
                 console.log(address);
                 if(address.length == 34){
-                    this.$store.state.vuexStore.NEOwalletInfo.keyStore = keyStore;
-                    // console.log(this.$store.state.vuexStore.walletInfo.keyStore);
-                    this.$store.state.vuexStore.NEOwalletInfo.publicKey = ab2hexstring(getPublicKey(privateKey, 0));   //存入publicKey
-                    // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
+                    this.$store.state.vuexStore.NEOwalletInfo.keyStore = keyStore;     //存入KeyStore
+                    this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(privateKey, 0)));                      //存入publicKey
                     this.$store.state.vuexStore.NEOwalletInfo.address = address;       //存入地址
-                    // console.log(this.$store.state.vuexStore.walletInfo.address);
+                    // console.log(this.$store.state.vuexStore.NEOwalletInfo);
                     this.$store.state.vuexStore.isLogin = true;
                     this.$notify({
                         title: this.$t('create.callback-4'),

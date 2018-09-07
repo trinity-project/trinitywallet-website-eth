@@ -11,8 +11,7 @@ export default {
     NetMagic: "527465737419990331",        //网络magic
     gasPrice: 5000000000,       //Gas Price倍数
     NodeUriWebSocket: "47.104.81.20:9000",        //全节点websocket IP
-    NodeRpcUri: 'http://47.254.64.251:21332', //全节点通用RPC接口   NEO
-    NodeSendrawUri: 'http://47.254.64.251:20332', //全节点上链RPC接口   NEO
+    NodeRpcUri: 'http://47.254.64.251:21332',     //全节点通用RPC接口   NEO
     walletInfo: {               //钱包信息
       keyStore: "",
       publicKey: "",

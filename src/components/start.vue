@@ -68,12 +68,12 @@ export default {
           console.log("切换到NEO测试网");
           _this.$store.state.vuexStore.NetMagic = "195378745719990331";                                                //修改网络号
           _this.$store.state.vuexStore.NodeRpcUri = "http://47.254.64.251:21332";                                      //全节点通用Uri
-          _this.$store.state.vuexStore.NodeSendrawUri = "http://47.254.64.251:20332";                                  //全节点上链Uri
+          //_this.$store.state.vuexStore.NodeSendrawUri = "http://47.254.64.251:20332";                                  //全节点上链Uri
         } else if(!_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "NEO"){ 
           console.log("切换到NEO主网");
           _this.$store.state.vuexStore.NetMagic = "195378745719990331";                                                //修改网络号
           _this.$store.state.vuexStore.NodeRpcUri = "http://47.96.175.193:21332";                                      //全节点通用Uri
-          _this.$store.state.vuexStore.NodeSendrawUri = "http://47.96.175.193:10332";                                  //全节点上链Uri
+          //_this.$store.state.vuexStore.NodeSendrawUri = "http://47.96.175.193:10332";                                  //全节点上链Uri
         } else {
           console.log("切换网络错误");
         }
