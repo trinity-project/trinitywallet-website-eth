@@ -62,22 +62,22 @@
                         </template>
                         <el-menu-item @click="switchNet('ETH',false)" index="3-2-1">
                             <i class="el-icon-ETH-ethereum"></i>
-                            <span>ETH MainNet</span>
+                            <span style="font-size: 12px;">ETH MainNet</span>
                         </el-menu-item>
                         <el-menu-item @click="switchNet('ETH',true)" index="3-2-2">
                             <i class="el-icon-ETH-ethereum"></i>
-                            <span>ETH Ropsten TsetNet</span>
+                            <span style="font-size: 12px;">ETH Ropsten TsetNet</span>
                             </el-menu-item>
-                        <el-menu-item @click="switchNet('NEO',false)" index="3-2-3">
+                        <el-menu-item @click="switchNet('NEO',false)" index="3-2-3" >
                             <i class="el-icon-ETH-neo"></i>
-                            <span>NEO MainNet</span>
+                            <span style="font-size: 12px;">NEO MainNet</span>
                             </el-menu-item>
-                        <el-menu-item @click="switchNet('NEO',true)" index="3-2-4">
+                        <el-menu-item @click="switchNet('NEO',true)" index="3-2-4" >
                             <i class="el-icon-ETH-neo"></i>
-                            <span>NEO TsetNet</span>
+                            <span style="font-size: 12px;">NEO TsetNet</span>
                             </el-menu-item>
                     </el-submenu>
-                    <el-submenu index="3-7">
+                    <el-submenu index="3-7" v-if="$store.state.vuexStore.baseChain == 'ETH'">
                         <template slot="title">
                             <i class="el-icon-ETH-wuliaojiage"></i>
                             <span>{{$t('navMenu.setting.setGasPrice')}}</span>
@@ -180,18 +180,21 @@ export default {
         _this.isNightMode = _this.$parent.fetchAsString("isNightMode");                                     //获取夜间主题
 
         _this.$store.state.vuexStore.isTestNet = _this.$parent.fetchAsString("isTestNet");                  //获取网络
-        console.log(_this.$store.state.vuexStore.isTestNet);
         if(_this.$store.state.vuexStore.isTestNet == "" || _this.$store.state.vuexStore.isTestNet == 'true'){
           _this.$store.state.vuexStore.isTestNet = true;
         } else {
           console.log("切换到主网");
           _this.$store.state.vuexStore.isTestNet = false;
-          web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d"));
-          _this.$store.state.vuexStore.NetMagic = "4061696020030515";                                                  //修改网络号
-          _this.$store.state.vuexStore.tncContractAddress = "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac";            //修改token合约地址
-          _this.$store.state.vuexStore.trinityContractAddress = "0x7A332beF593d6bd6B9d314959295239c46D5C127";        //修改trinity合约地址
-          _this.$store.state.vuexStore.trinityDataContractAddress = "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5";    //修改trinity合约地址
-          _this.$store.state.vuexStore.rpcIp = "47.97.96.192:9000";
+        }
+        _this.$store.state.vuexStore.baseChain = _this.$parent.fetchAsString("baseChain");                  //获取网络
+        if(_this.$store.state.vuexStore.baseChain == ""){
+          _this.$store.state.vuexStore.baseChain = "ETH";
+        }
+        console.log(_this.$store.state.vuexStore.isTestNet);
+        console.log(_this.$store.state.vuexStore.baseChain);
+        if(_this.$store.state.vuexStore.isTestNet != "" || _this.$store.state.vuexStore.baseChain != ""){
+            console.log("更新当前参数");
+            _this.deployParameter();      //更新当前环境的参数
         }
 
         web3.eth.getGasPrice().then(function(gasPrice){                                     // 获取GAS价格
@@ -205,6 +208,7 @@ export default {
         if(!_this.$store.state.vuexStore.isLogin){                                          // 当未登录时,都跳转到开始界面
             _this.$router.push('/start');
         }
+
     })
   },
   methods: {
@@ -225,7 +229,12 @@ export default {
         _this.$store.state.vuexStore.isTestNet = isTestNet;                  //更新数据
         _this.$store.state.vuexStore.baseChain = Base;
         _this.$parent.saveAsString("isTestNet", _this.$store.state.vuexStore.isTestNet);
+        _this.$parent.saveAsString("baseChain",_this.$store.state.vuexStore.baseChain);
 
+        _this.deployParameter();      //更新当前环境的参数
+    },
+    deployParameter() {      //配置当前环境的参数
+        let _this = this;
         if(_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){          //ETH测试网
           console.log("切换到ETH测试网");
           web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); 
@@ -233,7 +242,7 @@ export default {
           _this.$store.state.vuexStore.tncContractAddress = "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218";            //修改token合约地址
           _this.$store.state.vuexStore.trinityContractAddress = "0xB38758094373f9C6651a765e7bbB38722a07c63a";        //修改trinity合约地址
           _this.$store.state.vuexStore.trinityDataContractAddress = "0xF928BA6a908207BF6C0Cd73eba2f165B6115AbD9";    //修改trinity合约地址
-          _this.$store.state.vuexStore.NodeUriWebSocket = "47.104.81.20:9000";                                       //修改全节点IP
+          _this.$store.state.vuexStore.NodeUriWebSocketIp = "47.104.81.201:9000";                                       //修改全节点IP
         } else if(!_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){        //ETH主网
           console.log("切换到ETH主网");
           web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d"));
@@ -241,7 +250,7 @@ export default {
           _this.$store.state.vuexStore.tncContractAddress = "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac";            //修改token合约地址
           _this.$store.state.vuexStore.trinityContractAddress = "0x7A332beF593d6bd6B9d314959295239c46D5C127";        //修改trinity合约地址
           _this.$store.state.vuexStore.trinityDataContractAddress = "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5";    //修改trinity合约地址
-          _this.$store.state.vuexStore.NodeUriWebSocket = "47.97.96.192:9000";                                       //修改全节点IP
+          _this.$store.state.vuexStore.NodeUriWebSocketIp = "wss://wss.trinity.ink:9000";                            //修改全节点IP
         } else if(_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "NEO"){        //NEO测试网
           console.log("切换到NEO测试网");
           _this.$store.state.vuexStore.NetMagic = "195378745719990331";                                                //修改网络号
@@ -250,7 +259,7 @@ export default {
         } else if(!_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "NEO"){ 
           console.log("切换到NEO主网");
           _this.$store.state.vuexStore.NetMagic = "763040120030515";                                                  //修改网络号
-          _this.$store.state.vuexStore.NodeRpcUri = "http://neoapi.trinity.ink";                                      //全节点通用Uri
+          _this.$store.state.vuexStore.NodeRpcUri = "https://neoapi.trinity.ink";                                      //全节点通用Uri
           //_this.$store.state.vuexStore.NodeSendrawUri = "http://47.96.175.193:10332";                                  //全节点上链Uri
         } else {
           console.log("切换网络错误");
@@ -262,16 +271,13 @@ export default {
         if(_this.$store.state.vuexStore.baseChain == "ETH"){                //当ETH时连接全节点websocket
             setTimeout(function (){                                           //修改全节点IP
             if(_this.$store.state.vuexStore.isLogin == true){
-                let Message = {
-                    "messageType":"init", 
-                    "walletAddress":_this.$store.state.vuexStore.walletInfo.address
-                }
-                _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+                _this.getAddressInfo();
                 _this.cycleReconnectWebsocket();
             }
             },3000);
+            _this.getBalance();
+            _this.BalanceCycle();
         }
-
     },
     storeToNav() {      //传递activeNavIndex
         this.navSelected = this.$store.state.vuexStore.activeNavIndex;
@@ -290,21 +296,18 @@ export default {
         this.gasPrice = this.$store.state.vuexStore.gasPrice / 10e8;
     },
     testFun() {      //用于测试
-        axios({     //上链
-            method: 'post',
-            url: this.$store.state.vuexStore.NodeRpcUri,
-            headers: {
-              'Content-Type': 'application/json;charset=UTF-8'
-            },
-            data: JSON.stringify({
-              "jsonrpc": "2.0",
-              "method": "sign",
-              "params":["d101500400c2eb0b14c0b8cbb68ecca3977d8d026aa53d4e4db14b1ac5148302070f65780f32d78a0cfa2e01b74f57d0f3a753c1087472616e7366657267f1dfcf0051ec48ec95c8d0569e0b95075d099d84f1000000000000000002208302070f65780f32d78a0cfa2e01b74f57d0f3a7f0045b921bb80000","11842f4d7682635613a3cfbdb22c70ac67927a5d6b189e23dc0cf50f80dbaa96"],
-              "id": 1
-            })
-          }).then(function(res){
-
-          })
+        let _this = this;
+        let aaa = "1111";
+          _this.$notify({
+            title: '消息',
+            message: "test",
+            duration: 0,
+            type: 'info',
+            onClick: show
+          });
+        function show(){
+          console.log(aaa);
+        }
     },
     getAddressInfo() {      // 监测store中的address,出现变化时获取相关信息
         console.log(this.$store.state.vuexStore.baseChain);
@@ -314,7 +317,15 @@ export default {
                 "walletAddress":this.$store.state.vuexStore.walletInfo.address
             }
             this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+            let Message1 = {
+                "messageType":"monitorEthAddress",
+                "walletAddress": this.$store.state.vuexStore.walletInfo.address,
+                "playload": this.$store.state.vuexStore.walletInfo.address,
+                "comments":{}
+            }
+            this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //向全节点请求监听到账信息
                 let channelList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@channelList");//获取通道列表
+                console.log(channelList);
                 let p = [];
                 channelList.forEach(function(data,index){   //遍历chanelList,去除未上链(未成功)的通道
                     if(data.transactionHash != undefined){
@@ -322,16 +333,32 @@ export default {
                     }
                 })
             this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
-            this.$store.state.vuexStore.TxList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@TxList");           //获取TxList列表
-            console.log( this.$store.state.vuexStore.TxList);
+            this.$store.state.vuexStore.txList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@txList");           //获取TxList列表
             this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");                            //获取联系人列表
             this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList");                             //获取交易记录列表
+            this.$store.state.vuexStore.eventList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@eventList");                              //获取event列表
             this.$store.state.vuexStore.RList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@RList");
             this.getBalance();                          //获取总的余额
             this.cycleReconnectWebsocket();             //循环连接websocket
             this.BalanceCycle();                        //反复获取钱包余额
+            this.$parent.blockHeightCycle();                    //循环查询块高
         } else if (this.$store.state.vuexStore.baseChain == "NEO"){               //当前为NEO钱包时
             console.log("获取钱包信息");
+            let channelList = this.$parent.fetchAsArray(this.$store.state.vuexStore.NEOwalletInfo.address + "@channelList");//获取通道列表
+                console.log(channelList);
+                let p = [];
+                channelList.forEach(function(data,index){   //遍历chanelList,去除未上链(未成功)的通道
+                    if(data.transactionHash != undefined){
+                        p.push(data);
+                    }
+                })
+            this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
+            // this.$store.state.vuexStore.TxList = this.$parent.fetchAsArray(this.$store.state.vuexStore.NEOwalletInfo.address + "@TxList");           //获取TxList列表
+            // console.log( this.$store.state.vuexStore.TxList);
+            this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.NEOwalletInfo.address + "@contactList");                            //获取联系人列表
+            this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.NEOwalletInfo.address + "@recordList");                             //获取交易记录列表
+            this.$store.state.vuexStore.RList = this.$parent.fetchAsArray(this.$store.state.vuexStore.NEOwalletInfo.address + "@RList");
+
             this.getBalance();                          //获取总的余额
         }
     },

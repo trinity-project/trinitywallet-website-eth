@@ -264,15 +264,7 @@ export default {
         if (valid) {
           let l = this.$parent.getChannelSerial('ChannelName',_this.activeInfo.ChannelName);
           console.log(l);
-          if(l === -1){             //如果未检测到通道,给出提醒
-            _this.$notify.error({
-                title: '警告',
-                dangerouslyUseHTMLString: true,
-                message: '未找到该通道,请重试一次',
-                duration: 3000
-            });
-            return;
-          } else {                //检测到通道,开始关闭通道
+          if(l >= 0){             //检测到通道,开始关闭通道              
             console.log('进入强制拆通道');
             web3.eth.getGasPrice().then(function(gasPrice){   // 获取GAS价格
             console.log(gasPrice);

@@ -45,8 +45,11 @@ export default {
       },
       switchNet(Base) {        //切换网络
         let _this = this;
-        _this.$store.state.vuexStore.NodeUriWebSocket.close();
+        if(typeof(_this.$store.state.vuexStore.NodeUriWebSocket) == 'object'){
+            _this.$store.state.vuexStore.NodeUriWebSocket.close();
+        }
         _this.$store.state.vuexStore.baseChain = Base;
+        _this.$parent.saveAsString("baseChain",_this.$store.state.vuexStore.baseChain);                 //更新储存的信息
 
         if(_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){          //ETH测试网
           console.log("切换到ETH测试网");
@@ -55,7 +58,7 @@ export default {
           _this.$store.state.vuexStore.tncContractAddress = "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218";            //修改token合约地址
           _this.$store.state.vuexStore.trinityContractAddress = "0xB38758094373f9C6651a765e7bbB38722a07c63a";        //修改trinity合约地址
           _this.$store.state.vuexStore.trinityDataContractAddress = "0xF928BA6a908207BF6C0Cd73eba2f165B6115AbD9";    //修改trinity合约地址
-          _this.$store.state.vuexStore.NodeUriWebSocket = "47.104.81.20:9000";                                       //修改全节点IP
+          _this.$store.state.vuexStore.NodeUriWebSocketIp = "47.104.81.20:9000";                                       //修改全节点IP
         } else if(!_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){        //ETH主网
           console.log("切换到ETH主网");
           web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d"));
@@ -63,7 +66,7 @@ export default {
           _this.$store.state.vuexStore.tncContractAddress = "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac";            //修改token合约地址
           _this.$store.state.vuexStore.trinityContractAddress = "0x7A332beF593d6bd6B9d314959295239c46D5C127";        //修改trinity合约地址
           _this.$store.state.vuexStore.trinityDataContractAddress = "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5";    //修改trinity合约地址
-          _this.$store.state.vuexStore.NodeUriWebSocket = "47.97.96.192:9000";                                       //修改全节点IP
+          _this.$store.state.vuexStore.NodeUriWebSocketIp = "47.97.96.192:9000";                                       //修改全节点IP
         } else if(_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "NEO"){        //NEO测试网
           console.log("切换到NEO测试网");
           _this.$store.state.vuexStore.NetMagic = "195378745719990331";                                                //修改网络号
@@ -77,11 +80,11 @@ export default {
         } else {
           console.log("切换网络错误");
         }
+        setTimeout(function (){                                           //修改全节点IP
+            _this.$parent.connectWebSocketForNodeUri(); 
+        },1500);
         if(_this.$store.state.vuexStore.baseChain == "ETH"){                //当ETH时连接全节点websocket
-            setTimeout(function (){                                           //修改全节点IP
-                _this.$parent.connectWebSocketForNodeUri(); 
-            },1500);
-
+            
             setTimeout(function (){                                           //修改全节点IP
             if(_this.$store.state.vuexStore.isLogin == true){
                 let Message = {

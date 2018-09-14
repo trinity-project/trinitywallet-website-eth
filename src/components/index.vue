@@ -536,7 +536,15 @@ export default {
               _this.$parent.cycleGetTransactionReceipt(hash);           //循环查询交易hash
               _this.clearTxData();                                      //清空交易数据
             } else {
-              console.log(err);
+              _this.$notify({
+                  title: _this.$t('common.warning'),
+                  dangerouslyUseHTMLString: true,
+                  message: _this.$t('common.callback-25') + err,
+                  duration: 3000,
+                  type: 'error'
+              });
+              _this.ShowTxOnChainBox = false;
+              _this.clearTxData();                                      //清空交易数据
             }
           })
         })   
@@ -636,9 +644,13 @@ export default {
       let _this = this;
       _this.$refs['txOnChannelInfo'].validate((valid) => {
         if (valid) {
-          if(_this.txOnChannelInfo.assetType == "ETH"){
-            _this.txEthOnChannel();
-          } else if(_this.txOnChannelInfo.assetType == "TNC") {
+          if(_this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+            if(_this.txOnChannelInfo.assetType == "ETH"){
+              _this.txEthOnChannel();
+            } else if (_this.txOnChannelInfo.assetType == "TNC") {
+              _this.txTncOnChannel();
+            }
+          } else if (_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时
             _this.txTncOnChannel();
           }
         } else {
@@ -650,12 +662,13 @@ export default {
     txEthOnChannel() {
       console.log("进入通道交易ETH");
     },
-    txTncOnChannel() {
+    txTncOnChannel() {                    //加入NEO通道转账
       let _this = this;
-      console.log("进入通道交易TNC");
+      console.log("进入通道交易");
 
-      let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open');
-      if(l >= 0){
+      if(_this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+        let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open');
+        if(l >= 0){
           if(_this.$store.state.vuexStore.channelList[l].SelfBalance >= _this.txOnChannelInfo.value){
             _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
             _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[l].ChannelName;    //赋值ChannelName
@@ -672,6 +685,7 @@ export default {
                 "PaymentCount": _this.txOnChannelInfo.value,
                 "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance - Number(_this.txOnChannelInfo.value),
                 "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance + Number(_this.txOnChannelInfo.value),
+                "HashR": 0x0,
                 "Commitment": "",
                 "RoleIndex": 0
               },
@@ -692,13 +706,7 @@ export default {
             _this.ShowTxOnChannelBox = false;
             _this.clearTxData();
           }
-      } else if (l == -1){        //未与该Uri直连,查询路由情况
-          // _this.$notify.info({
-          //   title: '提醒',
-          //   dangerouslyUseHTMLString: true,
-          //   message: '未与该Uri建立通道,开始查询路由',
-          //   duration: 3000
-          // });
+        } else if (l == -1){        //未与该Uri直连,查询路由情况
           let i = -1;
           _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历通道列表,获取开通的通道
               if(data.State == 3 && data.isConnect == true){
@@ -726,6 +734,7 @@ export default {
             _this.clearTxData();                        //清空当前数据 
             return false;
           } else {      //遍历到开通的通道,进入Htlc交易
+            console.log(i);
             _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[i].SelfUri;            //赋值sendUri
             _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[i].ChannelName;    //赋值ChannelName
             let Message = {         //构造消息,查询通道路由
@@ -744,24 +753,21 @@ export default {
             _this.ShowTxOnChannelBox = false;           //关闭当前窗口
             _this.clearTxData();                        //清空当前数据  
           }
-      } else if (l == -2){
-          _this.$notify.error({
-            title: _this.$t('common.warning'),
-            dangerouslyUseHTMLString: true,
-            message: _this.$t('common.callback-15'),
-            duration: 3000
-          });
+        } else if (l == -2){
           _this.ShowTxOnChannelBox = false;
           _this.clearTxData();
           return;
-      } else {
-          // _this.$notify.error({
-          //   title: _this.$t('common.warning'),
-          //   dangerouslyUseHTMLString: true,
-          //   message: '未知错误,l值为' + l,
-          //   duration: 3000
-          // });
-          return;
+        } else {
+            // _this.$notify.error({
+            //   title: _this.$t('common.warning'),
+            //   dangerouslyUseHTMLString: true,
+            //   message: '未知错误,l值为' + l,
+            //   duration: 3000
+            // });
+            return;
+        }
+      } else if(_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时
+      
       }
     },
     clearTxData() {       //清空转账信息

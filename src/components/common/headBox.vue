@@ -1,7 +1,7 @@
 <template>
     <div class="headBox">
       <i @click="$store.state.vuexStore.isNavShow = !$store.state.vuexStore.isNavShow" class="listIcon el-icon-ETH-liebiao"></i>
-      <el-badge :value="3" :max="99" class="item" style="float: right;display:none;font-size: 12px;">
+      <el-badge :value="3" :max="99" class="item" style="float: right;font-size: 12px;">
         <i @click="$store.state.vuexStore.isMessageBoxShow = !$store.state.vuexStore.isMessageBoxShow" class="notificationIcon el-icon-ETH-xiaoxi"></i>
       </el-badge>
     </div>
