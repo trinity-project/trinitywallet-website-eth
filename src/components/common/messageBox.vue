@@ -36,9 +36,13 @@ export default {
       clearAll() {
         console.log("清除全部");
         this.$store.state.vuexStore.channelList = [];
-        this.$parent.StoreChannel();
+        this.$parent.StoreData("channelList")
         this.$store.state.vuexStore.recordList = [];
-        this.$parent.StoreRecordList();
+        this.$parent.StoreData("recordList")
+        this.$store.state.vuexStore.txList = [];
+        this.$parent.StoreData("txList")
+        this.$store.state.vuexStore.eventList = [];
+        this.$parent.StoreData("eventList")
         return false;
       }
   }

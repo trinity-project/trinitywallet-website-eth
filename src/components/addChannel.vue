@@ -257,16 +257,16 @@ export default {
           _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
           _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
           _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
-          _this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
-          _this.$store.state.vuexStore.channelList[l].unconfirmed = {};                       //未确认的交易信息
-          _this.$store.state.vuexStore.channelList[l].unconfirmed.selfSignedData = "";
-          _this.$store.state.vuexStore.channelList[l].unconfirmed.otherSignedData = "";
-          _this.$store.state.vuexStore.channelList[l].confirmed = {};                         //已确认的交易信息
-          _this.$store.state.vuexStore.channelList[l].confirmed.isFounder = true;
-          _this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData = "";
-          _this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData = "";
+          //_this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
+          // _this.$store.state.vuexStore.channelList[l].unconfirmed = {};                       //未确认的交易信息
+          // _this.$store.state.vuexStore.channelList[l].unconfirmed.selfSignedData = "";
+          // _this.$store.state.vuexStore.channelList[l].unconfirmed.otherSignedData = "";
+          // _this.$store.state.vuexStore.channelList[l].confirmed = {};                         //已确认的交易信息
+          // _this.$store.state.vuexStore.channelList[l].confirmed.isFounder = true;
+          // _this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData = "";
+          // _this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData = "";
 
-          _this.$parent.StoreChannel();         //储存通道信息
+          _this.$parent.StoreData("channelList");         //储存通道信息
           _this.$router.push('/channelList');       //跳转到channelList页面
 
           return;
@@ -335,16 +335,9 @@ export default {
             _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
             _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
             _this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
-            _this.$store.state.vuexStore.channelList[l].unconfirmed = {};                       //未确认的交易信息
-            _this.$store.state.vuexStore.channelList[l].unconfirmed.selfSignedData = "";
-            _this.$store.state.vuexStore.channelList[l].unconfirmed.otherSignedData = "";
-            _this.$store.state.vuexStore.channelList[l].confirmed = {};                         //已确认的交易信息
-            _this.$store.state.vuexStore.channelList[l].confirmed.isFounder = true;
-            _this.$store.state.vuexStore.channelList[l].confirmed.selfSignedData = "";
-            _this.$store.state.vuexStore.channelList[l].confirmed.otherSignedData = "";
             _this.$store.state.vuexStore.channelList[l].baseChain = _this.$store.state.vuexStore.baseChain;             //底层链
 
-            _this.$parent.StoreChannel();         //储存通道信息
+            _this.$parent.StoreData("channelList");         //储存通道信息
             _this.$router.push('/channelList');       //跳转到channelList页面
 
          }

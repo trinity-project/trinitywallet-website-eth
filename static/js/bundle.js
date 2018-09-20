@@ -13,8 +13,8 @@ var base58 = require('base-x')(BASE58);
 
 global.signData = signData;
 global.ecSign = ecSign;
-// global.createR = createR;
-// global.createHr = createHr;
+global.addPreZero = addPreZero;
+global.randomBytes = randomBytes;
 global.base58decode = base58decode;     //base58解密
 global.base58encode = base58encode;     //base58加密
 global.md5encode = md5encode;
@@ -28,11 +28,11 @@ function ab2ASCII(str) {
   return result;
 }
 
-// function createR() {
-//     var b = crypto.randomBytes(32);
-//     console.log(b.toString('hex'));
-//     return b.toString('hex');
-// }
+function randomBytes(num) {
+    var b = crypto.randomBytes(num);
+    //console.log(b.toString('hex'));
+    return "0x" + b.toString('hex');
+}
 
 // function createHr(b) {
 //     var c = CryptoJS.SHA1(b.toString('hex'));
@@ -103,9 +103,9 @@ function ecRecover(msg, signature, address) {
     result = true;
     console.log(result);
   } else {
-    result = true;
-    //result = false;
-    console.log("签名验证失败");
+	//result = true;
+	console.log("签名验证失败");
+    result = false;
   }
   return result;
 }
@@ -133,7 +133,6 @@ function publicKey2Address(publicKey) {
 //     var publicKey = secp256k1.publicKeyCreate(privateKeyBuffer, false).slice(1);
 //     return publicKey;
 // }
-
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 },{"base-x":2,"buffer":121,"crypto":129,"ethereumjs-tx":25,"keccak":44,"secp256k1/elliptic":56}],2:[function(require,module,exports){

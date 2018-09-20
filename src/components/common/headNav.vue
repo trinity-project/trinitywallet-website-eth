@@ -95,13 +95,13 @@
                             </div>
                         </el-menu-item>
                     </el-submenu>
-                    <el-menu-item index="3-3" style="position: relative;" disabled>
+                    <!-- <el-menu-item index="3-3" style="position: relative;" disabled>
                             <i class="el-icon-ETH-pifu"></i>
                             <span>{{$t('navMenu.setting.nightMode')}}
                                 <el-switch v-model="isNightMode" style="position: absolute;top:50%;right:45px;margin-top: -9px;" active-color="#F8D163" disabled>
                                 </el-switch>
                             </span>
-                    </el-menu-item>
+                    </el-menu-item> -->
                     <el-menu-item @click="toOtherForm('/changePassword')" index="3-4">
                         <i class="el-icon-ETH-xiugaimima"></i>
                         <span>{{$t('navMenu.setting.changePass')}}</span>
@@ -177,7 +177,11 @@ export default {
   mounted() {
     this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
         let _this = this;
+        _this.getConfig();                                  //获取配置文件信息
         _this.isNightMode = _this.$parent.fetchAsString("isNightMode");                                     //获取夜间主题
+        if(window.screen.width < 1024){
+            _this.$store.state.vuexStore.isNavShow = false;
+        }
 
         _this.$store.state.vuexStore.isTestNet = _this.$parent.fetchAsString("isTestNet");                  //获取网络
         if(_this.$store.state.vuexStore.isTestNet == "" || _this.$store.state.vuexStore.isTestNet == 'true'){
@@ -233,6 +237,22 @@ export default {
 
         _this.deployParameter();      //更新当前环境的参数
     },
+    getConfig() {                     //获取本地config
+      let _this = this;
+      axios({ 
+        method: 'get',
+        url: './../../../static/config/config.json',
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+        }
+      }).then(function(res){
+        _this.$store.state.vuexStore.tncContractAddress = res.data.tncContractAddress;                   //ERC20资产合约地址
+        _this.$store.state.vuexStore.tncContractAbi = res.data.tncContractAbi;                           //ERC20资产合约Abi
+        _this.$store.state.vuexStore.trinityContractAddress = res.data.trinityContractAddress;           //Trinity状态通道合约地址
+        _this.$store.state.vuexStore.trinityDataContractAddress = res.data.trinityDataContractAddress;   //Trinity状态通道合约Abi
+        _this.$store.state.vuexStore.trinityContractAbi = res.data.trinityContractAbi;                   //Trinity状态通道数据合约地址
+      })
+    },
     deployParameter() {      //配置当前环境的参数
         let _this = this;
         if(_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){          //ETH测试网
@@ -242,7 +262,7 @@ export default {
           _this.$store.state.vuexStore.tncContractAddress = "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218";            //修改token合约地址
           _this.$store.state.vuexStore.trinityContractAddress = "0xB38758094373f9C6651a765e7bbB38722a07c63a";        //修改trinity合约地址
           _this.$store.state.vuexStore.trinityDataContractAddress = "0xF928BA6a908207BF6C0Cd73eba2f165B6115AbD9";    //修改trinity合约地址
-          _this.$store.state.vuexStore.NodeUriWebSocketIp = "47.104.81.201:9000";                                       //修改全节点IP
+          _this.$store.state.vuexStore.NodeUriWebSocketIp = "ws://47.104.81.20:9000";                                      //修改全节点IP
         } else if(!_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){        //ETH主网
           console.log("切换到ETH主网");
           web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d"));
@@ -293,23 +313,66 @@ export default {
         }
     },
     changeGasPrice() {      //传递GasPrice
-        this.gasPrice = this.$store.state.vuexStore.gasPrice / 10e8;
+        this.gasPrice = this.$store.state.vuexStore.gasPrice.div(10e8);
     },
-    testFun() {      //用于测试
+    async testFun() {
+        let a = randomBytes(32);
+        let b = a.length;
+        console.log(b + "____" + a);
+    },
+    async test1Fun() {      //用于测试
         let _this = this;
-        let aaa = "1111";
-          _this.$notify({
-            title: '消息',
-            message: "test",
-            duration: 0,
-            type: 'info',
-            onClick: show
-          });
-        function show(){
-          console.log(aaa);
+        let functionName = "approve";
+        let dataTypeList = ["address","uint256"];
+        let dataTypeString = dataTypeList.join(",");
+        let dataList = [this.$store.state.vuexStore.trinityDataContractAddress, Number(10).mul(10e7)];
+        let password = "123";
+        let signedData;
+        if(dataTypeList.length == dataList.length){
+            console.log(functionName);
+            console.log(web3.eth.abi.encodeFunctionSignature(`${functionName}(${dataTypeString})`));
+            console.log(dataTypeList);
+            console.log(dataList);
+            console.log(password);
+            console.log("________________________");
+            let data = web3.eth.abi.encodeParameters(['address','uint256'], [this.$store.state.vuexStore.trinityDataContractAddress, Number(10).mul(10e7)]);
+            console.log(data);
+            let data1 = web3.eth.abi.encodeParameters(dataTypeList, dataList);
+            console.log(data1);
         }
+        // var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
+        //     from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
+        //     gasPrice: _this.$store.state.vuexStore.gasPrice        //Gas价格
+        // });
+        let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore, password);
+        await web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
+            // 获取交易次数
+            console.log(nonce);
+
+            // approve押金金额
+            let functionSig = web3.eth.abi.encodeFunctionSignature(`${functionName}(${dataTypeString})`);     //获取functionSig
+            console.log(functionSig);
+
+            let data = web3.eth.abi.encodeParameters(dataTypeList, dataList);                       //abi加密参数
+            console.log(data);
+
+            var txData = {        //组成txData数据
+                nonce: web3.utils.toHex(nonce++),
+                gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
+                gasLimit: web3.utils.toHex(4500000),
+                to: _this.$store.state.vuexStore.tncContractAddress,
+                from: _this.$store.state.vuexStore.walletInfo.address, 
+                value: '0x00', 
+                data: functionSig + data.substr(2)
+            };
+            console.log(txData);
+
+            signedData = signData(txData,decryptPK.privateKey);     //签名
+            console.log(signedData);
+        })
+        return signedData;
     },
-    getAddressInfo() {      // 监测store中的address,出现变化时获取相关信息
+    getAddressInfo() {                              // 监测store中的address,出现变化时获取相关信息
         console.log(this.$store.state.vuexStore.baseChain);
         if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
             let Message = {
@@ -334,9 +397,11 @@ export default {
                 })
             this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
             this.$store.state.vuexStore.txList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@txList");           //获取TxList列表
+            console.log(this.$store.state.vuexStore.txList);
             this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@contactList");                            //获取联系人列表
             this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@recordList");                             //获取交易记录列表
-            this.$store.state.vuexStore.eventList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@eventList");                              //获取event列表
+            this.$store.state.vuexStore.eventList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@eventList");
+            console.log(this.$store.state.vuexStore.eventList);                              //获取event列表
             this.$store.state.vuexStore.RList = this.$parent.fetchAsArray(this.$store.state.vuexStore.walletInfo.address + "@RList");
             this.getBalance();                          //获取总的余额
             this.cycleReconnectWebsocket();             //循环连接websocket
@@ -365,7 +430,7 @@ export default {
     BalanceCycle: function() {                //循环获取余额
       setInterval(this.getBalance, 5000);
     },
-    getBalance() {      //获取总的余额
+    getBalance() {                            //获取总的余额
       if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
         if(web3.utils.isAddress(this.$store.state.vuexStore.walletInfo.address)){             //当钱包地址正确时获取余额
             this.getEthBalance();
@@ -380,7 +445,7 @@ export default {
         }
       }
     },
-    getEthBalance() {      //获取ETH余额
+    getEthBalance() {                           //获取ETH余额
       let _this = this;
       if(_this.$store.state.vuexStore.walletInfo.address){
         if(web3.utils.checkAddressChecksum(_this.$store.state.vuexStore.walletInfo.address)){         //判断是否为address
@@ -393,7 +458,7 @@ export default {
         }
       }
     },
-    getTncBalance() {       //获取TNC余额
+    getTncBalance() {                           //获取TNC余额
       let _this = this;
       web3.eth.getGasPrice().then(function(gasPrice){               // 获取GAS价格
         var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {

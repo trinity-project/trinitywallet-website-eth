@@ -155,8 +155,11 @@ export default {
                 });
                 return false;
             }
-            _this.paymentCodeForm.R = web3.utils.randomHex(32).substring(2);
-            _this.paymentCodeForm.Hr = web3.utils.keccak256(_this.paymentCodeForm.R).substring(2);          //sha3
+            //_this.paymentCodeForm.R = web3.utils.randomHex(32);
+            _this.paymentCodeForm.R = randomBytes(32);
+            console.log(_this.paymentCodeForm.R);
+            _this.paymentCodeForm.Hr = web3.utils.keccak256(_this.paymentCodeForm.R);          //sha3
+            console.log(_this.paymentCodeForm.Hr);
             // this.paymentCodeForm.R = web3.utils.randomHex(32);
             // this.paymentCodeForm.Hr = web3.eth.accounts.hashMessage(web3.utils.utf8ToHex(this.paymentCodeForm.R));
             _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
@@ -180,11 +183,11 @@ export default {
             console.log(_this.paymentCodeForm.Code);
             _this.isPaymentCodeBoxShow = true;
             let Message = {
-                "Hr": "0x" + _this.paymentCodeForm.Hr,
+                "Hr": _this.paymentCodeForm.Hr,
                 "R": _this.paymentCodeForm.R
             }
             _this.$store.state.vuexStore.RList.push(Message);
-            _this.$parent.StoreRList();
+            _this.$parent.StoreData("RList");
           } else {
             console.log('error submit!!');
             return false;

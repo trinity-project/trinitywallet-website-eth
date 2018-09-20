@@ -1,7 +1,7 @@
 <template>
   <div class="indexBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
     <div class="assetBox" :class="{ showMoreAssetBox_active :isShowMoreAsset}">
-      <div style="position: absolute;top: calc(25vh - 108px);right: 30px;" class="tncBox">
+      <div style="position: absolute;top: calc(25vh - 108px);right: 30px;" class="amountBox">
         <h3>TNC</h3>
         <h1>{{ $store.state.vuexStore.balanceData.Chain.TNC }}</h1>
       </div>
@@ -467,7 +467,7 @@ export default {
                     blockHash: ""
                   }
                   _this.$store.state.vuexStore.recordList.push(recordMessage);
-                  _this.$parent.StoreRecordList(_this.$store.state.vuexStore.recordList);         //保存交易信息
+                  _this.$parent.StoreData("recordList");         //保存交易信息
                   _this.$parent.cycleGetTransactionReceipt(hash);           //循环查询交易hash
                   _this.clearTxData();                                      //清空交易数据
                 } else {
@@ -532,7 +532,7 @@ export default {
               console.log(_this.txOnChainInfo.address);
               console.log(recordMessage);
               _this.$store.state.vuexStore.recordList.push(recordMessage);
-              _this.$parent.StoreRecordList(_this.$store.state.vuexStore.recordList);         //保存交易记录
+              _this.$parent.StoreData("recordList");         //保存交易记录
               _this.$parent.cycleGetTransactionReceipt(hash);           //循环查询交易hash
               _this.clearTxData();                                      //清空交易数据
             } else {
@@ -667,7 +667,7 @@ export default {
       console.log("进入通道交易");
 
       if(_this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
-        let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open');
+        let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open',false);
         if(l >= 0){
           if(_this.$store.state.vuexStore.channelList[l].SelfBalance >= _this.txOnChannelInfo.value){
             _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
@@ -683,9 +683,9 @@ export default {
               "AssetType": _this.txOnChannelInfo.assetType,
               "MessageBody": {
                 "PaymentCount": _this.txOnChannelInfo.value,
-                "SenderBalance": _this.$store.state.vuexStore.channelList[l].SelfBalance - Number(_this.txOnChannelInfo.value),
-                "ReceiverBalance": _this.$store.state.vuexStore.channelList[l].OtherBalance + Number(_this.txOnChannelInfo.value),
-                "HashR": 0x0,
+                "SenderBalance": Number(_this.$store.state.vuexStore.channelList[l].SelfBalance) - Number(_this.txOnChannelInfo.value),
+                "ReceiverBalance": Number(_this.$store.state.vuexStore.channelList[l].OtherBalance) + Number(_this.txOnChannelInfo.value),
+                //"HashR": 0x0,
                 "Commitment": "",
                 "RoleIndex": 0
               },

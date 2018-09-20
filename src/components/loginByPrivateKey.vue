@@ -31,7 +31,11 @@ export default {
         return callback(new Error(this.$t('loginByPrivateKey.callback-1')));
       }
       if (value.length !== 64) {
-          callback(new Error(this.$t('loginByPrivateKey.callback-2')));
+          if(value.length == 66 && value.substr(0,2) == "0x"){
+            callback();
+          } else {
+            callback(new Error(this.$t('loginByPrivateKey.callback-2')));
+          }
       } else {
           callback();
       }
@@ -85,7 +89,9 @@ export default {
         this.$refs['loginByPrivateKeyForm'].validate((valid) => {
           if (valid) {
             if (this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
-              let keyStore = web3.eth.accounts.encrypt('0x' + this.loginByPrivateKeyForm.privateKey, this.loginByPrivateKeyForm.pass);
+              let head;
+              this.loginByPrivateKeyForm.privateKey.length == 64 ? head = "0x" : head = "";
+              let keyStore = web3.eth.accounts.encrypt(head + this.loginByPrivateKeyForm.privateKey, this.loginByPrivateKeyForm.pass);
               console.log(keyStore);
               let address = web3.utils.toChecksumAddress(keyStore.address);
               console.log(address);
