@@ -1,19 +1,10 @@
 <template>
   <div>
-    <!-- <div v-if="$route.path == '/wallet' || $route.path == '/channel/payment'" class="headBox">
+    <div class="headBox">
       <div class="header-button is-left">
-        <i @click.stop="$store.state.vuexStore.isNavShow = !$store.state.vuexStore.isNavShow" class="listIcon el-icon-ETH-liebiao"></i>
+        <i @click="$router.go(-1)" class="el-icon-ETH-fanhui"></i>
       </div>
-      <h1></h1>
-      <div class="header-button is-right" style="text-align:right;">
-        <i class="notificationIcon el-icon-ETH-saoyisao"></i>
-      </div>
-    </div> -->
-    <div v-if="$route.path == '/message' || $route.path == '/discover' || $route.path == '/start'" class="headBox">
-      <div class="header-button is-left">
-        
-      </div>
-      <h1> </h1>
+      <h1>{{ $router.name }}</h1>
       <div class="header-button is-right" style="text-align:right;">
         
       </div>
@@ -23,7 +14,7 @@
 
 <script>
 export default {
-  name: 'headBox',
+  name: 'headBoxForChild',
   data () {
     return {
 
@@ -42,7 +33,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.headBox{
+/* .headBoxForChild{
     height: 56px;
     width: 100%;
     background-color: rgb(67, 74, 80);
@@ -80,5 +71,5 @@ h1{
 }
 .el-badge__content.is-fixed {
     right: 4px;
-}
+} */
 </style>

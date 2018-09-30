@@ -1,5 +1,6 @@
 <template>
-  <div class="createForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+  <div class="createForm">
+    <headBox/>
     <div class="contentBox">
         <h2>{{ $t('create.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -20,6 +21,7 @@
 </template>
 
 <script>
+import headBox from './../common/headBoxForChild'
 export default {
   name: 'createForm',
   data () {
@@ -56,6 +58,9 @@ export default {
           ]
         }
     }
+  },
+  components: {
+    headBox
   },
   mounted() {
     this.$nextTick(function(){
@@ -129,7 +134,7 @@ export default {
 <style scoped>
 .createForm{
     float: left;
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     overflow: hidden;
 }

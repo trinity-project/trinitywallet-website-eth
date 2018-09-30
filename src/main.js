@@ -7,7 +7,8 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import vuex from 'vuex';
 import i18n from './i18n/i18n';
-import './assets/icon/iconfont.css'
+import './assets/icon/iconfont.css';            //阿里图标库
+//import FastClick from 'fastclick';              //去除移动端延迟
 
 Vue.use(ElementUI);
 Vue.use(vuex);
@@ -16,6 +17,17 @@ Vue.use(vuex);
 import store from './store'
 
 Vue.config.productionTip = false
+
+//FastClick
+// FastClick.attach(document.body);
+
+// FastClick.prototype.onTouchEnd = function (event) {
+//   if (event.target.hasAttribute("type") && event.target.getAttribute("type") == "text") {
+//     event.preventDefault();
+//     return false;
+//   }
+// }
+
 
 /* eslint-disable no-new */
 new Vue({

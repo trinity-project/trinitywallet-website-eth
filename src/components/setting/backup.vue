@@ -1,5 +1,6 @@
 <template>
-  <div class="backupForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+  <div class="backupForm">
+    <headBox/>
     <div class="contentBox">
         <h2>{{$t('backup.title')}}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -13,12 +14,16 @@
 </template>
 
 <script>
+import headBox from './../common/headBoxForChild'
 export default {
   name: 'backupForm',
   data () {
     return {
 
     }
+  },
+  components: {
+    headBox
   },
   methods: {
       backup() {            //备份事件,生成json文件
@@ -58,9 +63,11 @@ export default {
 <style scoped>
 .backupForm{
     float: left;
-    height: calc(100% - 106px);
+    height: calc(100% - 56px);
     width: 100%;
     overflow: hidden;
+    background: #FFFFFF;
+    z-index: 2;
 }
 .headBox{
     height: 56px;
@@ -68,7 +75,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

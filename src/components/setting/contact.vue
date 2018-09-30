@@ -1,5 +1,6 @@
 <template>
-  <div class="contactBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+  <div class="contactBox">
+    <headBox/>
     <div class="contentBox">
         <h2>{{ $t('contact.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin:8px 0;" />
@@ -36,6 +37,7 @@
 </template>
 
 <script>
+import headBox from './../common/headBoxForChild'
 export default {
   name: 'contactBox',
   data () {
@@ -83,6 +85,9 @@ export default {
         ]
       }
     }
+  },
+  components: {
+    headBox
   },
   mounted() {
     this.$nextTick(function(){        //加载时判断是否登录,如登录则获取contactList
@@ -157,9 +162,11 @@ export default {
 <style scoped>
 .contactBox{
     float: left;
-    height: calc(100% - 106px);
+    height: calc(100% - 56px);
     width: 100%;
     overflow: hidden;
+    background: #FFFFFF;
+    z-index: 2;
 }
 .headBox{
     height: 56px;
@@ -167,7 +174,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

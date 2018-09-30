@@ -1,33 +1,25 @@
 <template>
-  <div class="receiveForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+  <div class="receiveForm">
+    <div class="headBox">
+      <div class="header-button is-left">
+        <i @click="$router.go(-1)" class="el-icon-ETH-fanhui"></i>
+      </div>
+      <h1>收款</h1>
+      <div class="header-button is-right"></div>
+    </div>
     <div class="contentBox">
-        <h2>{{ $t('receive.title') }}</h2>
+        <div class="QRCodeBox QRCodeBox-white">
+            <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
+            <p>钱包地址二维码</p>
+        </div>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <el-tabs type="border-card" style="width: 100%;max-width: 440px;" :stretch='true'>
-            <el-tab-pane :label="$t('receive.chain')">
-                <template v-if="$store.state.vuexStore.baseChain == 'ETH'">
-                    <div class="QRCodeBox QRCodeBox-white">
-                        <h3>{{ $t('receive.receiveAddress') }}</h3>
-                        <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
-                        <p v-text="this.$store.state.vuexStore.walletInfo.address"></p>
-                    </div>
-                    <el-input id="receiveAddress" placeholder="Address" v-model="this.$store.state.vuexStore.walletInfo.address" readonly=readonly>
-                        <el-button class="btncopy" data-clipboard-target="#receiveAddress" @click="copyfun()" slot="append" icon="el-icon-share">{{ $t('receive.copy') }}</el-button>
-                    </el-input>
-                </template>
-                <template v-if="$store.state.vuexStore.baseChain == 'NEO'">
-                    <div class="QRCodeBox QRCodeBox-white">
-                        <h3>{{ $t('receive.receiveAddress') }}</h3>
-                        <qriously :value="this.$store.state.vuexStore.NEOwalletInfo.address" level="H" :size="210" />
-                        <p v-text="this.$store.state.vuexStore.NEOwalletInfo.address"></p>
-                    </div>
-                    <el-input id="receiveAddress1" placeholder="Address" v-model="this.$store.state.vuexStore.NEOwalletInfo.address" readonly=readonly>
-                        <el-button class="btncopy" data-clipboard-target="#receiveAddress1" @click="copyfun()" slot="append" icon="el-icon-share">{{ $t('receive.copy') }}</el-button>
-                    </el-input>
-                </template>
-            </el-tab-pane>
-            <el-tab-pane :label="$t('receive.channel')">
-                <el-form v-if="!isPaymentCodeBoxShow" :model="paymentCodeForm" status-icon :rules="paymentCodeRules" ref="paymentCodeForm" label-width="82px" class="demo-ruleForm" style="text-align:center;">
+        <p>钱包地址</p>
+        <h3 id="receiveAddress">{{ $store.state.vuexStore.walletInfo.address }}</h3>
+        <div style="text-align:center;">
+            <el-button data-clipboard-target="#receiveAddress" @click="copyfun()" type="primary" class="btncopy">{{ $t('receive.copy') }}</el-button>
+        </div>
+ 
+                <!-- <el-form v-if="!isPaymentCodeBoxShow" :model="paymentCodeForm" status-icon :rules="paymentCodeRules" ref="paymentCodeForm" label-width="82px" class="demo-ruleForm" style="text-align:center;">
                     <el-form-item :label="$t('receive.amount')" prop="amount">
                         <el-input type="number" v-model.number="paymentCodeForm.amount" auto-complete="off"></el-input>
                     </el-form-item>
@@ -49,9 +41,8 @@
                     <el-input id="receivePaymentCode" placeholder="Receive Payment Code" v-model="paymentCodeForm.Code">
                         <el-button class="btncopy" data-clipboard-target="#receivePaymentCode" @click="copyfun()" slot="append" icon="el-icon-search">{{ $t('receive.copy') }}</el-button>
                     </el-input>
-                </div>
-            </el-tab-pane>
-        </el-tabs>
+                </div> -->
+
     </div>
   </div>
 </template>
@@ -214,21 +205,42 @@ export default {
     height: calc(100% - 106px);
     width: 100%;
     overflow: hidden;
+    background: #FFFFFF;
+    z-index: 3;
 }
 .headBox{
     height: 56px;
     width: 100%;
     background-color: rgb(67, 74, 80);
+    padding: 15px 20px;
+    box-sizing: border-box;
+    display: flex;
+    color: #FFFFFF;
+    padding: 0 20px;
+}
+.header-button{
+    flex: .5;
+    width: 100%;
+    max-width: 70px;
+    font-size: 26px;
+    height: 56px;
+    line-height: 56px;
+}
+h1{
+    font-size: 18px;
+    font-weight: 400;
+    margin: 0;
+    text-align: center;
+    line-height: 56px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .contentBox{
     height: 100%;
     width: 100%;
-    padding: 30px;
+    padding: 40px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 .QRCodeBox{
     padding: 8px 16px;
@@ -238,9 +250,9 @@ h2{
     text-align: center;
     box-sizing: border-box;
 }
-.QRCodeBox-white{
+/* .QRCodeBox-white{
     background-color: #F2F6FC;
-}
+} */
 .QRCodeBox h3{
     display: inline-block;
     font-size: 18px;
@@ -251,13 +263,20 @@ h2{
 .QRCodeBox p{
     font-size: 16px;
 }
-.fullPage{
-    width: 100% !important;
+h3{
+    font-size: 20px;
+    font-weight: 400;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow: hidden;
+}
+.btncopy{
+    width: 180px;
 }
 /* 手机端改变某些字体大小 */
 @media screen and (max-width: 450px) {
     .QRCodeBox p{
-        font-size: 10px;
+        font-size: 12px;
     }
 }
 </style>

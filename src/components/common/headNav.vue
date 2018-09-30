@@ -42,17 +42,6 @@
                         <i :class="classObject"></i>
                         <span>{{$t('navMenu.setting.switchLang')}}</span>
                     </el-menu-item>
-                    <!-- <el-menu-item @click="switchNet()" index="3-2" style="position: relative;">
-                        <template slot="title">
-                            <i class="el-icon-ETH-wangluo"></i>
-                            <span>{{$t('navMenu.setting.switchNet')}}
-                                <p v-if="!$store.state.vuexStore.isTestNet" style="position: absolute;color: #C0C4CC;font-size: 10px;margin: 0;top: 0;right: 40px;" active-color="#F8D163">MainNet
-                                </p>
-                                <p v-if="$store.state.vuexStore.isTestNet" style="position: absolute;color: #C0C4CC;font-size: 10px;margin: 0;top: 0;right: 40px;" active-color="#F8D163">Ropsten TsetNet 
-                                </p>
-                            </span>
-                        </template>
-                    </el-menu-item> -->
                     <el-submenu index="3-2">
                         <template slot="title">
                             <i class="el-icon-ETH-wangluo"></i>
@@ -177,6 +166,9 @@ export default {
   mounted() {
     this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
         let _this = this;
+        if(!_this.$store.state.vuexStore.isLogin){                                          // 当未登录时,都跳转到开始界面
+            _this.$router.push('/start');
+        }
         _this.getConfig();                                  //获取配置文件信息
         _this.isNightMode = _this.$parent.fetchAsString("isNightMode");                                     //获取夜间主题
         if(window.screen.width < 1024){
@@ -209,10 +201,6 @@ export default {
                 _this.$store.state.vuexStore.gasPrice = parseInt(_this.$parent.fetchAsString("gasPrice"));
             }
         })
-        if(!_this.$store.state.vuexStore.isLogin){                                          // 当未登录时,都跳转到开始界面
-            _this.$router.push('/start');
-        }
-
     })
   },
   methods: {
@@ -316,9 +304,18 @@ export default {
         this.gasPrice = this.$store.state.vuexStore.gasPrice.div(10e8);
     },
     async testFun() {
-        let a = randomBytes(32);
-        let b = a.length;
-        console.log(b + "____" + a);
+        let a = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
+        let b = [
+            "0xe4273e7da20ca93aa2b9741bc04d1af202f782cd320dbe6721522aaffad60dbf",
+            4,
+            "0xDd1C2C608047Bd98962Abf15f9f074620f9d44bf",
+            18940000000000,
+            "0x5Bfd211746336C5720AB09e56a8815c40e13D78d",
+            19060000000000,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ]
+        this.$parent.ecSignForTrinityContract(a,b,123);
     },
     async test1Fun() {      //用于测试
         let _this = this;
@@ -381,9 +378,10 @@ export default {
             }
             this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
             let Message1 = {
-                "messageType":"monitorEthAddress",
+                "messageType":"monitorAddress",
                 "walletAddress": this.$store.state.vuexStore.walletInfo.address,
                 "playload": this.$store.state.vuexStore.walletInfo.address,
+                "chainType":"ETH",
                 "comments":{}
             }
             this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //向全节点请求监听到账信息

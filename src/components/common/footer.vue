@@ -1,32 +1,61 @@
 <template>
-    <footer v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'" class="footer">
-        <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-demo" mode="horizontal">
-            <el-menu-item index="1-1">
-                <router-link to="/" class="clearfloat">
-                    <span><i class="el-icon-ETH-geren1"></i></span>
-                    <span>{{ $t('navMenu.wallet.index') }}</span>
-                </router-link>
-            </el-menu-item>
-            <el-menu-item index="1-2">
-                <router-link to="/receive" class="clearfloat">
-                    <span><i class="el-icon-ETH-zhuanzhang"></i></span>
-                    <span>{{ $t('navMenu.wallet.receive') }}</span>
-                </router-link>
-            </el-menu-item>
-            <el-menu-item index="1-3">
-                <router-link to="/channelList" class="clearfloat">
-                    <span><i class="el-icon-ETH-list"></i></span>
-                    <span>{{ $t('navMenu.wallet.channelList') }}</span>
-                </router-link>
-            </el-menu-item>
-            <el-menu-item index="1-4">
-                <router-link to="/record" class="clearfloat">
-                    <span><i class="el-icon-ETH-dujiayuniconzhenggao-19"></i></span>
-                    <span>{{ $t('navMenu.wallet.record') }}</span>
-                </router-link>
-            </el-menu-item>
-        </el-menu>
-    </footer>
+    <div>
+        <!-- <footer style="display:none;" v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'" class="footer">
+            <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-demo" mode="horizontal">
+                <el-menu-item index="1-1">
+                    <router-link to="/" class="clearfloat">
+                        <span><i class="el-icon-ETH-geren1"></i></span>
+                        <span>{{ $t('navMenu.wallet.index') }}</span>
+                    </router-link>
+                </el-menu-item>
+                <el-menu-item index="1-2">
+                    <router-link to="/receive" class="clearfloat">
+                        <span><i class="el-icon-ETH-zhuanzhang"></i></span>
+                        <span>{{ $t('navMenu.wallet.receive') }}</span>
+                    </router-link>
+                </el-menu-item>
+                <el-menu-item index="1-3">
+                    <router-link to="/channelList" class="clearfloat">
+                        <span><i class="el-icon-ETH-list"></i></span>
+                        <span>{{ $t('navMenu.wallet.channelList') }}</span>
+                    </router-link>
+                </el-menu-item>
+                <el-menu-item index="1-4">
+                    <router-link to="/record" class="clearfloat">
+                        <span><i class="el-icon-ETH-dujiayuniconzhenggao-19"></i></span>
+                        <span>{{ $t('navMenu.wallet.record') }}</span>
+                    </router-link>
+                </el-menu-item>
+            </el-menu>
+        </footer> -->
+        <div class="tabbar" v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'">
+            <div v-for="(item, index) in tabbarList" :key="index" style="flex: 1;">
+                <a @click.stop="selectItems(index,item.router)" v-if="index != 2 && index != 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
+                    <div class="tab-item-icon">
+                        <i :class="item.icon"></i>
+                    </div>
+                    <div class="tab-item-label">
+                        {{ item.name }}
+                    </div>
+                </a>
+                <a @click.stop="selectItems(index,item.router)" v-if="index == 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
+                    <el-badge  :value="3" :max="99" class="item">
+                        <div class="tab-item-icon">
+                            <i :class="item.icon"></i>
+                        </div>
+                        <div class="tab-item-label">
+                            {{ item.name }}
+                        </div>
+                    </el-badge>
+                </a>
+                <a @click.stop="showChannelForm()" v-if="index == 2" class="tab-item">
+                    <div class="logoBox">
+                        <img src="./../../assets/img/Trinity.png" alt="Trinity">
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -34,33 +63,37 @@ export default {
   name: 'footerBox',
   data () {
     return {
-        FooterList:[
+        tabbarList:[
             {
-                index: "1-1",
-                icon: "el-icon-ETH-geren1",
-                name: this.$t('navMenu.wallet.index'),
-                router: "/"
+                index: "0",
+                icon: "el-icon-ETH-qianbao",
+                name: "钱包",
+                router: "/wallet"
             },
             {
-                index: "1-2",
-                icon: "el-icon-ETH-zhuanzhang",
-                name: "Receive",
-                router: "/receive"
+                index: "1",
+                icon: "el-icon-ETH-comment",
+                name: "消息",
+                router: "/message"
             },
             {
-                index: "1-3",
-                icon: "el-icon-ETH-list",
-                name: "Channel",
-                router: "/channelList"
+                index: "2",
+                icon: "./../../assets/img/Trinity.png"
             },
             {
-                index: "1-4",
-                icon: "el-icon-ETH-dujiayuniconzhenggao-19",
-                name: "Record",
-                router: "/record"
+                index: "3",
+                icon: "el-icon-ETH-discover",
+                name: "发现",
+                router: "/discover"
+            },
+            {
+                index: "4",
+                icon: "el-icon-ETH-wode",
+                name: "我的",
+                router: "/setting"
             }
         ],
-        navSelected: "1-1"
+        tabbarSelected: 0
     }
   },
   mounted() {
@@ -69,17 +102,17 @@ export default {
     })
   },
   watch: {
-    '$store.state.vuexStore.activeNavIndex': 'storeToFooter'            // 监测store中的activeNavIndex
+    
   },
   methods:{
-    selectItems(index){
-        this.$store.state.vuexStore.activeNavIndex = index;        //Nav选中之后设置store里的值为当前的index。
+    selectItems(index,router){
+        this.tabbarSelected = index;        //Nav选中之后设置store里的值为当前的index。
+        this.$router.push(router);
         // console.log(this.$store.state.vuexStore.activeNavIndex);
     },
-    storeToFooter() {
-        this.navSelected = this.$store.state.vuexStore.activeNavIndex;
-        //store.state.adminleftnavnum里值变化的时候，设置navSelected
-    },
+    showChannelForm() {
+        this.$store.state.vuexStore.isChannelFormShow = true;
+    }
   }
 }
 </script>
@@ -102,11 +135,11 @@ ul {
   width: 100%;
   height: 100%;
   margin: 0;
-  box-sizing: border-box;
+  display: flex;
   /* border-top: 1px solid RGBA(183, 183, 184, 1.00); */
 }
 li {
-    width: 25%;
+    flex: 1;
     height: 100%;
 }
 a{
@@ -120,9 +153,14 @@ a{
     box-sizing: border-box;
     /* padding: 8px 0; */
 }
-span{
+.logoBox{
     display: block;
     font-size: 10px;
+    text-align: center;
+}
+.logoBox img{
+    margin: 2px 0 4px;
+    width: 38px;
 }
 [class^="el-icon-ETH"], [class*=" el-icon-ETH"] {
     font-size: 21px;
@@ -136,5 +174,58 @@ span{
 }
 .fullPage{
     width: 100% !important;
+}
+.tabbar{
+    height: 55px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    z-index: 1;
+    display: flex;
+    background: RGBA(255, 255, 255, 0.93);
+    border-top: 1px solid #CCCCCC;
+}
+.tab-item{
+    display: block;
+    padding: 7px 0;
+    text-decoration: none;
+    cursor: pointer;
+}
+.tabbar>div>.tab-item.is-selected {
+    color: #000000;
+}
+.tab-item-icon{
+    width: 24px;
+    height: 24px;
+    margin: 0 auto 5px;
+}
+.tab-item-label {
+    color: inherit;
+    font-size: 12px;
+    line-height: 1;
+}
+@keyframes antzone {
+    0% {
+        transform: none;
+    }
+    15% {
+        transform: translate3d(-25%,0,0) rotate3d(0,0,1,-5deg);
+    }
+    30% {
+        transform: translate3d(20%,0,0) rotate3d(0,0,1,3deg);
+    }
+    45% {
+        transform: translate3d(-15%,0,0) rotate3d(0,0,1,-3deg);
+    }
+    60% {
+        transform: translate3d(10%,0,0) rotate3d(0,0,1,2deg);
+    }
+    75% {
+        transform: translate3d(-5%,0,0) rotate3d(0,0,1,-1deg);
+    }
+    100% {
+        transform: none;
+    }
 }
 </style>

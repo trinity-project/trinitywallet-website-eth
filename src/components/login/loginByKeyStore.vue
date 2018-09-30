@@ -1,5 +1,6 @@
 <template>
-  <div class="loginByKeyStoreForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+  <div class="loginByKeyStoreForm">
+    <headBox/>
     <div class="contentBox loginByKeyStoreContentBox">
         <h2>{{ $t('loginByKeyStore.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -20,6 +21,7 @@
 </template>
 
 <script>
+import headBox from './../common/headBoxForChild'
 export default {
   name: 'loginByKeyStoreForm',
   data () {
@@ -33,6 +35,9 @@ export default {
     this.$nextTick(function(){
 
     })
+  },
+  components: {
+    headBox
   },
   methods: {
     handleChange(file, fileList) {          //获取上传的文件信息
@@ -125,7 +130,7 @@ export default {
 
             let privateKey1 = new Buffer(decryptPK.privateKey.substring(2),'hex');
             let privateKey = privateKey1.toString('hex')
-            // console.log(privateKey);
+            console.log(privateKey);
 
             let address = web3.eth.accounts.privateKeyToAccount('0x' + privateKey).address;
             address = web3.utils.toChecksumAddress(address);        //转化为校验和地址
@@ -145,7 +150,7 @@ export default {
                     duration: 3000,
                     type: 'success'
                 });
-                this.$router.push('/');         //跳转到首页
+                this.$router.push('/wallet');         //跳转到首页
                 this.$store.state.vuexStore.activeNavIndex = "1-1";
             } else {
                 this.$notify.error({
@@ -191,7 +196,7 @@ export default {
             });
             this.keyStoreContent = '';      //清空数据
             this.keyStorePass = '';
-            this.$router.push('/');         //跳转到首页
+            this.$router.push('/wallet');         //跳转到首页
             this.$store.state.vuexStore.activeNavIndex = "1-1";
         }
     }
@@ -203,7 +208,7 @@ export default {
 <style scoped>
 .loginByKeyStoreForm{
     float: left;
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     overflow: hidden;
 }
@@ -213,7 +218,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: calc(100% - 56px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

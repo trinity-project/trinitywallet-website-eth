@@ -1,5 +1,12 @@
 <template>
   <div class="startForm">
+    <div class="headBox">
+      <div class="header-button is-left">
+      </div>
+      <h1></h1>
+      <div class="header-button is-right" style="text-align:right;">
+      </div>
+    </div>
     <div class="contentBox">
         <div>
             <div class="chainIconBox" style="">
@@ -105,7 +112,7 @@ export default {
 <style scoped>
 .startForm{
     float: left;
-    height: calc(100% - 56px);
+    height: 100%;
     width: 100%;
     overflow: hidden;
 }

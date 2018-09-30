@@ -6,15 +6,51 @@
     <title>Trinity Wallet - ETH</title>
     <link rel="shortcut icon" href="./static/favicon.ico">
     <link rel="stylesheet" type="text/css" href="./static/css/normalize.css">
+    <style type="text/css">
+      #Loading {
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        -webkit-transform: translateY(-50%) translateX(-50%);
+        transform: translateY(-50%) translateX(-50%);
+        z-index: 100;
+        text-align: center;
+      }
+      #Loading img{
+        width: 120px;
+        transform: rotate(0);
+        animation: rotating 9s linear infinite;
+        transform-origin: 50.7% 55.7%;
+      }
+      #Loading h1{
+        font-size: 24px;
+      }
+      @keyframes rotating{
+      0% {transform:rotate(0);}
+      16% {transform:rotate(120deg);}
+      33% {transform:rotate(120deg);}
+      49% {transform:rotate(240deg);}
+      66% {transform:rotate(240deg);}
+      83% {transform:rotate(360deg);}
+      100% {transform:rotate(360deg);}
+      }
+
+    </style>
   </head>
   <body>
+    <div id="Loading">
+      <div class="loader-inner ball-beat">
+        <img src="./static/Trinity.png" alt="Trinity">
+        <h1>Trinity</h1>
+      </div>
+    </div>
     <div id="app"></div>
     <!-- built files will be auto injected -->
     <script src="./static/js/bundle.js"></script>
     <script src="./static/js/clipboard.min.js"></script>     <!-- 复制 -->
     <script src="./static/js/FileSaver.min.js"></script>     <!-- 导出json -->
     <script src="./static/js/web3.min.js"></script>        <!-- web3 v1.0.0 -->
-
+    <script src="./static/js/fastclick.js"></script>       <!--  移除移动端300ms延迟 -->
     <script src="./static/js/neo/bundle.js"></script>        <!-- NEO -->
     <script src="./static/js/neo/scrypt.js"></script>        <!-- NEO -->
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>     <!-- NEO所需的AXIOS -->
@@ -34,12 +70,12 @@
       //除法函数，用来得到精确的除法结果
       function accDiv(arg1,arg2){
         var t1=0,t2=0,r1,r2;
-        try{t1=arg1.toString().split(".")[1].length}catch(e){}
-        try{t2=arg2.toString().split(".")[1].length}catch(e){}
-        with(Math){
-        r1=Number(arg1.toString().replace(".",""))
-        r2=Number(arg2.toString().replace(".",""))
-        return (r1/r2)*pow(10,t2-t1);
+          try{t1=arg1.toString().split(".")[1].length}catch(e){}
+          try{t2=arg2.toString().split(".")[1].length}catch(e){}
+          with(Math){
+          r1=Number(arg1.toString().replace(".",""))
+          r2=Number(arg2.toString().replace(".",""))
+          return (r1/r2)*pow(10,t2-t1);
         }
       }
       //给Number类型增加一个div方法，调用起来更加方便。

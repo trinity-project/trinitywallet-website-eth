@@ -1,5 +1,6 @@
 <template>
-  <div class="changePasswordForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+  <div class="changePasswordForm">
+    <headBox/>
     <div class="contentBox">
         <h2>{{ $t('changePassword.title') }}</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
@@ -22,6 +23,7 @@
 </template>
 
 <script>
+import headBox from './../common/headBoxForChild'
 export default {
   name: 'changePasswordForm',
   data () {
@@ -77,6 +79,9 @@ export default {
         }
     }
   },
+  components: {
+    headBox
+  },
   mounted() {
     this.$nextTick(function(){
         
@@ -128,9 +133,11 @@ export default {
 <style scoped>
 .changePasswordForm{
     float: left;
-    height: calc(100% - 106px);
+    height: calc(100% - 56px);
     width: 100%;
     overflow: hidden;
+    background: #FFFFFF;
+    z-index: 2;
 }
 .contentBox{
     height: 100%;

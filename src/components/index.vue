@@ -1,53 +1,43 @@
 <template>
-  <div class="indexBox" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
-    <div class="assetBox" :class="{ showMoreAssetBox_active :isShowMoreAsset}">
-      <div style="position: absolute;top: calc(25vh - 108px);right: 30px;" class="amountBox">
+  <div class="indexBox">
+    <div class="headBox">
+      <div class="header-button is-left">
+        <i @click.stop="$store.state.vuexStore.isNavShow = !$store.state.vuexStore.isNavShow" class="listIcon el-icon-ETH-liebiao"></i>
+      </div>
+      <h1></h1>
+      <div class="header-button is-right" style="text-align:right;">
+        <i class="notificationIcon el-icon-ETH-saoyisao"></i>
+      </div>
+    </div>
+    <div class="assetBox">
+      <div class="amountBox">
         <h3>TNC</h3>
         <h1>{{ $store.state.vuexStore.balanceData.Chain.TNC }}</h1>
       </div>
-      <el-collapse-transition>
-        <div v-show="isShowMoreAsset" style="position: absolute;width: 100%;bottom: 0px;">
-          <table class="assetTable">
-            <thead>
-              <tr>
-                <th>{{ $t('index.assetType') }}</th>
-                <th>{{ $t('index.balanceOnChain') }}</th>
-                <th>{{ $t('index.balanceOnChannel') }}</th>
-              </tr>
-            </thead>
-            <tbody v-if="$store.state.vuexStore.baseChain == 'ETH'">
-              <tr>
-                <td>TNC</td>
-                <td>{{ balanceData.Chain.TNC }}</td>
-                <td>{{ balanceData.Channel.TNC }}</td>
-              </tr>
-              <tr>
-                <td>ETH</td>
-                <td>{{ balanceData.Chain.ETH }}</td>
-                <td>{{ balanceData.Channel.ETH }}</td>
-              </tr>
-            </tbody>
-            <tbody v-if="$store.state.vuexStore.baseChain == 'NEO'">
-              <tr>
-                <td>TNC</td>
-                <td>{{ balanceData.Chain.TNC }}</td>
-                <td>{{ balanceData.Channel.TNC }}</td>
-              </tr>
-              <tr>
-                <td>NEO</td>
-                <td>{{ balanceData.Chain.NEO }}</td>
-                <td>{{ balanceData.Channel.NEO }}</td>
-              </tr>
-              <tr>
-                <td>GAS</td>
-                <td>{{ balanceData.Chain.GAS }}</td>
-                <td>{{ balanceData.Channel.GAS }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </el-collapse-transition>
-      <el-button @click="showMoreAsset()" :class="{ showMoreAssetBtn_active :isShowMoreAsset}" class="showMoreAssetBtn" type="primary" icon="el-icon-arrow-down" circle></el-button>
+      <div class="addressBox">
+        <el-row :gutter="20">
+          <el-col :span="8" style="border-right: 1px solid #FFFFFF;">
+            链上资产
+          </el-col>
+          <el-col :span="16">
+            <router-link to="/chain/receive1">
+              <i class="el-icon-ETH-erweima"></i>
+              {{ $store.state.vuexStore.walletInfo.address | formatAddress }}
+            </router-link>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
+    <div class="content1Box">
+      <ul>
+        <li @click="toAssetForm(item.name)" v-for="(item,index) in assetList" :key="index">
+          <div class="assetIcon">
+            <img :style="{ marginLeft : item.iconStyle}" src="./../assets/img/assetIcon.png" alt="">
+          </div>
+          <span>{{ item.name }}</span>
+          <span>{{ balanceData.Chain[item.name] }}</span>
+        </li>
+      </ul>
     </div>
     <div class="contentBox">
         <h2>{{ $t('index.title') }}</h2>
@@ -61,7 +51,7 @@
               </el-option>
             </el-select>
           <el-form-item style="margin-top:10px">
-            <el-input type="textarea" v-model.trim="paymentCode"></el-input>
+            <el-input type="textarea" rows="3" v-model.trim="paymentCode"></el-input>
           </el-form-item>
           <el-form-item style="text-align:center;">
             <el-button class="transferBtn" type="primary" @click="decryptPaymentCode()">{{ $t('index.transfer') }}</el-button>
@@ -177,7 +167,6 @@ export default {
       }
     };
     return {
-        isShowMoreAsset: false,     //是否显示更多资产
         paymentCode: '',        //PaymentCode
         txOnChainInfo: {        //链上转账信息
           "address": '',
@@ -218,12 +207,33 @@ export default {
         },
         ShowTxOnChainBox: false,    //是否显示链上转账窗口
         ShowTxOnChannelBox: false,      //是否显示通道转账窗口
-        contact: ''     //当前选中联系人
+        contact: '',     //当前选中联系人,
+        assetList: [
+          {
+            name: "TNC",
+            iconStyle: "-53px"
+          },
+          {
+            name: "ETH",
+            iconStyle: "-25px"
+          },
+          {
+            name: "NEO",
+            iconStyle: "3px"
+          }
+        ]
     }
   },
   computed: {
     balanceData() {
         return this.$store.state.vuexStore.balanceData;
+    }
+  },
+  filters:{
+    formatAddress:function(val){
+        var address;
+        address = val.replace(/(.{10}).*(.{10})/,"$1......$2");
+        return address;
     }
   },
   mounted() {
@@ -238,9 +248,10 @@ export default {
   watch: {
 
   },
-  methods: {  
-    showMoreAsset() {   //切换显示资产详情
-      this.isShowMoreAsset = !this.isShowMoreAsset;
+  methods: {
+    toAssetForm(assetType) {           //跳转到资产页面
+      this.$router.push('/wallet/asset');
+      this.$store.state.vuexStore.activeAssetInfo.assetType = assetType;
     },
     decryptPaymentCode() {    //解析Payment Code
       let _this = this;
@@ -799,82 +810,95 @@ export default {
 <style scoped>
 .indexBox{
   float: left;
-  height: calc(100% - 106px);
+  height: 100%;
   width: 100%;
   overflow: hidden;
 }
 .assetBox{
-  height: 25vh;
+  height: 200px;
   width: 100%;
   background-color: rgb(67, 74, 80);
   position: relative;
-  transition: 0.4s;
 }
-.showMoreAssetBox_active{
-  height: 45vh;
+.amountBox{
+  position: absolute;
+  bottom: 16px;
+  right: 30px;
+  color: #FFFFFF;
+}
+.addressBox{
+  color: #FFFFFF;
+  height: 30px;
+  padding: 5px 0;
+  text-align: center;
+  line-height: 20px;
+  box-sizing: border-box;
+  position: absolute;
+  bottom: 0px;
+  left: 0;
+  right: 0;
+}
+.addressBox a{
+  color:#FFFFFF;
+  font-size: 10px;
+}
+.addressBox i{
+  font-size: 14px;
 }
 .assetBox h1{
   font-size: 50px;
   text-align: center;
   font-weight: 300;
   margin: 20px 0;
-  color: #FFFFFF;
 }
 .assetBox h3{
   font-size: 39px;
   text-align: right;
   font-weight: 400;
   margin: -17px 0;
-  color: #FFFFFF;
 }
-.assetBox .showMoreAssetBtn{
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  margin-left: -20px;
-  z-index: 2;
-  transition: 0.3s;
-}
-.assetBox .showMoreAssetBtn_active{
-  transform: rotate(180deg);
-}
-.assetBox .assetTable{
-  width: 100%;
-  background-color:transparent;
-  /* height: 192px; */
-  color: #CCCCCC;
-  padding-bottom: 20px;
-}
-.assetTable th {
-  border-bottom: 1px solid #ebeef5;
-  user-select: none;
-  padding: 12px 0;
-  min-width: 0;
-  box-sizing: border-box;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  font-size: 14px;
-}
-.assetTable td {
-  border-bottom: 1px solid #ebeef5;
-  user-select: none;
-  padding: 12px 0;
-  min-width: 0;
-  text-align: center;
-  box-sizing: border-box;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  font-size: 14px;
-}
-.assetTable tr:last-child td{
-  border-bottom: 0px;
-}
+
 .contentBox{
   height: calc(100vh - 340px);
   width: 100%;
   padding: 30px;
   box-sizing: border-box;
   transition: 1s;
+}
+.content1Box{
+  height: calc(100% - 256px);
+  width: 100%;
+  box-sizing: border-box;
+  transition: 1s;
+  overflow-x: hidden;
+}
+.content1Box li {
+  height: 100px;
+  padding: 0 20px;
+  border-bottom: 2px dotted #EBEEF5;
+}
+.content1Box li:hover {
+  background-color: #E5E5E5;
+}
+.content1Box li .assetIcon{
+  height: 100px;
+  width: 28px;
+  overflow: hidden;
+  float: left;
+}
+.assetIcon img{
+  height: 28px;
+  margin: 36px 0;
+}
+.content1Box li span{
+  line-height: 100px;
+  font-size: 20px;
+  margin-left: 10px; 
+  float: left;
+}
+.content1Box li span:nth-child(3){
+  float: right;
+  font-size: 24px;
 }
 h2{
   margin: 0;
@@ -886,9 +910,6 @@ h2{
 .transferBtn{
   width: 100%;
   max-width: 300px;
-}
-.fullPage{
-    width: 100% !important;
 }
 .txOnChannelBox .el-dialog__body span{
   display: block;

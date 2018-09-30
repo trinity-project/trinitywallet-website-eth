@@ -1,10 +1,11 @@
 <template>
-  <div class="aboutForm" :class="{ fullPage: !$store.state.vuexStore.isNavShow }">
+  <div class="aboutForm">
+    <headBox/>
     <div class="contentBox">
         <h2>关于我们</h2>
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <div style="text-align:center;">
-            <img src="./../assets/img/Trinity.png" alt="Trinity">
+            <img @click="clickNum += 1" src="./../../assets/img/Trinity.png" alt="Trinity">
             <h4>Trinity Wallet for ETH</h4>
             <p>Version: V{{ $store.state.vuexStore.version }}</p>
         </div>
@@ -17,11 +18,23 @@
 </template>
 
 <script>
+import headBox from './../common/headBoxForChild'
 export default {
   name: 'aboutForm',
   data () {
     return {
-
+        clickNum: 0
+    }
+  },
+  components: {
+    headBox
+  },
+  watch: {
+    clickNum(newValue, oldValue) { 
+        console.log(newValue);
+        if(newValue > 4){
+            console.log('切换主网/测试网')
+        }
     }
   },
   filters:{
@@ -37,9 +50,11 @@ export default {
 <style scoped>
 .aboutForm{
     float: left;
-    height: calc(100% - 106px);
+    height: calc(100% - 56px);
     width: 100%;
     overflow: hidden;
+    background: #FFFFFF;
+    z-index: 2;
 }
 .headBox{
     height: 56px;
@@ -47,7 +62,7 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
@@ -60,7 +75,7 @@ h4{
     font-size: 16px;
 }
 img{
-    width: 130px;
+    width: 120px;
 }
 p{
     font-size: 16px;

@@ -8,6 +8,7 @@ export default {
     activeNavIndex: '1-1',          //当前active Nav
     isNavShow: true,                //Nav显示
     isMessageBoxShow: false,        //MessageBox显示
+    isChannelFormShow: false,       //通道页面显示
     NetMagic: "195378745719990331", //网络magic
     gasPrice: 5000000000,           //Gas Price倍数
     NodeUriWebSocketIp: "ws://47.104.81.20:9000", //全节点websocket IP
@@ -37,6 +38,9 @@ export default {
         "NEO": 0,
         "GAS": 0
       }
+    },
+    activeAssetInfo: {          //当前显示的资产页面
+      assetType: "",
     },
     addChannelInfo: [],         //添加通道信息
     txOnChannelInfo: [],        //通道转账信息

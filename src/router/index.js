@@ -1,18 +1,33 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+
 import index from '@/components/index'
-import startForm from '@/components/start'
-import createForm from '@/components/create'
-import loginByPrivateKeyForm from '@/components/loginByPrivateKey'
-import loginByKeyStoreForm from '@/components/loginByKeyStore'
-import BackupForm from '@/components/backup'
-import contactForm from '@/components/contact'
+import messageForm from '@/components/common/message'
+import discoverForm from '@/components/common/discover'
+import settingForm from '@/components/common/setting'
+import assetForm from '@/components/asset'
 import receiveForm from '@/components/receive'
-import addChannelForm from '@/components/addChannel'
-import channelListForm from '@/components/channelList'
 import recordForm from '@/components/record'
-import aboutForm from '@/components/about'
-import changePasswordForm from '@/components/changePassword'
+
+import startForm from '@/components/login/start'
+import createForm from '@/components/login/create'
+import loginByPrivateKeyForm from '@/components/login/loginByPrivateKey'
+import loginByKeyStoreForm from '@/components/login/loginByKeyStore'
+
+import receive1Form from '@/components/chain/receive1'
+import transferOnChainForm from '@/components/chain/transferOnChain'
+
+import addChannelForm from '@/components/channel/addChannel'
+import channelListForm from '@/components/channel/channelList'
+import channelInfoForm from '@/components/channel/channelInfo'
+import paymentForm from '@/components/channel/payment'
+
+import BackupForm from '@/components/setting/backup'
+import contactForm from '@/components/setting/contact'
+import changePasswordForm from '@/components/setting/changePassword'
+import languageForm from '@/components/setting/language'
+import aboutForm from '@/components/setting/about'
+
 
 Vue.use(Router)
 
@@ -23,24 +38,44 @@ export default new Router({
   // }),
   routes: [
     {
-      path: '/',
+      path: '/wallet',
       name: 'index',
-      component: index
+      component: index,
+      meta: {
+        index: 0
+      }, //meta对象的index用来定义当前路由的层级,由小到大,由低到高
     },
     {
-      path: '/backup',
-      name: 'BackupForm',
-      component: BackupForm
+      path: '/message',
+      name: 'message',
+      component: messageForm,
+      meta: {
+        index: 0
+      },
     },
     {
-      path: '/contact',
-      name: 'contactForm',
-      component: contactForm
+      path: '/discover',
+      name: 'discover',
+      component: discoverForm,
+      meta: {
+        index: 0
+      },
+    },
+    {
+      path: '/setting',
+      name: 'setting',
+      component: settingForm,
+      meta: {
+        index: 0
+      },
     },
     {
       path: '/receive',
       name: 'receiveForm',
-      component: receiveForm
+      component: receiveForm,
+      meta: {
+        index: 1
+      },
     },
     {
       path: '/start',
@@ -68,14 +103,12 @@ export default new Router({
       component: addChannelForm
     },
     {
-      path: '/about',
-      name: 'aboutForm',
-      component: aboutForm
-    },
-    {
       path: '/channelList',
       name: 'channelListForm',
-      component: channelListForm
+      component: channelListForm,
+      meta: {
+        index: 1
+      },
     },
     {
       path: '/record',
@@ -83,10 +116,95 @@ export default new Router({
       component: recordForm
     },
     {
-      path: '/changePassword',
+      path: '/wallet/asset',
+      name: 'asset',
+      component: assetForm,
+      meta: {
+        index: 1
+      },
+    },
+    {
+      path: '/chain/receive1',
+      name: 'receive1',
+      component: receive1Form,
+      meta: {
+        index: 2
+      },
+    },
+    {
+      path: '/chain/transfer',
+      name: 'transferOnChain',
+      component: transferOnChainForm,
+      meta: {
+        index: 1
+      },
+    },
+    {
+      path: '/channel/payment',
+      name: 'payment',
+      component: paymentForm
+    },
+    {
+      path: '/channel/channelInfo',
+      name: 'channelInfo',
+      component: channelInfoForm,
+      meta: {
+        index: 2
+      },
+      params: {
+        Data: {
+          Alice: "",
+          ChannelName : "",
+          date: "",
+          SelfUri: "",
+          SelfBalance: "",
+          OtherUri: "",
+          OtherBalance: "",
+          State: "",
+          isConnect: "",
+          isTestNet: ""
+        }
+      }
+    },
+    {
+      path: '/setting/backup',
+      name: 'BackupForm',
+      component: BackupForm,
+      meta: {
+        index: 1
+      },
+    },
+    {
+      path: '/setting/changePassword',
       name: 'changePasswordForm',
-      component: changePasswordForm
-    }
+      component: changePasswordForm,
+      meta: {
+        index: 1
+      },
+    },
+    {
+      path: '/setting/contact',
+      name: 'contactForm',
+      component: contactForm,
+      meta: {
+        index: 1
+      },
+    },
+    {
+      path: '/setting/language',
+      name: 'language',
+      component: languageForm, meta: {
+        index: 1
+      },
+    },
+    {
+      path: '/setting/about',
+      name: 'aboutForm',
+      component: aboutForm,
+      meta: {
+        index: 1
+      },
+    },
   ],
   mode: 'hash'
 })
