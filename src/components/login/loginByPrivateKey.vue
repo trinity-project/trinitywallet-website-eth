@@ -2,8 +2,8 @@
   <div class="loginByPrivateKeyForm">
     <headBox/>
     <div class="contentBox">
-        <h2>{{ $t('loginByPrivateKey.title') }}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <h2 class="title_h2">{{ $t('loginByPrivateKey.title') }}</h2>
+        <hr/>
         <el-form :model="loginByPrivateKeyForm" status-icon :rules="loginByPrivateKeyRules" ref="loginByPrivateKeyForm" label-width="80px" class="demo-ruleForm">
             <el-form-item :label="$t('loginByPrivateKey.privateKey')" prop="privateKey">
                 <el-input v-model="loginByPrivateKeyForm.privateKey"></el-input>
@@ -186,10 +186,6 @@ export default {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 .fullPage{
     width: 100% !important;

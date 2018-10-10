@@ -14,9 +14,9 @@
                 <i @click="switchNet('ETH')" :class="{ active: $store.state.vuexStore.baseChain == 'ETH' }" class="el-icon-ETH-ETH"></i>
                 <i @click="switchNet('NEO')" :class="{ active: $store.state.vuexStore.baseChain == 'NEO' }" class="el-icon-ETH-NEO"></i>
             </div>
-            <h2>{{ $t('start.title') }}</h2>
+            <h2 class="title_h2">{{ $t('start.title') }}</h2>
         </div>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <hr/>
         <div @click="toOtherForm('./create')" class="clooseLoginBox clooseLoginBox-blue">
             <h3>{{ $t('start.createWallet') }}</h3>
             <p>{{ $t('start.createWalletTxt') }}</p>
@@ -121,10 +121,6 @@ export default {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 .chainIconBox{
     height: 27px;

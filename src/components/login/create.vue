@@ -2,8 +2,8 @@
   <div class="createForm">
     <headBox/>
     <div class="contentBox">
-        <h2>{{ $t('create.title') }}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <h2 class="title_h2">{{ $t('create.title') }}</h2>
+        <hr/>
         <el-form :model="createForm" status-icon :rules="createRules" ref="createForm" label-width="92px" class="demo-ruleForm">
             <el-form-item :label="$t('create.password')" prop="pass">
               <el-input type="password" v-model="createForm.pass" auto-complete="off"></el-input>
@@ -143,10 +143,6 @@ export default {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 .PrivateKeyBox{
     padding: 8px 16px;

@@ -10,12 +10,10 @@
       </div>
     </div>
     <div class="contentBox">
-        <h2 @click.stop="signFun()" style="display: inline-block;">消息中心</h2>
         <a @click.stop="clearAll()" class="clearAllBtn">清除全部</a>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
         <ul>
             <li @click.stop="showPrivateKey()">欢迎点击消息中心</li>
-            <li>目前该功能还未投入使用</li>
+            <li @click.stop="signFun()">目前该功能还未投入使用</li>
             <li>敬请期待</li>
         </ul>  
     </div>
@@ -37,13 +35,13 @@ export default {
     clearAll() {
       console.log("清除全部");
       this.$store.state.vuexStore.channelList = [];
-      this.$parent.StoreData("channelList")
+      this.$parent.$parent.StoreData("channelList");
       this.$store.state.vuexStore.recordList = [];
-      this.$parent.StoreData("recordList")
+      this.$parent.$parent.StoreData("recordList");
       this.$store.state.vuexStore.txList = [];
-      this.$parent.StoreData("txList")
+      this.$parent.$parent.StoreData("txList");
       this.$store.state.vuexStore.eventList = [];
-      this.$parent.StoreData("eventList")
+      this.$parent.$parent.StoreData("eventList");
       return false;
     },
     signFun() {
@@ -65,7 +63,7 @@ export default {
     },
     showPrivateKey() {
       let _this = this;
-      let decryptPK = _this.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore, "123");
+      let decryptPK = _this.$parent.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore, "123");
       console.log(decryptPK.privateKey);
     }
   }
@@ -79,16 +77,14 @@ export default {
     height: 100%;
     width: 100%;
     overflow: hidden;
+    background: #F2F2F2;
+    z-index: 1; 
 }
 .contentBox{
     height: 100%;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 .content_text{
     color:#000000;
@@ -99,11 +95,10 @@ h2{
     margin:auto;
 }
 .clearAllBtn{
-    float: right;
     font-size: 13px;
-    height: 25px;
+    height: 35px;
     line-height: 25px;
-    padding: 0 10px;
+    padding: 5px 10px;
     border-radius: 50px;
     background: rgba(25, 25, 25, 1);
     cursor: pointer;
@@ -117,8 +112,8 @@ h2{
 ul li{
     height: 60px;
     margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 5px;
+    background: rgba(255, 255, 255, 1);
+    border-radius: 7px;
     padding: 10px;
     box-sizing: border-box;
     cursor: pointer;

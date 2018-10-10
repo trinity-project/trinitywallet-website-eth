@@ -90,7 +90,7 @@ export default {
     height: 100%;
     width: 100%;
     overflow: hidden;
-    background: #F0EFF4;
+    background: #F2F2F2;
     z-index: 1;
 }
 .headBox{

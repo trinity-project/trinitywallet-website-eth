@@ -2,9 +2,9 @@
   <div class="changePasswordForm">
     <headBox/>
     <div class="contentBox">
-        <h2>{{ $t('changePassword.title') }}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <el-form :model="changePasswordForm" status-icon :rules="changePasswordRules" ref="changePasswordForm" label-width="92px" class="demo-ruleForm">
+        <h2 class="title_h2">{{ $t('changePassword.title') }}</h2>
+        <hr/>
+        <el-form :model="changePasswordForm" status-icon :rules="changePasswordRules" ref="changePasswordForm" label-position="top" label-width="92px" class="demo-ruleForm">
             <el-form-item :label="$t('changePassword.oldPass')" prop="oldPass">
               <el-input type="password" v-model="changePasswordForm.oldPass" auto-complete="off"></el-input>
             </el-form-item>
@@ -14,9 +14,9 @@
             <el-form-item :label="$t('changePassword.checkPass')" prop="checkPass">
               <el-input type="password" v-model="changePasswordForm.checkPass" auto-complete="off"></el-input>
             </el-form-item>
-            <el-form-item style="text-align:center;margin-left:0;" class="button-item">
-                <el-button type="primary" @click="toLoginForm()" style="margin-left: -92px;">{{ $t('changePassword.changePassword') }}</el-button>
-            </el-form-item>
+            <div style="text-align:center;" class="button-item">
+                <el-button type="primary" @click="toLoginForm()">{{ $t('changePassword.changePassword') }}</el-button>
+            </div>
         </el-form>
     </div>
   </div>
@@ -145,10 +145,6 @@ export default {
     padding: 30px;
     box-sizing: border-box;
 }
-h2{
-    margin: 0;
-    font-size: 24px;
-}
 .PrivateKeyBox{
     padding: 8px 16px;
     border-radius: 4px;
@@ -175,7 +171,7 @@ h2{
     line-height: 1.5em;
     font-weight: 400;
 }
-.fullPage{
-    width: 100% !important;
+.button-item button{
+  width: 80%;
 }
 </style>

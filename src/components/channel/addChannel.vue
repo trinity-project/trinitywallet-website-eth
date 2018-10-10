@@ -4,43 +4,45 @@
     <div class="contentBox">
         <div>
           <p v-if="addChannelForm.assetType" style="float:right;margin: 5px 0;font-size: 16px;">{{ $t('addChannel.assetBalance') }}：{{ $store.state.vuexStore.balanceData.Chain[addChannelForm.assetType] }}{{ addChannelForm.assetType }}</p>
-          <h2>{{ $t('addChannel.title') }}</h2>
+          <h2 class="title_h2" style="margin:0 30px;">{{ $t('addChannel.title') }}</h2>
         </div>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <el-form :model="addChannelForm" status-icon :rules="addChannelRules" ref="addChannelForm" label-width="100px" class="addChannelForm">
-          <el-form-item :label="$t('addChannel.otherUri')" prop="uri">
-            <el-input v-model="addChannelForm.uri" auto-complete="off" :placeholder="$t('addChannel.otherUriPlaceHolder')"></el-input>
-          </el-form-item>
-          <el-form-item :label="$t('addChannel.assetType')" prop="assetType">
-            <el-select v-model="addChannelForm.assetType" :placeholder="$t('addChannel.chooseAssetType')" style="width:100%;">
-              <template v-if="$store.state.vuexStore.baseChain == 'ETH'">
-                <el-option label="TNC" value="TNC"></el-option>
-                <el-option label="ETH" value="ETH" disabled></el-option>
-              </template>
-              <template v-if="$store.state.vuexStore.baseChain == 'NEO'">
-                <el-option label="TNC" value="TNC"></el-option>
-                <el-option label="NEO" value="NEO"></el-option>
-                <el-option label="GAS" value="GAS"></el-option>
-              </template>
-            </el-select>
-          </el-form-item>
-          <el-form-item :label="$t('addChannel.selfDeposit')" prop="selfDeposit">
-            <el-input v-model.number="addChannelForm.selfDeposit"  auto-complete="off"></el-input>
-          </el-form-item>
-          <el-form-item v-if="$store.state.vuexStore.baseChain == 'ETH'" :label="$t('addChannel.otherDeposit')" prop="otherDeposit">
-            <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" :step="0.00000001" show-input ></el-slider>
-          </el-form-item>
-          <el-form-item :label="$t('addChannel.alice')" prop="alice">
-            <el-input v-model="addChannelForm.alice" auto-complete="off"></el-input>
-          </el-form-item>
-          <el-form-item :label="$t('addChannel.password')" prop="keyStorePass">
-            <el-input v-model="addChannelForm.keyStorePass" type="password" auto-complete="off"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="addChannel()" style="margin-left:-100px;">{{ $t('addChannel.addChannel') }}</el-button>
-            <el-button @click="removeAddChannelData()">{{ $t('addChannel.cancel') }}</el-button>
-          </el-form-item>
-        </el-form>
+        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin: 6px 30px;" />
+        <div class="formBox">
+          <el-form :model="addChannelForm" status-icon :rules="addChannelRules" ref="addChannelForm" label-position="top" class="addChannelForm">
+            <el-form-item :label="$t('addChannel.otherUri')" prop="uri">
+              <el-input v-model="addChannelForm.uri" auto-complete="off" :placeholder="$t('addChannel.otherUriPlaceHolder')"></el-input>
+            </el-form-item>
+            <el-form-item :label="$t('addChannel.assetType')" prop="assetType">
+              <el-select v-model="addChannelForm.assetType" :placeholder="$t('addChannel.chooseAssetType')" style="width:100%;">
+                <template v-if="$store.state.vuexStore.baseChain == 'ETH'">
+                  <el-option label="TNC" value="TNC"></el-option>
+                  <el-option label="ETH" value="ETH" disabled></el-option>
+                </template>
+                <template v-if="$store.state.vuexStore.baseChain == 'NEO'">
+                  <el-option label="TNC" value="TNC"></el-option>
+                  <el-option label="NEO" value="NEO"></el-option>
+                  <el-option label="GAS" value="GAS"></el-option>
+                </template>
+              </el-select>
+            </el-form-item>
+            <el-form-item :label="$t('addChannel.selfDeposit')" prop="selfDeposit">
+              <el-input v-model.number="addChannelForm.selfDeposit"  auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item v-if="$store.state.vuexStore.baseChain == 'ETH'" :label="$t('addChannel.otherDeposit')" prop="otherDeposit">
+              <el-slider v-model="addChannelForm.otherDeposit" :show-input-controls="false" :max="addChannelForm.selfDeposit" :step="0.00000001" show-input ></el-slider>
+            </el-form-item>
+            <el-form-item :label="$t('addChannel.alice')" prop="alice">
+              <el-input v-model="addChannelForm.alice" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item :label="$t('addChannel.password')" prop="keyStorePass">
+              <el-input v-model="addChannelForm.keyStorePass" type="password" auto-complete="off"></el-input>
+            </el-form-item>
+            <div style="text-align:center;margin-bottom:10%;">
+              <el-button type="primary" @click="addChannel()">{{ $t('addChannel.addChannel') }}</el-button>
+              <el-button @click="removeAddChannelData()">{{ $t('addChannel.cancel') }}</el-button>
+            </div>
+          </el-form>
+        </div>
     </div>
   </div>
 </template>
@@ -367,9 +369,8 @@ export default {
 <style scoped>
 .addChannelBox{
     float: left;
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
-    overflow: hidden;
 }
 .headBox{
     height: 56px;
@@ -377,20 +378,22 @@ export default {
     background-color: rgb(67, 74, 80);
 }
 .contentBox{
-    height: 100%;
+    height: calc(100% - 56px);
     width: 100%;
-    padding: 30px;
+    padding: 30px 0;
+}
+.formBox{
+    height: calc(100% - 73px);
+    width: 100%;
+    padding: 30px 30px 56px;
     box-sizing: border-box;
+    overflow-x: hidden;
 }
 .contentBox .addChannelForm{
     width:100%;
     max-width: 420px;
 }
-h2{
-    margin: 0;
-    font-size: 24px;
-}
-.fullPage{
-    width: 100% !important;
+button{
+    width: 40%;
 }
 </style>

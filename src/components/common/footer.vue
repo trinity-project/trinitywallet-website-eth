@@ -1,66 +1,36 @@
 <template>
-    <div>
-        <!-- <footer style="display:none;" v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'" class="footer">
-            <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-demo" mode="horizontal">
-                <el-menu-item index="1-1">
-                    <router-link to="/" class="clearfloat">
-                        <span><i class="el-icon-ETH-geren1"></i></span>
-                        <span>{{ $t('navMenu.wallet.index') }}</span>
-                    </router-link>
-                </el-menu-item>
-                <el-menu-item index="1-2">
-                    <router-link to="/receive" class="clearfloat">
-                        <span><i class="el-icon-ETH-zhuanzhang"></i></span>
-                        <span>{{ $t('navMenu.wallet.receive') }}</span>
-                    </router-link>
-                </el-menu-item>
-                <el-menu-item index="1-3">
-                    <router-link to="/channelList" class="clearfloat">
-                        <span><i class="el-icon-ETH-list"></i></span>
-                        <span>{{ $t('navMenu.wallet.channelList') }}</span>
-                    </router-link>
-                </el-menu-item>
-                <el-menu-item index="1-4">
-                    <router-link to="/record" class="clearfloat">
-                        <span><i class="el-icon-ETH-dujiayuniconzhenggao-19"></i></span>
-                        <span>{{ $t('navMenu.wallet.record') }}</span>
-                    </router-link>
-                </el-menu-item>
-            </el-menu>
-        </footer> -->
-        <div class="tabbar" v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'">
-            <div v-for="(item, index) in tabbarList" :key="index" style="flex: 1;">
-                <a @click.stop="selectItems(index,item.router)" v-if="index != 2 && index != 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
+    <div class="tabbar" v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'">
+        <div v-for="(item, index) in tabbarList" :key="index" style="flex: 1;">
+            <a @click.stop="selectItems(index,item.router)" v-if="index != 2 && index != 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
+                <div class="tab-item-icon">
+                    <i :class="item.icon"></i>
+                </div>
+                <div class="tab-item-label">
+                    {{ item.name }}
+                </div>
+            </a>
+            <a @click.stop="selectItems(index,item.router)" v-if="index == 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
+                <el-badge  :value="3" :max="99" class="item">
                     <div class="tab-item-icon">
                         <i :class="item.icon"></i>
                     </div>
                     <div class="tab-item-label">
                         {{ item.name }}
                     </div>
-                </a>
-                <a @click.stop="selectItems(index,item.router)" v-if="index == 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
-                    <el-badge  :value="3" :max="99" class="item">
-                        <div class="tab-item-icon">
-                            <i :class="item.icon"></i>
-                        </div>
-                        <div class="tab-item-label">
-                            {{ item.name }}
-                        </div>
-                    </el-badge>
-                </a>
-                <a @click.stop="showChannelForm()" v-if="index == 2" class="tab-item">
-                    <div class="logoBox">
-                        <img src="./../../assets/img/Trinity.png" alt="Trinity">
-                    </div>
-                </a>
-            </div>
+                </el-badge>
+            </a>
+            <a @click.stop="showChannelForm()" v-if="index == 2" class="tab-item">
+                <div class="TrinityButton">
+                    <img src="./../../assets/img/Trinity.png" alt="Trinity">
+                </div>
+            </a>
         </div>
     </div>
 </template>
 
 <script>
 export default {
-  name: 'footerBox',
+  name: 'tabbar',
   data () {
     return {
         tabbarList:[
@@ -119,15 +89,16 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-footer{
-    width: 100%;
-    height: 50px;
-    padding-bottom: 2px;
-    box-sizing: border-box;
-    float: left;
-    color: RGBA(124, 125, 129, 1.00);
-    background: RGBA(248, 248, 248, 1.00);
-    z-index: 2;
+.tabbar{
+    height: 55px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    z-index: 98;
+    display: flex;
+    background: RGBA(255, 255, 255, 0.93);
+    border-top: 1px solid #CCCCCC;
 }
 ul { 
   list-style-type: none;
@@ -153,12 +124,12 @@ a{
     box-sizing: border-box;
     /* padding: 8px 0; */
 }
-.logoBox{
+.TrinityButton{
     display: block;
     font-size: 10px;
     text-align: center;
 }
-.logoBox img{
+.TrinityButton img{
     margin: 2px 0 4px;
     width: 38px;
 }
@@ -166,26 +137,7 @@ a{
     font-size: 21px;
     margin: 0;
 }
-.container-fluid{
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-.fullPage{
-    width: 100% !important;
-}
-.tabbar{
-    height: 55px;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    position: fixed;
-    z-index: 1;
-    display: flex;
-    background: RGBA(255, 255, 255, 0.93);
-    border-top: 1px solid #CCCCCC;
-}
+
 .tab-item{
     display: block;
     padding: 7px 0;

@@ -3,21 +3,30 @@
     <headBox/>
     <div class="contentBox">
         <div>
-            <router-link to="/addChannel" style="float:right;font-size: 12px;">
-                <el-button size="mini" icon="el-icon-plus" type="primary" style="font-size:12px;">{{ $t('channelList.addChannel') }}</el-button>
-            </router-link>
-            <h2>{{ $t('channelList.title') }}</h2>
+            <h2 class="title_h2">{{ $t('channelList.title') }}</h2>
         </div>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin: 8px 0 0 0;" />
-        <ul v-if="formatChannelList(channelList).length">
-            <li @click="showChannelInfo(data,index)" v-for="(data,index) in formatChannelList(channelList)" :key="index">
-                <h3>{{ data.Alice }}</h3><br>
-                <p>{{ data.date | formatDateTime }}</p>
-                <p v-if="data.isConnect" style="min-width: 180px;">State：{{ data.State | formatStatus }}</p>
-                <p v-if="!data.isConnect" style="min-width: 180px;">State：NotConnect</p>
-                <span>{{ data.SelfBalance | formatBalance }}<sup>{{ data.assetType }}</sup></span>
-            </li>
-        </ul>
+        <hr style="margin: 8px 0 0 0;" />
+        <div class="buttonBox">
+            <el-row :gutter="20">
+                <el-col v-for="(item,index) in buttonBoxData" :key="index" :span="8">
+                    <router-link :to="item.link" class="button-item">
+                        <i :class="item.icon"></i>
+                        <p>{{ item.name }}</p>
+                    </router-link>
+                </el-col>
+            </el-row>
+        </div>
+        <div v-if="formatChannelList(channelList).length" style="overflow-x: hidden;height: calc(100% - 220px);">
+            <ul>
+                <li @click="toChannelAssetForm(data,index)" v-for="(data,index) in formatChannelList(channelList)" :key="index">
+                    <h3>{{ data.Alice }}</h3><br>
+                    <p>{{ data.date | formatDateTime }}</p>
+                    <p v-if="data.isConnect" style="min-width: 180px;">State：{{ data.State | formatStatus }}</p>
+                    <p v-if="!data.isConnect" style="min-width: 180px;">State：NotConnect</p>
+                    <span>{{ data.SelfBalance | formatBalance }}<sup>{{ data.assetType }}</sup></span>
+                </li>
+            </ul>
+        </div>
         <p v-if="!formatChannelList(channelList).length" style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
             {{ $t('channelList.noChannel') }}
         </p>
@@ -32,7 +41,23 @@ export default {
   name: 'channelListForm',
   data () {
     return {
-
+        buttonBoxData:[                                     //按钮组数据
+            {
+                name: "收 款",
+                icon: "el-icon-ETH-shoukuan",
+                link: "/channel/createPayment",
+            },
+            {
+                name: "付 款",
+                icon: "el-icon-ETH-fukuan",
+                link: "/channel/payment",
+            },
+            {
+                name: "添 加",
+                icon: "el-icon-plus",
+                link: "/channel/addChannel",
+            },
+        ],
     }
   },
   components: {
@@ -67,7 +92,7 @@ export default {
         if(val < 0 || isNaN(val)){
             result = "error"; 
         } else {
-            result = val / 10e7;
+            result = Number(val).div(10e7);
         }
         return result;
     },
@@ -109,9 +134,11 @@ export default {
     '$store.state.vuexStore.walletInfo.channelList': 'getAddressInfo'            // 监测store中的channelList,出现变化时获取相关信息
   },
   methods: {
-    showChannelInfo(data,index) {             //查看通道信息
-        console.log(data);
-        this.$router.push({name:'channelInfo',params: { Data: data }});
+    toChannelAssetForm(data,index) {           //跳转到资产页面
+      console.log(data);
+      if(data){
+          this.$router.push({name:'channelAsset',params: { Data: data }});
+      }
     },
     formatChannelList(list) {
         let _this = this;
@@ -131,7 +158,7 @@ export default {
 <style scoped>
 .channelListForm{
     float: left;
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;
@@ -145,16 +172,12 @@ export default {
 .contentBox{
     height: 100%;
     width: 100%;
-    padding: 30px;
+    padding: 30px 30px 0;
     box-sizing: border-box;
     overflow-x: hidden;
 }
 .contentBox::-webkit-scrollbar {
     display: none;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 h3{
     font-weight: normal;
@@ -169,6 +192,9 @@ ul li{
     font-size: 16px;
     line-height: 1;
 }
+ul li:first-child{
+    border-top:1px solid #ebeef5;
+}
 ul li:hover{
     background: #f5f7fa;
 }
@@ -176,7 +202,7 @@ ul li p{
     display: inline-block;
     margin: 0;
     width: 20%;
-    font-size: 16px;
+    font-size: 12px;
     min-width: 80px;
 }
 ul li span{
@@ -204,5 +230,11 @@ ul li span sup {
     ul li p{
         font-size: 12px;
     }
+}
+.el-icon-plus{
+    background: #00B481;
+}
+.buttonBox a{
+    color: #000000;
 }
 </style>

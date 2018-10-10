@@ -28,12 +28,14 @@ export default {
         languageData: [
             {
                 name: '中文',
-                isSelected: true
+                lang: 'cn',
+                isSelected: false
             },
             {
                 name: 'English',
+                lang: 'en',
                 isSelected: false
-            },
+            }
         ]
     }
   },
@@ -43,17 +45,33 @@ export default {
   watch: {
 
   },
+  mounted() {
+    this.$nextTick(function(){
+      let _this = this;
+      if(_this.$i18n.locale){         //根据当前i18n数据设置选中效果
+        _this.languageData.forEach(function(data,index){
+            if(data.lang == _this.$i18n.locale){
+                data.isSelected = true;
+            }
+        });
+      }
+    })
+  },
   filters:{
 
   },
   methods: {
     ChangeLang(data, index) {
+        //this.$i18n.locale === 'cn' ? this.$i18n.locale ='en' : this.$i18n.locale ='cn';
+        data.lang != undefined ? this.$i18n.locale = data.lang : this.$i18n.locale ='cn';            //切换i18n语言
+        this.$parent.$parent.saveAsString("lang",this.$i18n.locale);                                 //localstorage储存语言设置
+        
         console.log(index);
-        this.languageData.forEach(function(data1,index1){
+        this.languageData.forEach(function(data1,index1){                                           //移除所有选中样式
             data1.isSelected = false;
         });
         data.isSelected = true;
-        this.$set(this.languageData, index, data);
+        this.$set(this.languageData, index, data);                                                  //更新选中样式
     }
   }
 }

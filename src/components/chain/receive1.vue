@@ -1,18 +1,14 @@
 <template>
   <div class="receiveForm">
-    <div class="headBox">
-      <div class="header-button is-left">
-        <i @click="$router.go(-1)" class="el-icon-ETH-fanhui"></i>
-      </div>
-      <h1>收款</h1>
-      <div class="header-button is-right"></div>
-    </div>
+    <headBox/>
     <div class="contentBox">
+        <h2 class="title_h2">收款</h2>
+        <hr/>
         <div class="QRCodeBox QRCodeBox-white">
             <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
             <p>钱包地址二维码</p>
         </div>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <hr/>
         <p>钱包地址</p>
         <h3 id="receiveAddress">{{ $store.state.vuexStore.walletInfo.address }}</h3>
         <div style="text-align:center;">
@@ -50,6 +46,7 @@
 <script>
 import Vue from 'vue'
 import VueQriously from 'vue-qriously'
+import headBox from './../common/headBoxForChild'
 
 Vue.use(VueQriously)
 
@@ -94,6 +91,9 @@ export default {
       isPaymentCodeBoxShow: false         //显示PaymentCodeBox
     };
   },
+  components: {
+    headBox
+  },
   watch: {
 
   },
@@ -127,73 +127,73 @@ export default {
             });
         });
     },
-    createPaymentCode() {
-        let _this = this;
-        _this.$refs['paymentCodeForm'].validate((valid) => {
-          if (valid) {
-            console.log('submit!');
-            if(_this.paymentCodeForm.assetType == "TNC"){
-                _this.paymentCodeForm.assetContractAddress = _this.$store.state.vuexStore.tncContractAddress;
-            } else if (_this.paymentCodeForm.assetType == "ETH"){
-                _this.paymentCodeForm.assetContractAddress = "";
-            } else {
-                _this.$notify.info({
-                    title: '警告',
-                    dangerouslyUseHTMLString: true,
-                    message: '资产类型出错',
-                    duration: 3000,
-                    type: 'warning'
-                });
-                return false;
-            }
-            //_this.paymentCodeForm.R = web3.utils.randomHex(32);                              //调用web3生成的位数有BUG,弃用
-            _this.paymentCodeForm.R = randomBytes(32);                                         //随机生成指定位数
-            console.log(_this.paymentCodeForm.R);
-            _this.paymentCodeForm.Hr = web3.utils.keccak256(_this.paymentCodeForm.R);          //sha3 Hash
-            console.log(_this.paymentCodeForm.Hr);
-            _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
-                if(data.State == 3 && data.assetType == _this.paymentCodeForm.assetType){
-                    _this.paymentCodeForm.selfUri = data.SelfUri;
-                }
-            })
-            if(_this.paymentCodeForm.selfUri == ''){
-                _this.$notify.info({
-                    title: '警告',
-                    dangerouslyUseHTMLString: true,
-                    message: '没有该资产类型的通道',
-                    duration: 3000,
-                    type: 'warning'
-                });
-                return false;
-            }
-            let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetType + "&" + (_this.paymentCodeForm.amount).mul(10e7) + "&" + "PaymentCode";
-            console.log(PaymentCode);
-            _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
-            console.log(_this.paymentCodeForm.Code);
-            _this.isPaymentCodeBoxShow = true;
-            let Message = {
-                "Hr": _this.paymentCodeForm.Hr,
-                "R": _this.paymentCodeForm.R
-            }
-            _this.$store.state.vuexStore.RList.push(Message);
-            _this.$parent.StoreData("RList");
-          } else {
-            console.log('error submit!!');
-            return false;
-          }
-        });
-    },
-    resetForm() {
-        this.isPaymentCodeBoxShow = false;
-        this.paymentCodeForm = {
-        amount: '',
-        assetType: '',
-        selfUri: '',
-        R: '',
-        Hr: '',
-        Code: ''
-      }
-    }
+    // createPaymentCode() {
+    //     let _this = this;
+    //     _this.$refs['paymentCodeForm'].validate((valid) => {
+    //       if (valid) {
+    //         console.log('submit!');
+    //         if(_this.paymentCodeForm.assetType == "TNC"){
+    //             _this.paymentCodeForm.assetContractAddress = _this.$store.state.vuexStore.tncContractAddress;
+    //         } else if (_this.paymentCodeForm.assetType == "ETH"){
+    //             _this.paymentCodeForm.assetContractAddress = "";
+    //         } else {
+    //             _this.$notify.info({
+    //                 title: '警告',
+    //                 dangerouslyUseHTMLString: true,
+    //                 message: '资产类型出错',
+    //                 duration: 3000,
+    //                 type: 'warning'
+    //             });
+    //             return false;
+    //         }
+    //         //_this.paymentCodeForm.R = web3.utils.randomHex(32);                              //调用web3生成的位数有BUG,弃用
+    //         _this.paymentCodeForm.R = randomBytes(32);                                         //随机生成指定位数
+    //         console.log(_this.paymentCodeForm.R);
+    //         _this.paymentCodeForm.Hr = web3.utils.keccak256(_this.paymentCodeForm.R);          //sha3 Hash
+    //         console.log(_this.paymentCodeForm.Hr);
+    //         _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
+    //             if(data.State == 3 && data.assetType == _this.paymentCodeForm.assetType){
+    //                 _this.paymentCodeForm.selfUri = data.SelfUri;
+    //             }
+    //         })
+    //         if(_this.paymentCodeForm.selfUri == ''){
+    //             _this.$notify.info({
+    //                 title: '警告',
+    //                 dangerouslyUseHTMLString: true,
+    //                 message: '没有该资产类型的通道',
+    //                 duration: 3000,
+    //                 type: 'warning'
+    //             });
+    //             return false;
+    //         }
+    //         let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetType + "&" + (_this.paymentCodeForm.amount).mul(10e7) + "&" + "PaymentCode";
+    //         console.log(PaymentCode);
+    //         _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
+    //         console.log(_this.paymentCodeForm.Code);
+    //         _this.isPaymentCodeBoxShow = true;
+    //         let Message = {
+    //             "Hr": _this.paymentCodeForm.Hr,
+    //             "R": _this.paymentCodeForm.R
+    //         }
+    //         _this.$store.state.vuexStore.RList.push(Message);
+    //         _this.$parent.StoreData("RList");
+    //       } else {
+    //         console.log('error submit!!');
+    //         return false;
+    //       }
+    //     });
+    // },
+    // resetForm() {
+    //     this.isPaymentCodeBoxShow = false;
+    //     this.paymentCodeForm = {
+    //     amount: '',
+    //     assetType: '',
+    //     selfUri: '',
+    //     R: '',
+    //     Hr: '',
+    //     Code: ''
+    //   }
+    // }
   }
 }
 </script>
@@ -202,7 +202,7 @@ export default {
 <style scoped>
 .receiveForm{
     float: left;
-    height: calc(100% - 106px);
+    height: 100%;
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;
@@ -239,7 +239,7 @@ h1{
 .contentBox{
     height: 100%;
     width: 100%;
-    padding: 40px;
+    padding: 30px;
     box-sizing: border-box;
 }
 .QRCodeBox{
@@ -250,9 +250,6 @@ h1{
     text-align: center;
     box-sizing: border-box;
 }
-/* .QRCodeBox-white{
-    background-color: #F2F6FC;
-} */
 .QRCodeBox h3{
     display: inline-block;
     font-size: 18px;

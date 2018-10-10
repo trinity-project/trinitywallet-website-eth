@@ -2,8 +2,8 @@
   <div class="backupForm">
     <headBox/>
     <div class="contentBox">
-        <h2>{{$t('backup.title')}}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <h2 class="title_h2">{{$t('backup.title')}}</h2>
+        <hr/>
         <el-button @click="backup()" style="margin:10px 0;" type="primary" icon="el-icon-edit" plain>{{$t('backup.backupBtn')}}</el-button>
         <div class="tipBox tipBox-red">
             <h3>{{$t('backup.tips')}}</h3>
@@ -79,10 +79,6 @@ export default {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 .tipBox{
     padding: 8px 16px;

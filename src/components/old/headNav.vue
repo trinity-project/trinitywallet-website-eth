@@ -4,34 +4,6 @@
         <el-row class="tac">
             <el-col :span="24">
                 <el-menu :default-active="navSelected" :active="navSelected" @select="selectItems" class="el-menu-vertical-demo" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" :unique-opened="true">
-                <el-submenu index="1">
-                    <template slot="title">
-                    <i class="el-icon-ETH-32"></i>
-                    <span>{{$t('navMenu.wallet.title')}}</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item @click="toOtherForm('/')" index="1-1">
-                            <i class="el-icon-ETH-geren1"></i>
-                            <span slot="title">{{$t('navMenu.wallet.index')}}</span>
-                        </el-menu-item>
-                        <el-menu-item @click="toOtherForm('/receive')" index="1-2">
-                            <i class="el-icon-ETH-zhuanzhang"></i>
-                            <span slot="title">{{$t('navMenu.wallet.receive')}}</span>
-                        </el-menu-item>
-                        <el-menu-item @click="toOtherForm('/channelList')" index="1-3">
-                            <i class="el-icon-ETH-list"></i>
-                            <span slot="title">{{$t('navMenu.wallet.channelList')}}</span>
-                        </el-menu-item>
-                        <el-menu-item @click="toOtherForm('/record')" index="1-4">
-                            <i class="el-icon-ETH-dujiayuniconzhenggao-19"></i>
-                            <span slot="title">{{$t('navMenu.wallet.record')}}</span>
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-submenu>
-                <el-menu-item @click="toOtherForm('/contact')" index="2">
-                    <i class="el-icon-ETH-lianxiren"></i>
-                    <span slot="title">{{$t('navMenu.contact')}}</span>
-                </el-menu-item>
                 <el-submenu index="3">
                     <template slot="title">
                     <i class="el-icon-setting"></i>
@@ -39,7 +11,6 @@
                     </template>
                     <el-menu-item-group>
                     <el-menu-item @click="switchLang()" index="3-1">
-                        <i :class="classObject"></i>
                         <span>{{$t('navMenu.setting.switchLang')}}</span>
                     </el-menu-item>
                     <el-submenu index="3-2">
@@ -122,7 +93,6 @@ export default {
   data () {
     return {
       isLogin: false,
-      isNightMode: false,
       navSelected: "1-1",          //当前active Nav
       isSignOutBoxShow: false,       //是否显示退出框
       gasPrice: 1,                //GasPrice
@@ -130,12 +100,6 @@ export default {
     }
   },
   computed: {
-    classObject: function () {      //中英文切换对应图标
-        return {
-            'el-icon-ETH-yingwenyuyan': this.$i18n.locale === 'cn',
-            'el-icon-ETH-zhongwenyuyan': this.$i18n.locale === 'en'
-        }
-    },
     network: function () {
       let partA = this.$store.state.vuexStore.baseChain;
       let partB;
@@ -148,11 +112,6 @@ export default {
     }
   },
   watch: {
-    isNightMode(newValue, oldValue) { 
-        let _this = this;
-        console.log("当前夜间模式为" + newValue);
-        _this.$parent.saveAsString("isNightMode", newValue);
-    },
     gasPrice(newValue, oldValue) { 
         let _this = this;
         _this.$store.state.vuexStore.gasPrice = Number(newValue).mul(10e8);
@@ -170,7 +129,6 @@ export default {
             _this.$router.push('/start');
         }
         _this.getConfig();                                  //获取配置文件信息
-        _this.isNightMode = _this.$parent.fetchAsString("isNightMode");                                     //获取夜间主题
         if(window.screen.width < 1024){
             _this.$store.state.vuexStore.isNavShow = false;
         }
@@ -208,10 +166,6 @@ export default {
         this.$i18n.locale === 'cn' ? this.$i18n.locale ='en' : this.$i18n.locale ='cn';
         this.$parent.saveAsString("lang",this.$i18n.locale);
     },
-    switchNightMode() {     //切换夜间模式
-        this.$store.state.vuexStore.isNightMode === false ? this.$store.state.vuexStore.isNightMode = true : this.$store.state.vuexStore.isNightMode = false;
-        this.$parent.saveAsString("isNightMode",this.$store.state.vuexStore.isNightMode);
-    },
     switchNet(Base, isTestNet) {        //切换网络
         let _this = this;
         console.log(typeof(_this.$store.state.vuexStore.NodeUriWebSocket));
@@ -234,11 +188,19 @@ export default {
           'Content-Type': 'application/json;charset=UTF-8'
         }
       }).then(function(res){
-        _this.$store.state.vuexStore.tncContractAddress = res.data.tncContractAddress;                   //ERC20资产合约地址
-        _this.$store.state.vuexStore.tncContractAbi = res.data.tncContractAbi;                           //ERC20资产合约Abi
-        _this.$store.state.vuexStore.trinityContractAddress = res.data.trinityContractAddress;           //Trinity状态通道合约地址
-        _this.$store.state.vuexStore.trinityDataContractAddress = res.data.trinityDataContractAddress;   //Trinity状态通道合约Abi
-        _this.$store.state.vuexStore.trinityContractAbi = res.data.trinityContractAbi;                   //Trinity状态通道数据合约地址
+        if(res){
+          if(_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){
+            _this.$store.state.vuexStore.tncContractAddress = res.data.testNet.tncContractAddress;                 //ERC20资产合约地址
+            _this.$store.state.vuexStore.trinityDataContractAddress = res.data.testNet.trinityDataContractAddress; //Trinity状态通道数据合约地址
+            _this.$store.state.vuexStore.trinityContractAddress = res.data.testNet.trinityContractAddress;        //Trinity状态通道合约地址
+          } else if (!_this.$store.state.vuexStore.isTestNet && _this.$store.state.vuexStore.baseChain == "ETH"){
+            _this.$store.state.vuexStore.tncContractAddress = res.data.mainNet.tncContractAddress;                 //ERC20资产合约地址
+            _this.$store.state.vuexStore.trinityDataContractAddress = res.data.mainNet.trinityDataContractAddress; //Trinity状态通道数据合约地址
+            _this.$store.state.vuexStore.trinityContractAddress = res.data.mainNet.trinityContractAddress;        //Trinity状态通道合约地址
+          }
+          _this.$store.state.vuexStore.tncContractAbi = res.data.tncContractAbi;                         //ERC20资产合约Abi
+          _this.$store.state.vuexStore.trinityContractAbi = res.data.trinityContractAbi;                 //Trinity状态通道合约Abi
+        }
       })
     },
     deployParameter() {      //配置当前环境的参数

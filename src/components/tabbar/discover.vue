@@ -10,8 +10,9 @@
       </div>
     </div>
     <div class="contentBox">
-        <h2>发现</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <p style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
+            一键资产转换等功能正在加入中...
+        </p>
     </div>
   </div>
 </template>

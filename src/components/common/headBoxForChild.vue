@@ -1,13 +1,11 @@
 <template>
-  <div>
-    <div class="headBox">
-      <div class="header-button is-left">
-        <i @click="$router.go(-1)" class="el-icon-ETH-fanhui"></i>
-      </div>
-      <h1>{{ $router.name }}</h1>
-      <div class="header-button is-right" style="text-align:right;">
-        
-      </div>
+  <div class="headBox">
+    <div class="header-button is-left">
+      <i @click="$router.go(-1)" class="el-icon-ETH-fanhui"></i>
+    </div>
+    <h1>{{ $router.name }}</h1>
+    <div class="header-button is-right" style="text-align:right;">
+      
     </div>
   </div>
 </template>

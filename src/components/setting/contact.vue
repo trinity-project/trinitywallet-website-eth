@@ -2,8 +2,8 @@
   <div class="contactBox">
     <headBox/>
     <div class="contentBox">
-        <h2>{{ $t('contact.title') }}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin:8px 0;" />
+        <h2 class="title_h2">{{ $t('contact.title') }}</h2>
+        <hr/>
         <el-button @click="centerDialogVisible = true" style="margin:10px 0;" type="primary" icon="el-icon-plus" plain>{{ $t('contact.addContact') }}</el-button>
         <el-table ref="multipleTable" :data="contactList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="60">
@@ -178,10 +178,6 @@ export default {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 h3{
     text-align: center;

@@ -4,7 +4,6 @@ export default {
     isLogin: false,                 //登录标志
     baseChain: 'ETH',               //底层主链
     isTestNet: true,                //是否为测试网
-    isNightMode: false,             //夜间模式
     activeNavIndex: '1-1',          //当前active Nav
     isNavShow: true,                //Nav显示
     isMessageBoxShow: false,        //MessageBox显示

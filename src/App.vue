@@ -1,16 +1,16 @@
 <template>
-  <div id="app" class="clearfloat appBox">
-    <div style="position: relative;margin: 0 auto;width: 100%;max-width: 1400px;height: 100%;">
-      <div v-if="$store.state.vuexStore.isNavShow" @click="closeNav()" @touchstart.capture="touchStart" @touchend.capture="touchEnd" class="mask"></div>
-      <div @touchstart.capture="touchStart" @touchend.capture="touchEnd" class="rightBox">
+  <div id="app" class="appBox">
+      <div style="position: relative;margin: 0 auto;width: 100%;max-width: 1400px;height: 100%;">
+      <!-- <div @touchstart.capture="touchStart" @touchend.capture="touchEnd"> -->
           <transition-group :name="transitionName" mode="in-out"> 
             <router-view key="router-box"/>
           </transition-group> 
           <footer-box/>
       </div>
       <channel/>
+      <config/>
       <notify/>
-      <head-nav/>
+      <dialogBox/>
         <el-dialog :title="$t('common.attention')" :visible.sync="isFeeInfoBoxShow" width="30%" center>
           <span>{{ $t('common.fee-1') }}<b style="color:#F56C6C">{{ $store.state.vuexStore.txOnChannelInfo.fee / 10e7 }}{{ $store.state.vuexStore.txOnChannelInfo.assetType }}</b>{{ $t('common.fee-2') }}</span><br>
           <el-tooltip class="item" effect="dark" :content="$t('common.whyFeeTips')" placement="top">
@@ -132,16 +132,17 @@
             <el-button @click="isSignOutBoxShow = false">{{ $t('common.cancel') }}</el-button>
           </span>
         </el-dialog>
-    </div>
+    <!-- </div> -->
   </div>
 </template>
 
 <script>
 import Vue from 'Vue'
-import headNav from './components/common/headNav'
-import channel from './components/common/channel'
+import channel from './components/tabbar/channel'
 import footerBox from './components/common/footer'
+import config from './components/common/config'
 import notify from './components/common/notify'
+import dialogBox from './components/common/dialog'
 
 export default {
   name: 'App',
@@ -195,10 +196,11 @@ export default {
     }
   },
   components: {
-    headNav,
     footerBox,
     channel,
-    notify
+    config,
+    notify,
+    dialogBox
   },
   mounted() {
     this.$nextTick(function(){      //首次加载时连接至全节点
@@ -394,7 +396,7 @@ export default {
       }
       return decryptPrivateKey;
     },
-    async signDataForERC20Contract(contractAddress, functionName, dataTypeList, dataList, password) {             //ETH 合约通用签名方法
+    async signDataForERC20Contract(contractAddress, functionName, dataTypeList, dataList, password, gasPrice) {       //ETH 合约通用签名方法,上链
         let _this = this;
         let dataTypeString = dataTypeList.join(",");
         let signedData;
@@ -405,6 +407,7 @@ export default {
           console.log(dataTypeList);
           console.log(dataList);
           console.log(password);
+          console.log(gasPrice);
           console.log("________________________");
           // var myContract = new web3.eth.Contract(_this.$store.state.vuexStore.tncContractAbi, _this.$store.state.vuexStore.tncContractAddress, {
           //     from: _this.$store.state.vuexStore.walletInfo.address,          //发起地址
@@ -422,6 +425,8 @@ export default {
             let data = web3.eth.abi.encodeParameters(dataTypeList, dataList);                       //abi加密参数
             console.log(data);
 
+            typeof gasPrice != "number" ? gasPrice = _this.$store.state.vuexStore.gasPrice : gasPrice;
+
             try {
               await web3.eth.estimateGas({
                 to: contractAddress,
@@ -432,7 +437,7 @@ export default {
                   console.log(result);
                   var txData = {        //组成txData数据
                       nonce: web3.utils.toHex(nonce++),
-                      gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice), 
+                      gasPrice: web3.utils.toHex(gasPrice), 
                       gasLimit: web3.utils.toHex(result + 50000),
                       to: contractAddress,
                       from: _this.$store.state.vuexStore.walletInfo.address, 
@@ -457,7 +462,7 @@ export default {
         }
         return signedData;
     },
-    ecSignForTrinityContract(dataTypeList, dataList, password) {             //ETH 合约通用签名方法
+    ecSignForTrinityContract(dataTypeList, dataList, password) {             //Trinity合约通用签名方法
         let _this = this;
         let result;
         if(dataTypeList.length == dataList.length){
@@ -2997,10 +3002,10 @@ html{
   color: #2c3e50;
   width: 100%;
   height: 100%;
-  background:url(./../static/img/bg.jpg);    
+  /* background:url(./../static/img/bg.jpg);    
   background-image: url(/static/img/bg.100bd93.jpg);
   background-repeat: repeat;
-  background-size: 40%;
+  background-size: 40%; */
 }
 /* 清除浮动 */
 .clearfloat:after{      
@@ -3038,7 +3043,7 @@ ul,li{
     max-width: 70px;
     font-size: 26px;
     height: 56px;
-    line-height: 56px;
+    line-height: 52px;
 }
 .headBox h1{
     font-size: 18px;
@@ -3050,6 +3055,35 @@ ul,li{
     overflow: hidden;
     text-overflow: ellipsis;
 }
+/* 通用列表显示被tabbar阻挡问题 */
+ul li:last-child{
+  margin-bottom: 56px;
+}
+/* 通用标题样式 */
+.title_h2{
+    margin: 0;
+    font-size: 20px;
+}
+/* 通用buttonBox i样式 */
+.buttonBox{
+  text-align: center; 
+  padding: 12px 0 20px;
+}
+.buttonBox i{
+  color:#FFFFFF;
+  width: 60px;
+  height: 60px;
+  line-height: 62px;
+  font-size: 28px;
+  text-align: center; 
+  border-radius: 50%; 
+}
+.el-icon-ETH-shoukuan{
+    background: #FF7600;
+}
+.el-icon-ETH-fukuan{
+    background: #00B3EA;
+}
 .is-left{
   float: left;
 }
@@ -3060,8 +3094,7 @@ ul,li{
 .el-badge__content.is-fixed {             /* footer栏消息标记位置调整 */
   top: 5px;
 }
-.rightBox{
-  /* width: calc(100% - 300px); */
+/* .rightBox{
   width: 100%;
   height: 100%;
   background: #FFFFFF;
@@ -3069,31 +3102,15 @@ ul,li{
   position: absolute;
   right: 0;
   z-index: 2;
-}
+} */
 /* 手机端默认隐藏Nav */
-@media screen and (min-width: 320px) and (max-width: 1024px) {
-  /* .rightBox{
-    right: -300px;
-  } */
-  /* .fullPage{
-    width: 100% !important;
-    right: 0 !important;
-  } */
-  .mask{                  /* 蒙板 */
-    width: calc(100% - 300px);
-    height: 100vh;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    z-index: 9999;
-  }
+/* @media screen and (min-width: 320px) and (max-width: 1024px) {
   .tabbar{
     right: -300px;
   }
-}
+} */
 /* PC端默认显示Nav */
-@media screen and (min-width: 1025px) {
+/* @media screen and (min-width: 1025px) {
   .rightBox{
     width: calc(100% - 300px);
   }
@@ -3101,7 +3118,7 @@ ul,li{
     width: 100% !important;
     right: 0 !important;
   }
-}
+} */
 
 /* 返回开始界面样式 */
 .backToStartBtn{        
@@ -3158,16 +3175,16 @@ nav .el-slider__runway {
 .contactBox .el-dialog__body,.txOnChainBox .el-dialog__body{
   padding: 18px 25px 0;
 }
-.footer .el-menu--horizontal>.el-menu-item {
-  /* height: 48px; */
-  line-height: 23px;
+/* 添加通道页面滑动条更改z-index,用于修复channel页面层级错误问题 */
+.el-slider__button-wrapper {
+    z-index: 97;
 }
-/* .footer .el-menu--horizontal {
-  border-top: solid 2px RGBA(248, 248, 248, 1.00);
-  border-bottom: solid 2px #e6e6e6;
-} */
-.footer .el-menu{
-  background-color: transparent;
+/* 链上转账滑动条样式 */
+.transferOnChainForm .el-slider__runway, .transferOnChainForm .el-slider__bar {
+    height: 2px;
+}
+.transferOnChainForm .el-slider__button-wrapper {
+    top: -17px;
 }
 /* 设置页面cell */
 .cell{
@@ -3227,14 +3244,7 @@ nav .el-slider__runway {
 .cell-right i{
     font-size: 14px;
 }
-/* 通用右侧进入动画 */
-/* .rightIn-enter-active,.rightIn-leave-active {
-  transition: all .7s ease;
-}
-.rightIn-enter, .rightIn-leave-to{
-  transform: translateX(100%);
-  opacity: 0;
-} */
+/* 通用右侧进出动画开始 */
 .slide-right-enter-active,
 .slide-right-leave-active,
 .slide-left-enter-active,
@@ -3260,5 +3270,12 @@ nav .el-slider__runway {
 }
 .slide-left-leave-active {
   transform: translate3d(0, 0, 0);
+}
+/* 通用右侧进出动画结束 */
+/* 通用Hr样式 */
+hr{
+   height:2px;
+   border:none;
+   border-top:2px dotted #EBEEF5;
 }
 </style>

@@ -2,8 +2,8 @@
   <div class="aboutForm">
     <headBox/>
     <div class="contentBox">
-        <h2>关于我们</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <h2 class="title_h2">关于我们</h2>
+        <hr/>
         <div style="text-align:center;">
             <img @click="clickNum += 1" src="./../../assets/img/Trinity.png" alt="Trinity">
             <h4>Trinity Wallet for ETH</h4>
@@ -66,10 +66,6 @@ export default {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 h4{
     font-size: 16px;

@@ -1,35 +1,19 @@
 <template>
   <div class="paymentBox">
-    <div class="headBox">
-      <div class="header-button is-left">
-        
-      </div>
-      <h1></h1>
-      <div class="header-button is-right" style="text-align:right;">
-        <i class="notificationIcon el-icon-ETH-saoyisao"></i>
-      </div>
-    </div>
-    <div class="assetBox">
-      <div class="amountBox">
-        <h3>TNC</h3>
-        <h1>{{ $store.state.vuexStore.balanceData.Channel.TNC }}</h1>
-      </div>
-      <div class="addressBox">
-        <el-row :gutter="20">
-          <el-col :span="8" style="border-right: 1px solid #FFFFFF;">
-            通道资产
-          </el-col>
-          <el-col :span="16">
-            <router-link to="/channel/createPayment">
-              创建收款码
-            </router-link>
-          </el-col>
-        </el-row>
-      </div>
-    </div>
+    <headBox/>
     <div class="contentBox">
-        <h2>{{ $t('index.title') }}</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;margin:8px 0;" />
+        <h2 class="title_h2">{{ $t('index.title') }}</h2>
+        <hr/>
+        <div class="buttonBox clearfloat">
+          <router-link to="/channel/createPayment" class="button-item">
+            <i class="el-icon-ETH-shoukuan"></i>
+            <p>收款</p>
+          </router-link>
+          <a class="button-item">
+            <i class="el-icon-ETH-saoyisao"></i>
+            <p>扫一扫</p>
+          </a>
+        </div>
         <el-form class="indexForm" ref="form">
           <label style="line-height: 28px;font-size: 16px;">{{ $t('index.paymentCode') }}:</label>
           <el-form-item style="margin-top:10px">
@@ -57,6 +41,7 @@
 </template>
 
 <script>
+import headBox from './../common/headBoxForChild'
 export default {
   name: 'paymentBox',
   data () {
@@ -66,7 +51,7 @@ export default {
       } else {
         let PrivateKey;
         if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
-          PrivateKey = this.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
+          PrivateKey = this.$parent.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
         } else if (this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为ETH钱包时
           PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
               'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
@@ -105,10 +90,11 @@ export default {
         ShowTxOnChannelBox: false,      //是否显示通道转账窗口
     }
   },
+  components: {
+    headBox
+  },
   computed: {
-    balanceData() {
-        return this.$store.state.vuexStore.balanceData;
-    }
+
   },
   filters:{
     formatAddress:function(val){
@@ -282,7 +268,7 @@ export default {
       console.log("进入通道交易");
 
       if(_this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
-        let l = _this.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open',false);
+        let l = _this.$parent.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open',false);
         if(l >= 0){
           if(_this.$store.state.vuexStore.channelList[l].SelfBalance >= _this.txOnChannelInfo.value){
             _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
@@ -411,45 +397,33 @@ export default {
   width: 100%;
   overflow: hidden;
 }
-.assetBox{
-  height: 200px;
-  width: 100%;
-  background-color: rgb(67, 74, 80);
-  position: relative;
+.buttonBox{
+  text-align: center; 
+  padding: 12px 0 20px;
 }
-.amountBox{
-  position: absolute;
-  bottom: 16px;
-  right: 30px;
-  color: #FFFFFF;
+.button-item{
+  width: 50%;
+  float: left;
+  color: #000000;
 }
-.addressBox{
-  color: #FFFFFF;
-  height: 30px;
-  padding: 5px 0;
-  text-align: center;
-  line-height: 20px;
-  box-sizing: border-box;
-  position: absolute;
-  bottom: 0px;
-  left: 0;
-  right: 0;
-}
-.addressBox a{
+.buttonBox i{
   color:#FFFFFF;
-  font-size: 10px;
+  width: 60px;
+  height: 60px;
+  line-height: 62px;
+  font-size: 28px;
+  text-align: center; 
+  border-radius: 50%; 
 }
-.assetBox h1{
-  font-size: 50px;
-  text-align: center;
-  font-weight: 300;
-  margin: 20px 0;
+.el-icon-ETH-shoukuan{
+    background: #FF7600;
 }
-.assetBox h3{
-  font-size: 39px;
-  text-align: right;
-  font-weight: 400;
-  margin: -17px 0;
+.el-icon-ETH-saoyisao{
+    background: #00B481;
+}
+p{
+  font-size: 13px;
+  margin-bottom: 0;
 }
 .contentBox{
   height: calc(100vh - 311px);
@@ -462,16 +436,12 @@ export default {
   height: 28px;
   margin: 36px 0;
 }
-h2{
-  margin: 0;
-  font-size: 24px;
-}
 .indexForm{
   padding: 12px 0;
 }
 .transferBtn{
   width: 100%;
-  max-width: 300px;
+  /* max-width: 300px; */
 }
 .txOnChannelBox .el-dialog__body span{
   display: block;

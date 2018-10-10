@@ -1,9 +1,17 @@
 <template>
   <div class="channelInfoForm">
-    <headBox/>
+    <div class="headBox">
+      <div class="header-button is-left">
+        <i @click="$router.go(-1)" class="el-icon-ETH-fanhui"></i>
+      </div>
+      <h1></h1>
+      <div class="header-button is-right" style="text-align:right;">
+        <p @click="forcedCloseChannelFun()" v-if="isConfirmCloseChannel">强制关闭</p>
+      </div>
+    </div>
     <div class="contentBox">
-        <h2>{{ Data.Alice }} - 通道信息</h2>
-        <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
+        <h2 class="title_h2">{{ Data.Alice }} - 通道信息</h2>
+        <hr/>
         <p>{{ $t('channelList.channelName') }}：{{ Data.ChannelName }}</p>
         <p>{{ $t('channelList.date') }}：{{ Data.date | formatDateTime }}</p>
         <p>{{ $t('channelList.selfUri') }}：{{ Data.SelfUri }}</p>
@@ -14,7 +22,7 @@
         <p>{{ $t('channelList.isConnect') }}：{{ Data.isConnect | formatConnect }}<a @click="reconnectWebsocket()" v-if="!Data.isConnect" style="color:#F56C6C;margin-left:10px;cursor: pointer;">Reconnect</a></p>
         <!-- <p>{{ $t('channelList.isTestNet') }}：{{ Data.isTestNet }}</p> -->
         <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" />
-        <div class="closeBox"  v-if="!isConfirmCloseChannel">
+        <div class="closeBox" v-if="!isConfirmCloseChannel">
             <div class="buttonBox">
                 <div style="height:88px;;width:100%;"></div>
                 <div @click="isConfirmCloseChannel = true" class="button-item">
@@ -59,7 +67,6 @@
 </template>
 
 <script>
-import headBox from './../common/headBoxForChild'
 export default {
   name: 'channelInfoForm',
   data () {
@@ -89,29 +96,26 @@ export default {
         }
     }
   },
-  components: {
-    headBox
-  },
   computed:{
-      Data() {                       //获取vuex中的channelList赋值给channelList
-          if(this.$route.params.Data){
-              return this.$route.params.Data;
-          } else {
-            let Data1 = {
-                Alice: "",
-                ChannelName : "",
-                date: "",
-                SelfUri: "",
-                SelfBalance: "",
-                OtherUri: "",
-                OtherBalance: "",
-                State: "",
-                isConnect: "",
-                isTestNet: ""
-            }
-            return Data1;
-          }
-      }
+    Data() {                       //获取vuex中的channelList赋值给channelList
+        if(this.$route.params.Data){
+            return this.$route.params.Data;
+        } else {
+        let Data1 = {
+            Alice: "",
+            ChannelName : "",
+            date: "",
+            SelfUri: "",
+            SelfBalance: "",
+            OtherUri: "",
+            OtherBalance: "",
+            State: "",
+            isConnect: "",
+            isTestNet: ""
+        }
+        return Data1;
+        }
+    }
   },
   mounted() {
     this.$nextTick(function(){      //首次加载时连接至全节点
@@ -236,7 +240,10 @@ export default {
                   console.log(_this.$store.state.vuexStore.closeChannelInfo.txData);
                   _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
                   _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
-                  _this.$router.go(-1);                         //返回上个页面
+                  setTimeout(() => {
+                    _this.$router.go(-1);                         //返回上个页面
+                  }, 1000);
+                  
                 }
             }
         } else {
@@ -337,17 +344,17 @@ export default {
     overflow: hidden;
     position: relative;
     background: #FFFFFF;
-    z-index: 3;
+    z-index: 4;
+}
+.header-button p{
+    line-height: 56px;
+    margin: 0;
 }
 .contentBox{
     height: calc(100% - 56px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
-}
-h2{
-    margin: 0;
-    font-size: 24px;
 }
 h4{
     font-size: 16px;
