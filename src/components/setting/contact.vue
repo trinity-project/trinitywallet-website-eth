@@ -166,12 +166,7 @@ export default {
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;
-    z-index: 2;
-}
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
+    z-index: 3;
 }
 .contentBox{
     height: 100%;

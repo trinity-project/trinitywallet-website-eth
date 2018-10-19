@@ -1,28 +1,29 @@
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 const cn = {
-    navMenu: {
-        'title': '菜单',
-        'wallet': {
-            'title': '钱包',
-            'index': '首页',
-            'receive': '收款',
+    tabbar: {
+        'wallet': '钱包',
+        'message': '消息',
+        'channel': {
             'addChannel': '添加通道',
-            'channelList': '通道',
-            'record': '交易记录'
+            'channelList': '通道列表',
+            'payment': '支付码',
+            'scan': '扫一扫',
         },
+        'discover': '发现',
+        'setting': '我的',
+    },
+    message: {
+        'title': '消息',
+
+    },
+    setting: {
+        'title': '设置',
+        'backup': '备份钱包',
+        'changePass': '修改密码',
         'contact': '联系人',
-        'setting': {
-            'title': '设置',
-            'switchLang': 'Switch Language',
-            'switchNet': '切换网络',
-            'setGasPrice': '设置矿工费',
-            'recommendGasPrice': '建议不要小于当前平均价格',
-            'nightMode': '夜间模式',
-            'changePass': '修改密码',
-            'backup': '备份',
-            'signOut': '退出'
-        },
-        'about': '关于我们'
+        'switchLang': '多语言',
+        'about': '关于我们',
+        'signOut': '退出'
     },
     start: {
         'title': '欢迎',
@@ -93,10 +94,8 @@ const cn = {
         'transfer': '转 账',
         'transferOnChian': '链上转账',
         'transferOnChannel': '通道转账',
-        'address': '地址',
         'assetType': '资产类型',
         'inputAssetType': '请选择资产类型',
-        'amount': '金额',
         'password': '密码',
         'cancel': '取 消',
         'transfer-1': '向',
@@ -117,11 +116,15 @@ const cn = {
         'callback-14': '没有开通的通道,请先建立通道',
         'callback-15': '通道未打开'
     },
+    asset: {
+        'title': '资产',
+        'receive': '收 款',
+        'send': '付 款'
+    },
     receive: {
         'title': '收款',
-        'chain': '链上',
-        'channel': '通道',
-        'receiveAddress': '收款地址',
+        'receiveAddressQRCode': '钱包地址二维码',
+        'receiveAddress': '钱包地址',
         'copy': '复制',
         'amount': '金额',
         'assetType': '资产类型',
@@ -129,6 +132,14 @@ const cn = {
         'create': '创建',
         'reset': '重置',
         'receiveCode': '收款码'
+    },
+    transferOnChian: {
+        'title1': '链上转账',
+        'title2': '',
+        'address': '地址',
+        'amount': '金额',
+        'balance': '余额',
+        'miningFee': '矿工费',
     },
     channelList: {
         'title': '通道列表',
@@ -176,8 +187,8 @@ const cn = {
     },
     record: {
         'title': '交易记录',
-        'noRecord': '还没有交易，立即去转账',
-        'recordInfo': '交易信息',
+        'noRecord': '没有交易记录',
+        'recordInfo': '交易详情',
         'otherUri': '对端地址',
         'date': '交易时间',
         'amount': '交易金额',
@@ -226,6 +237,7 @@ const cn = {
         'tipsContent': '备份当前钱包后，浏览器会生成一个钱包备份文件，当您清空数据库、或者更换 浏览器、重装系统后，可以使用钱包备份文件恢复当前钱包。同时保存好文件和 钱包密码，钱包文件丢失或忘记密码可能会导致您的资产丢失。'
     },
     about: {
+        'title': '关于我们',
         'content': 'Trinity Wallet App是基于状态通道功能的钱包App。Trinity的状态通道技术通过“链上信用背书，链下进行交易”的方式可以为所有区块链网络扩容。在钱包App中，Trinity为用户提供了基于状态通道的支付服务，让基于状态通道技术的交易具备极高的转账速度和安全性。打开状态通道，便可以获得最快的付款体验。',
         'tipsTitle': '友情提示:',
         'tips': '请妥善管理您的私钥。若要卸载或删除APP，请您提前请确认通道已经全部关闭，否则将会面临通道信息丢失的风险。'
@@ -279,6 +291,8 @@ const cn = {
         'callback-24': '断开连接',
         'callback-25': '转账失败',
         'verifyFail': '对端签名验证未通过,停止交易.',
+        'switchLang': 'switch Language',
+        'scan': '扫一扫',
     }
 }
 

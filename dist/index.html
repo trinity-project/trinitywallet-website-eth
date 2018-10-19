@@ -1,0 +1,87 @@
+<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Trinity Wallet - ETH</title><link rel="shortcut icon" href=./static/favicon.ico><link rel=stylesheet type=text/css href=./static/css/normalize.css><style type=text/css>#Loading {
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        -webkit-transform: translateY(-50%) translateX(-50%);
+        transform: translateY(-50%) translateX(-50%);
+        z-index: 100;
+        text-align: center;
+      }
+      #Loading img{
+        width: 120px;
+        transform: rotate(0);
+        animation: rotating 9s linear infinite;
+        transform-origin: 50.7% 55.7%;
+      }
+      #Loading h1{
+        font-size: 24px;
+      }
+      @keyframes rotating{
+      0% {transform:rotate(0);}
+      16% {transform:rotate(120deg);}
+      33% {transform:rotate(120deg);}
+      49% {transform:rotate(240deg);}
+      66% {transform:rotate(240deg);}
+      83% {transform:rotate(360deg);}
+      100% {transform:rotate(360deg);}
+      }</style><link href=./static/css/app.75f92a5befb23d54bae3224419c48092.css rel=stylesheet></head><body><div id=Loading><div class="loader-inner ball-beat"><img src=./static/Trinity.png alt=Trinity><h1>Trinity</h1></div></div><div id=app></div><script src=./static/js/bundle.js></script><script src=./static/js/clipboard.min.js></script><script src=./static/js/FileSaver.min.js></script><script src=./static/js/web3.min.js></script><script src=./static/js/fastclick.js></script><script src=./static/js/neo/bundle.js></script><script src=./static/js/neo/scrypt.js></script><script src=./static/js/axios.min.js></script><script src=./static/config/config.js></script><script>// if (typeof web3 !== 'undefined') {
+        //     web3 = new Web3(web3.currentProvider);
+        // } else {
+        //     web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+           var web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); //ropsten
+            // web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); //mainnet
+        // }
+      
+      var clipboard;            // 申明全局变量用于复制功能
+      var loading;              // 申明全局变量用于加载功能 
+
+      //初始化scan
+      document.addEventListener("plusready", onPlusReady, false);
+      function onPlusReady() {
+      var e = document.getElementById("scan");
+      e.removeAttribute("disabled");
+      }
+      var scan = null;
+      
+      //解决浮点型运算错误
+      //除法函数，用来得到精确的除法结果
+      function accDiv(arg1,arg2){
+        var t1=0,t2=0,r1,r2;
+          try{t1=arg1.toString().split(".")[1].length}catch(e){}
+          try{t2=arg2.toString().split(".")[1].length}catch(e){}
+          with(Math){
+          r1=Number(arg1.toString().replace(".",""))
+          r2=Number(arg2.toString().replace(".",""))
+          return (r1/r2)*pow(10,t2-t1);
+        }
+      }
+      //给Number类型增加一个div方法，调用起来更加方便。
+      Number.prototype.div = function (arg){
+        return accDiv(this, arg);
+      }
+
+      //乘法函数，用来得到精确的乘法结果
+      function accMul(arg1,arg2)
+      {
+        var m=0,s1=arg1.toString(),s2=arg2.toString();
+        try{m+=s1.split(".")[1].length}catch(e){}
+        try{m+=s2.split(".")[1].length}catch(e){}
+        return Number(s1.replace(".",""))*Number(s2.replace(".",""))/Math.pow(10,m)
+      }
+      //给Number类型增加一个mul方法，调用起来更加方便。
+      Number.prototype.mul = function (arg){
+        return accMul(arg, this);
+      }
+
+      //加法函数，用来得到精确的加法结果
+      function accAdd(arg1,arg2){
+        var r1,r2,m;
+        try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+        try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+        m=Math.pow(10,Math.max(r1,r2))
+        return (arg1*m+arg2*m)/m
+      }
+      //给Number类型增加一个add方法，调用起来更加方便。
+      Number.prototype.add = function (arg){
+        return accAdd(arg,this);
+      }</script><script type=text/javascript src=./static/js/manifest.3ad1d5771e9b13dbdad2.js></script><script type=text/javascript src=./static/js/vendor.46fcb951eaf679cb3488.js></script><script type=text/javascript src=./static/js/app.f7cc202604a02393a929.js></script></body></html>

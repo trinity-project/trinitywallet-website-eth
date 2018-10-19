@@ -49,11 +49,13 @@
     <script src="./static/js/bundle.js"></script>
     <script src="./static/js/clipboard.min.js"></script>     <!-- 复制 -->
     <script src="./static/js/FileSaver.min.js"></script>     <!-- 导出json -->
-    <script src="./static/js/web3.min.js"></script>        <!-- web3 v1.0.0 -->
-    <script src="./static/js/fastclick.js"></script>       <!--  移除移动端300ms延迟 -->
+    <script src="./static/js/web3.min.js"></script>          <!-- web3 v1.0.0 -->
+    <script src="./static/js/fastclick.js"></script>         <!--  移除移动端300ms延迟 -->
     <script src="./static/js/neo/bundle.js"></script>        <!-- NEO -->
     <script src="./static/js/neo/scrypt.js"></script>        <!-- NEO -->
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>     <!-- NEO所需的AXIOS -->
+    <script src="./static/js/axios.min.js"></script>         <!-- NEO所需的AXIOS -->
+    <script src="./static/config/config.js"></script>         <!-- 用于手机端读取本地json文件失败 -->
+    <!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script>     NEO所需的AXIOS -->
     <script>
         // if (typeof web3 !== 'undefined') {
         //     web3 = new Web3(web3.currentProvider);
@@ -65,6 +67,14 @@
       
       var clipboard;            // 申明全局变量用于复制功能
       var loading;              // 申明全局变量用于加载功能 
+
+      //初始化scan
+      document.addEventListener("plusready", onPlusReady, false);
+      function onPlusReady() {
+      var e = document.getElementById("scan");
+      e.removeAttribute("disabled");
+      }
+      var scan = null;
       
       //解决浮点型运算错误
       //除法函数，用来得到精确的除法结果

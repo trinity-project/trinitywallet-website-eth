@@ -72,6 +72,11 @@ export default {
         });
         data.isSelected = true;
         this.$set(this.languageData, index, data);                                                  //更新选中样式
+
+        let _this = this;
+        setTimeout(function (){
+            _this.$router.go(-1); 
+        }, 300);
     }
   }
 }
@@ -81,7 +86,7 @@ export default {
 <style scoped>
 .languageForm{
     float: left;
-    height: calc(100% - 56px);
+    height: 100%;
     width: 100%;
     overflow: hidden;
     background: #F0EFF4;

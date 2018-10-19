@@ -4,7 +4,7 @@
     <div class="contentBox">
         <h2 class="title_h2">{{ $t('loginByPrivateKey.title') }}</h2>
         <hr/>
-        <el-form :model="loginByPrivateKeyForm" status-icon :rules="loginByPrivateKeyRules" ref="loginByPrivateKeyForm" label-width="80px" class="demo-ruleForm">
+        <el-form :model="loginByPrivateKeyForm" status-icon :rules="loginByPrivateKeyRules" label-position="top" ref="loginByPrivateKeyForm" label-width="80px" class="demo-ruleForm">
             <el-form-item :label="$t('loginByPrivateKey.privateKey')" prop="privateKey">
                 <el-input v-model="loginByPrivateKeyForm.privateKey"></el-input>
             </el-form-item>
@@ -14,11 +14,11 @@
             <el-form-item :label="$t('loginByPrivateKey.checkPass')" prop="checkPass">
               <el-input type="password" v-model="loginByPrivateKeyForm.checkPass" auto-complete="off"></el-input>
             </el-form-item>
-            <el-form-item style="text-align:center;">
-                <el-button type="primary" @click="Login()" style="margin-left:-40px;width: 120px;">{{ $t('loginByPrivateKey.import') }}</el-button>
-            </el-form-item>
+            <div style="text-align:center;margin-bottom: 22px;">
+                <el-button type="primary" @click="Login()" style="width: 80%;">{{ $t('loginByPrivateKey.import') }}</el-button>
+            </div>
         </el-form>
-        <a @click="$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
+        <a @click="$parent.$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
     </div>
   </div>
 </template>
@@ -115,8 +115,7 @@ export default {
                     duration: 3000,
                     type: 'success'
                 });
-                this.$router.push('/backup');       //跳转到备份界面
-                this.$store.state.vuexStore.activeNavIndex = "3-5";
+                this.$router.push('/setting/backup');       //跳转到备份界面
               } else {
                 this.$notify.error({
                     title: this.$t('loginByPrivateKey.callback-8'),
@@ -144,8 +143,7 @@ export default {
                     duration: 3000,
                     type: 'success'
                 });
-                this.$router.push('/backup');       //跳转到备份界面
-                this.$store.state.vuexStore.activeNavIndex = "3-5";
+                this.$router.push('/setting/backup');       //跳转到备份界面
               } else {
                 this.$notify.error({
                     title: this.$t('loginByPrivateKey.callback-8'),
@@ -175,11 +173,6 @@ export default {
     height: 100%;
     width: 100%;
     overflow: hidden;
-}
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
 }
 .contentBox{
     height: calc(100% - 56px);

@@ -11,30 +11,6 @@
                 <p class="button-item-label">{{ item.name }}</p>
               </div>
             </transition>
-            <!-- <transition name="slide-fade2">
-              <div @click="toOtherForm('/channelList')" v-show = "$store.state.vuexStore.isChannelFormShow" class="button-item">
-                <div class="button-item-img">
-                  <img style="margin-left: -180px" src="./../../assets/img/channelIcon.png" alt="">
-                </div>
-                <p class="button-item-label">列表</p>
-              </div>
-            </transition>
-            <transition name="slide-fade3">
-              <div @click="toOtherForm('/channel/payment')" v-show = "$store.state.vuexStore.isChannelFormShow" class="button-item">
-                <div class="button-item-img">
-                  <img style="margin-left: 0px" src="./../../assets/img/channelIcon.png" alt="">
-                </div>
-                <p class="button-item-label">付款码</p>
-              </div>
-            </transition>
-            <transition name="slide-fade4">
-              <div @click="toOtherForm('/scan')" v-show = "$store.state.vuexStore.isChannelFormShow" class="button-item">
-                <div class="button-item-img">
-                  <img style="margin-left: -120px" src="./../../assets/img/channelIcon.png" alt="">
-                </div>
-                <p class="button-item-label">扫一扫</p>
-              </div>
-            </transition> -->
           </div>
         <div class="closeBox">
           <span @click="$store.state.vuexStore.isChannelFormShow = false">
@@ -53,25 +29,25 @@ export default {
     return {
       buttonItem:[
         {
-          name: "添加",
+          name: this.$t('tabbar.channel.addChannel'),
           iconStyle: "-60px",
           link: "/channel/addChannel",
           actionName: "slide-fade1"
         },
         {
-          name: "列表",
+          name: this.$t('tabbar.channel.channelList'),
           iconStyle: "-180px",
           link: "/channel/channelList",
           actionName: "slide-fade2"
         },
         {
-          name: "支付码",
+          name: this.$t('tabbar.channel.payment'),
           iconStyle: "0px",
           link: "/channel/payment",
           actionName: "slide-fade3"
         },
         {
-          name: "扫一扫",
+          name: this.$t('tabbar.channel.scan'),
           iconStyle: "-120px",
           link: "/scan",
           actionName: "slide-fade4"

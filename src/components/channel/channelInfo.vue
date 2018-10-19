@@ -6,7 +6,7 @@
       </div>
       <h1></h1>
       <div class="header-button is-right" style="text-align:right;">
-        <p @click="forcedCloseChannelFun()" v-if="isConfirmCloseChannel">强制关闭</p>
+        <p @click="forcedCloseChannel()" v-if="isConfirmCloseChannel">强制关闭</p>
       </div>
     </div>
     <div class="contentBox">
@@ -15,9 +15,9 @@
         <p>{{ $t('channelList.channelName') }}：{{ Data.ChannelName }}</p>
         <p>{{ $t('channelList.date') }}：{{ Data.date | formatDateTime }}</p>
         <p>{{ $t('channelList.selfUri') }}：{{ Data.SelfUri }}</p>
-        <p>{{ $t('channelList.selfBalance') }}：{{ Data.SelfBalance | formatBalance }}</p>
+        <p>{{ $t('channelList.selfBalance') }}：{{ Data.SelfBalance | formatBalance }}{{ Data.assetType }}</p>
         <p>{{ $t('channelList.otherUri') }}：{{ Data.OtherUri }}</p>
-        <p>{{ $t('channelList.otherBalance') }}：{{ Data.OtherBalance | formatBalance }}</p>
+        <p>{{ $t('channelList.otherBalance') }}：{{ Data.OtherBalance | formatBalance }}{{ Data.assetType }}</p>
         <p>{{ $t('channelList.channelState') }}：{{ Data.State | formatStatus }}</p>
         <p>{{ $t('channelList.isConnect') }}：{{ Data.isConnect | formatConnect }}<a @click="reconnectWebsocket()" v-if="!Data.isConnect" style="color:#F56C6C;margin-left:10px;cursor: pointer;">Reconnect</a></p>
         <!-- <p>{{ $t('channelList.isTestNet') }}：{{ Data.isTestNet }}</p> -->
@@ -49,7 +49,7 @@
                         <i @click="isChannelInfoBoxShow = false;isConfirmCloseChannel = false;" class="el-icon-ETH-fanhui1"></i>
                     </div> -->
                 </el-form-item>
-                <div class="buttonBox">
+                <el-form-item class="buttonBox">
                     <div @click="closeChannel()" class="button-item">
                         <i class="el-icon-ETH-zhengque1"></i>
                         <p>确认</p>
@@ -58,7 +58,7 @@
                         <i class="el-icon-ETH-fanhui1"></i>
                         <p>返回</p>
                     </div>
-                </div>
+                </el-form-item>
             </el-form>            
         </div>
         
@@ -67,6 +67,7 @@
 </template>
 
 <script>
+import Vue from 'Vue'
 export default {
   name: 'channelInfoForm',
   data () {
@@ -74,14 +75,23 @@ export default {
       if (!value) {
         return callback(new Error('钱包密码不能为空，否则将无法交易'));
       } else {
-        let PrivateKey = this.$parent.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore,this.channelInfo.keyStorePass);
+        let PrivateKey;
+        if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+          PrivateKey = this.$parent.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        } else if (this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为ETH钱包时
+          PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
+              'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
+              'password': value,
+              'address': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
+          });
+        }
         setTimeout(() => {
             if(PrivateKey){
-            callback();
+              callback();
             } else {
-            return callback(new Error('钱包解锁失败 - 可能是密码错误'));
+              return callback(new Error(this.$t('index.callback-8')));
             }
-        }, 500);
+        }, 1000);
       }
     };
     return {
@@ -118,7 +128,7 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(function(){      //首次加载时连接至全节点
+    this.$nextTick(function(){
         console.log(this.$route.params.Data);
         if(!this.$route.params.Data){
             this.$router.push('/start');
@@ -199,18 +209,18 @@ export default {
           if(l >= 0){                //检测到通道,开始关闭通道
             console.log(_this.$store.state.vuexStore.channelList[l].isConnect);
             if(_this.$store.state.vuexStore.channelList[l].transactionHash == undefined){     //删除无用通道
-              _this.isChannelInfoBoxShow = false;                 //关闭当前窗口
-              _this.isConfirmCloseChannel = false;                //关闭确认窗口
-              _this.$store.state.vuexStore.channelList.splice(l,1);           //删除通道数据
-              _this.channelInfo.keyStorePass = "";             //清楚数据
+            _this.$store.state.vuexStore.channelList.splice(l,1);           //删除通道数据
+            _this.channelInfo.keyStorePass = "";             //清楚数据
+            _this.$router.push('/channel/channelList');      //跳转到列表页面
             } else {
+              if (_this.$store.state.vuexStore.baseChain == "ETH"){
                 let txData = web3.utils.soliditySha3(         //生成代签名交易数据
-                  {t: 'bytes32', v: _this.Data.ChannelName},                                             //通道名称
-                  {t: 'uint256', v: 0},                                                                        //TXnonce
-                  {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                          //本端地址
-                  {t: 'uint256', v: _this.Data.SelfBalance},                                             //本端押金
-                  {t: 'address', v: _this.Data.OtherUri.split("@")[0]},                                  //对端地址
-                  {t: 'uint256', v: _this.Data.OtherBalance}                                             //对端押金
+                    {t: 'bytes32', v: _this.Data.ChannelName},                                             //通道名称
+                    {t: 'uint256', v: 0},                                                                        //TXnonce
+                    {t: 'address', v: _this.$store.state.vuexStore.walletInfo.address},                          //本端地址
+                    {t: 'uint256', v: _this.Data.SelfBalance},                                             //本端押金
+                    {t: 'address', v: _this.Data.OtherUri.split("@")[0]},                                  //对端地址
+                    {t: 'uint256', v: _this.Data.OtherBalance}                                             //对端押金
                 );
                 console.log(txData);
 
@@ -219,33 +229,111 @@ export default {
                 console.log(selfSignedData); 
 
                 let Message = {
-                  "MessageType":"Settle",
-                  "Sender": _this.Data.SelfUri,
-                  "Receiver": _this.Data.OtherUri,
-                  "TxNonce": 0,              
-                  "ChannelName": _this.Data.ChannelName,
-                  "AssetType": _this.Data.assetType,
-                  "NetMagic": _this.$store.state.vuexStore.NetMagic,
-                  "MessageBody": {
-                    "Commitment": selfSignedData,
-                    "SenderBalance": _this.Data.SelfBalance,
-                    "ReceiverBalance": _this.Data.OtherBalance
+                    "MessageType": "Settle",
+                    "Sender": _this.Data.SelfUri,
+                    "Receiver": _this.Data.OtherUri,
+                    "TxNonce": 0,              
+                    "ChannelName": _this.Data.ChannelName,
+                    "AssetType": _this.Data.assetType,
+                    "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                    "MessageBody": {
+                        "Commitment": selfSignedData,
+                        "SenderBalance": _this.Data.SelfBalance,
+                        "ReceiverBalance": _this.Data.OtherBalance
                     },
                     "Comments": {}
-                  }
-                  _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
-                  _this.$store.state.vuexStore.closeChannelInfo = _this.Data;
-                  _this.$store.state.vuexStore.closeChannelInfo.txData = txData;
-                  _this.$store.state.vuexStore.closeChannelInfo.keyStorePass = _this.channelInfo.keyStorePass;
-                  console.log(_this.$store.state.vuexStore.closeChannelInfo.txData);
-                  _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
-                  _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
-                  setTimeout(() => {
-                    _this.$router.go(-1);                         //返回上个页面
-                  }, 1000);
-                  
                 }
+                _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
+                _this.$store.state.vuexStore.closeChannelInfo = _this.Data;
+                _this.$store.state.vuexStore.closeChannelInfo.txData = txData;
+                _this.$store.state.vuexStore.closeChannelInfo.keyStorePass = _this.channelInfo.keyStorePass;
+                console.log(_this.$store.state.vuexStore.closeChannelInfo.txData);
+                _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = selfSignedData;
+                _this.$store.state.vuexStore.channelList[l].State = 1;              //通道状态改为closing
+                setTimeout(() => {
+                    _this.$router.push('/channel/channelList');                         //返回到channelList页面
+                }, 1000);
+              } else if (_this.$store.state.vuexStore.baseChain == "NEO"){
+
+                let decryptPK;                                    //解锁钱包获得私钥
+                try {
+                decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
+                    'WalletScript': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
+                    'password': _this.channelInfo.keyStorePass,
+                    'address': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
+                });
+                } catch (e) {
+                _this.$notify.error({
+                    title: _this.$t('loginByKeyStore.callback-9'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('loginByKeyStore.callback-8'),
+                    duration: 3000
+                });
+                return false;
+                }
+                console.log(decryptPK);
+
+                let addressFunding, scriptFunding, txId;
+                _this.$store.state.vuexStore.txList.forEach(function(value, index){
+                if(value.channelName == _this.Data.ChannelName){
+                    addressFunding = value.history[1].addressFunding;
+                    scriptFunding = value.history[1].scriptFunding;
+                    txId = value.history[1].txId;
+                }
+                })
+                console.log(addressFunding);
+                console.log(scriptFunding);
+                console.log(txId);
+                axios({
+                    method: 'post',
+                    url: _this.$store.state.vuexStore.NodeRpcUri,
+                    headers: {
+                      'Content-Type': 'application/json;charset=UTF-8'
+                    },
+                    data: JSON.stringify({
+                      "jsonrpc": "2.0",
+                      "method": "RefoundTrans",
+                      "params": [addressFunding, Number(_this.Data.SelfBalance).div(10e7), Number(_this.Data.OtherBalance).div(10e7), _this.Data.SelfUri.split("@")[0], _this.Data.OtherUri.split("@")[0], scriptFunding, _this.Data.assetType],
+                      "id": 1
+                    })
+                }).then(function(res){
+                    console.log(res);
+                    let balanceInfo = {};
+                    balanceInfo[_this.Data.SelfUri.split("@")[0]] = {};
+                    balanceInfo[_this.Data.OtherUri.split("@")[0]] = {};
+                    balanceInfo[_this.Data.SelfUri.split("@")[0]].TNC = Number(_this.Data.SelfBalance).div(10e7);
+                    balanceInfo[_this.Data.OtherUri.split("@")[0]].TNC = Number(_this.Data.OtherBalance).div(10e7);
+
+                    let Settlement = res.data.result.Settlement;
+                    console.log(Settlement);
+
+                    let Settle_sig = signatureData( Settlement.txData, decryptPK);
+                    _this.$store.state.vuexStore.closeChannelInfo.txData = Settlement.txData;
+                    _this.$store.state.vuexStore.closeChannelInfo.selfSignedData = Settle_sig;
+                    _this.$store.state.vuexStore.closeChannelInfo.witness = Settlement.witness;
+                    _this.$store.state.vuexStore.closeChannelInfo.keyStorePass = _this.channelInfo.keyStorePass;
+                    console.log(_this.$store.state.vuexStore.closeChannelInfo);
+
+                    let Message = {
+                        "MessageType":"Settle",
+                        "Sender": _this.Data.SelfUri,
+                        "Receiver": _this.Data.OtherUri,
+                        "TxNonce": _this.Data.TxNonce,
+                        "ChannelName":_this.Data.ChannelName,
+                        "MessageBody": {
+                            "Settlement":Settlement,
+                            "Balance": balanceInfo
+                        }
+                    }
+                    _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
+                    
+                    setTimeout(() => {
+                        _this.$router.push('/channel/channelList');                         //返回到channelList页面
+                    }, 1000);
+                });
+              }
             }
+          }
         } else {
           console.log('error submit!!');
           return false;
@@ -269,6 +357,9 @@ export default {
         
         let selfSignedData,otherSignedData,HashR,R;
         _this.$store.state.vuexStore.txList.forEach(function(data,index){
+            console.log(data.channelName == _this.Data.ChannelName);
+            console.log(data.history[data.history.length - 1].founderSignedData);
+            console.log(data.history[data.history.length - 1].peerSignedData);
             if(data.channelName == _this.Data.ChannelName && data.history[data.history.length - 1].founderSignedData && data.history[data.history.length - 1].peerSignedData){
                 console.log(data.history[data.history.length - 1].founder);
                 console.log(_this.$store.state.vuexStore.walletInfo.address);
@@ -294,8 +385,8 @@ export default {
             _this.Data.SelfBalance, 
             _this.Data.OtherUri.split("@")[0], 
             _this.Data.OtherBalance, 
-            "0x" + HashR, 
-            "0x" + R, 
+            HashR ? "0x" + HashR : "0x" + addPreZero(0 ,64), 
+            R ? "0x" + R : "0x" + addPreZero(0 ,64),
             selfSignedData, 
             otherSignedData
         ];
@@ -320,8 +411,7 @@ export default {
             console.log(_this.$store.state.vuexStore.channelList[l]);
             _this.$parent.$parent.StoreData("channelList");                   //储存通道信息
 
-            _this.isChannelInfoBoxShow = false;
-            _this.isConfirmCloseChannel = false;
+            _this.$router.push('/channel/channelList');                         //返回到channelList页面
             _this.$parent.$parent.cycleGetTransactionReceipt(hash);
             return;
         })

@@ -13,7 +13,7 @@ export default {
     NodeUriWebSocketIp: "ws://47.104.81.20:9000", //全节点websocket IP
     NodeUriWebSocket: "",                           //全节点websocket方法
     NodeRpcUri: 'http://47.254.64.251:21332',     //全节点通用RPC接口   NEO
-    spvPortNEO: "8766",                           //SPV端口号         NEO
+    isNotifyShow: false,
     walletInfo: {               //钱包信息
       keyStore: "",
       publicKey: "",
@@ -39,7 +39,8 @@ export default {
       }
     },
     activeAssetInfo: {          //当前显示的资产页面
-      assetType: "",
+      assetType: "",            //用于缓存当前*链上*资产页面信息
+      channelName: "",          //用于缓存当前*通道*资产页面信息
     },
     addChannelInfo: [],         //添加通道信息
     txOnChannelInfo: [],        //通道转账信息
@@ -54,7 +55,8 @@ export default {
     tncContractAbi: [],             //ERC20资产合约Abi
     trinityContractAddress: "",     //Trinity状态通道合约地址
     trinityDataContractAddress: "", //Trinity状态通道合约Abi
-    trinityContractAbi: []          //Trinity状态通道数据合约地址
+    trinityContractAbi: [],         //Trinity状态通道数据合约地址,
+    spvPort: ""
   },
   getters: {
     channelList(state) {

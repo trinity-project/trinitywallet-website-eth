@@ -61,9 +61,9 @@ export default {
         }
         setTimeout(() => {
             if(PrivateKey){
-            callback();
+              callback();
             } else {
-            return callback(new Error(this.$t('index.callback-8')));
+              return callback(new Error(this.$t('index.callback-8')));
             }
         }, 1000);
       }
@@ -94,7 +94,19 @@ export default {
     headBox
   },
   computed: {
-
+    baseChain() {                       //获取vuex中的baseChain赋值给baseChain
+        return this.$store.state.vuexStore.baseChain;
+    },
+    txList() {                       //获取vuex中的txList赋值给txList
+        return this.$store.state.vuexStore.txList;
+    },
+    walletInfo() {                       //获取vuex中的address赋值给address
+      if(this.$store.state.vuexStore.baseChain == "ETH"){
+          return this.$store.state.vuexStore.walletInfo;
+      } else if(this.$store.state.vuexStore.baseChain == "NEO"){
+          return this.$store.state.vuexStore.NEOwalletInfo;
+      }
+    },
   },
   filters:{
     formatAddress:function(val){
@@ -126,36 +138,95 @@ export default {
             duration: 3000
           });
           return;
-      } else{
+      } else {
         if(_this.paymentCode.substr(0,2) == "TN"){        //判断开头是否为"TN",如是进入交易码解析
           console.log("进入通道交易");
-            let LinkData;
-            try {
-              LinkData = base58decode(_this.paymentCode.substring(2)).toString();
-            } catch (e) {
-              _this.$notify.error({
-                title: _this.$t('common.warning'),
-                dangerouslyUseHTMLString: true,
-                message: _this.$t('index.callback-11') + '1',
-                duration: 3000
-              });
-              return false;
-            } finally {
+          let LinkData;
+          try {
+            LinkData = base58decode(_this.paymentCode.substring(2)).toString();
+          } catch (e) {
+            _this.$notify.error({
+              title: _this.$t('common.warning'),
+              dangerouslyUseHTMLString: true,
+              message: _this.$t('index.callback-11') + '1',
+              duration: 3000
+            });
+            return false;
+          } finally {
 
-            }
-            console.log(LinkData);
-            if(LinkData.indexOf("&") > -1){           //判断linkData中是否有&隔离符
+          }
+          console.log(LinkData);
+          if(LinkData.indexOf("&") > -1){           //判断linkData中是否有&隔离符
             let LinkDataList = LinkData.split("&");     //去除隔离符取出数据
 
-            _this.txOnChannelInfo.receiverUri = LinkDataList[0];                  //uri
-            _this.txOnChannelInfo.netMagic = LinkDataList[1];                           //NetMagic
-            _this.txOnChannelInfo.hr = LinkDataList[2];                                 //hashR
-            _this.txOnChannelInfo.assetType = LinkDataList[3];        //资产类型
-            _this.txOnChannelInfo.value = LinkDataList[4];                 //支付金额
-            _this.txOnChannelInfo.description = LinkDataList[5];                  //备注
-            console.log(_this.txOnChannelInfo);
-            if(_this.txOnChannelInfo.netMagic == _this.$store.state.vuexStore.NetMagic){          //判断NetMagic是否符合
-              if (!web3.utils.isAddress(_this.txOnChannelInfo.receiverUri.split("@")[0])) {       //当地址解析错误时
+            if(_this.baseChain == "ETH"){
+              _this.txOnChannelInfo.receiverUri = LinkDataList[0];                  //uri
+              _this.txOnChannelInfo.netMagic = LinkDataList[1];                           //NetMagic
+              _this.txOnChannelInfo.hr = LinkDataList[2];                                 //hashR
+              _this.txOnChannelInfo.assetType = LinkDataList[3];        //资产类型
+              _this.txOnChannelInfo.value = LinkDataList[4];                 //支付金额
+              _this.txOnChannelInfo.description = LinkDataList[5];                  //备注
+              console.log(_this.txOnChannelInfo);
+              if(_this.txOnChannelInfo.netMagic == _this.$store.state.vuexStore.NetMagic){       //判断NetMagic是否符合
+                if (!web3.utils.isAddress(_this.txOnChannelInfo.receiverUri.split("@")[0])) {       //当地址解析错误时
+                  _this.$notify.error({
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('index.callback-11') + '2',
+                    duration: 3000
+                  });
+                  return;
+                } else if (_this.txOnChannelInfo.hr == "") {          //当hashR解析错误时
+                  _this.$notify.error({
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('index.callback-11') + '3',
+                    duration: 3000
+                  });
+                  return;
+                } else if (_this.txOnChannelInfo.assetType == "") {         //当资产类型解析错误时
+                  _this.$notify.error({
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('index.callback-11') + '4',
+                    duration: 3000
+                  });
+                  return;
+                } else if (_this.txOnChannelInfo.value == 0) {        //当金额解析错误时
+                  _this.$notify.error({ 
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('index.callback-11') + '5',
+                    duration: 3000
+                  });
+                  return;
+                } else if (_this.$store.state.vuexStore.walletInfo.address === _this.txOnChannelInfo.receiverUri.split("@")[0]) {   //当转账和收款地址相同时
+                  _this.$notify.error({
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('index.callback-10'),
+                    duration: 3000
+                  });
+                  return;
+                }
+                _this.ShowTxOnChannelBox = true;      ///显示通道交易窗口
+              } else {                //如NetMagic错误,给出提示并返回
+                _this.$notify.error({
+                  title: _this.$t('common.warning'),
+                  dangerouslyUseHTMLString: true,
+                  message: _this.$t('index.callback-12'),
+                  duration: 3000
+                });
+                return;
+              }
+            } else if (_this.baseChain == "NEO"){                                    //NEO和ETH付款码格式不统一,后期改进
+              _this.txOnChannelInfo.receiverUri = LinkDataList[0];                                           //uri
+              _this.txOnChannelInfo.hr = LinkDataList[1];                                                    //hashR
+              _this.txOnChannelInfo.assetType = _this.$parent.$parent.AssetIdToAssetType(LinkDataList[2]);   //资产类型
+              _this.txOnChannelInfo.value = Number(LinkDataList[3]).mul(10e7);                               //支付金额
+              _this.txOnChannelInfo.description = LinkDataList[4];                                           //备注
+              console.log(_this.txOnChannelInfo);
+              if (_this.txOnChannelInfo.receiverUri.split("@")[0].length !== 66) {       //当地址解析错误时
                 _this.$notify.error({
                   title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
@@ -187,7 +258,7 @@ export default {
                   duration: 3000
                 });
                 return;
-              } else if (_this.$store.state.vuexStore.walletInfo.address === _this.txOnChannelInfo.receiverUri.split("@")[0]) {   //当转账和收款地址相同时
+              } else if (_this.$store.state.vuexStore.NEOwalletInfo.publicKey == _this.txOnChannelInfo.receiverUri.split("@")[0]) {   //当转账和收款地址相同时
                 _this.$notify.error({
                   title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
@@ -197,14 +268,6 @@ export default {
                 return;
               }
               _this.ShowTxOnChannelBox = true;      ///关闭通道交易窗口
-            } else {                //如NetMagic错误,给出提示并返回
-              _this.$notify.error({
-                title: _this.$t('common.warning'),
-                dangerouslyUseHTMLString: true,
-                message: _this.$t('index.callback-12'),
-                duration: 3000
-              });
-              return;
             }
           } else {                  //如果没有&隔离符,给出提醒 终止
             _this.$notify.error({
@@ -216,28 +279,28 @@ export default {
             return false;
           }
         } else {      //开头不是"TN",判断是否为地址给出提示并返回
-            if (_this.paymentCode.length === 42) {           //判断paymentCode是否为ETH地址
-              if (_this.paymentCode === _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
-                _this.$notify.error({
-                  title: _this.$t('common.warning'),
-                  dangerouslyUseHTMLString: true,
-                  message: _this.$t('index.callback-10'),
-                  duration: 3000
-                });
-                return;
-              } else {
-                console.log("进入链上转账");
-                return;
-              }
-            } else {
+          if (_this.paymentCode.length === 42) {           //判断paymentCode是否为ETH地址
+            if (_this.paymentCode === _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
               _this.$notify.error({
                 title: _this.$t('common.warning'),
                 dangerouslyUseHTMLString: true,
-                message: _this.$t('index.callback-11'),
+                message: _this.$t('index.callback-10'),
                 duration: 3000
               });
               return;
+            } else {
+              console.log("进入链上转账");
+              return;
             }
+          } else {
+            _this.$notify.error({
+              title: _this.$t('common.warning'),
+              dangerouslyUseHTMLString: true,
+              message: _this.$t('index.callback-11'),
+              duration: 3000
+            });
+            return;
+          }
         }
       }
     },
@@ -367,11 +430,156 @@ export default {
             // });
             return;
         }
-      } else if(_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时
-      
+      } else if (_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时
+        console.log("NEO通道交易");
+        let l = _this.$parent.$parent.getChannelSerial("OtherUri", _this.txOnChannelInfo.receiverUri, 'open', false);
+        if(l >= 0){
+          console.log(_this.txOnChannelInfo.value);
+          if(_this.$store.state.vuexStore.channelList[l].SelfBalance >= _this.txOnChannelInfo.value){
+            _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
+            _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[l].ChannelName;    //赋值ChannelName
+            console.log(l);
+
+            let addressFunding, scriptFunding, txId;
+            _this.txList.forEach(function(value, index){
+              if(value.channelName == _this.txOnChannelInfo.ChannelName){
+                  addressFunding = value.history[1].addressFunding;
+                  scriptFunding = value.history[1].scriptFunding;
+                  txId = value.history[1].txId;
+              }
+            })
+            console.log(addressFunding);
+            console.log(scriptFunding);
+            console.log(txId);
+            let selfBalance = (Number(_this.$store.state.vuexStore.channelList[l].OtherBalance) - Number(_this.txOnChannelInfo.value)).div(10e7);
+            let otherBalance = (Number(_this.$store.state.vuexStore.channelList[l].OtherBalance) + Number(_this.txOnChannelInfo.value)).div(10e7);
+            axios({
+              method: 'post',
+              url: _this.$store.state.vuexStore.NodeRpcUri,
+              headers: {
+                'Content-Type': 'application/json;charset=UTF-8'
+              },
+              data: JSON.stringify({
+                "jsonrpc": "2.0",
+                "method": "FunderTransaction",        //实际为RSMCTransaction，与FunderTransaction共用一个接口方法
+                "params": [_this.txOnChannelInfo.receiverUri.split('@')[0], _this.walletInfo.publicKey, addressFunding, scriptFunding, selfBalance, otherBalance, txId, _this.txOnChannelInfo.assetType],
+                "id": 1
+              })
+            }).then(function(res){
+              console.log(res);
+              if(res.data.error){
+                _this.$notify.error({
+                  title: "构造交易出错",
+                  dangerouslyUseHTMLString: true,
+                  message:  _this.$t('index.callback-14'),
+                  duration: 3000
+                });
+                _this.ShowTxOnChannelBox = false;
+                _this.clearTxData();
+              }
+              let Message = {
+                "MessageType":"Rsmc",
+                "Sender": _this.txOnChannelInfo.sendUri,
+                "Receiver": _this.txOnChannelInfo.receiverUri,
+                "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
+                "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
+                "MessageBody": {
+                    "Commitment": res.data.result.C_TX,
+                    "RevocableDelivery": res.data.result.R_TX,
+                    "AssetType": _this.txOnChannelInfo.assetType,
+                    "Value": Number(_this.txOnChannelInfo.value).div(10e7),
+                    "RoleIndex": 0,
+                    "Comments": _this.txOnChannelInfo.hr
+                }
+              }
+              console.log(JSON.stringify(Message));
+
+              _this.txOnChannelInfo.BreachRemedy = res.data.result.BR_TX;
+
+              // let ReceiverAddr = _this.PlckToAdrs(_this.TxOnChannelInfo.ReceiverUrl.split("@")[0]);
+              // let Message1 = {
+              //   "Address":Name,
+              //   "Amount":_this.TxOnChannelInfo.Value/10000,
+              //   "AssetType":_this.TxOnChannelInfo.AssetType,
+              //   "Fee":0,
+              //   "Flag":false,
+              //   "isTestNet":_this.isTestNet,
+              //   "Date":new Date().getTime()
+              // }
+              // _this.RecordList.push(Message1);
+              // _this.StoreRecordList(_this.RecordList);
+              // _this.PaymentLink = "";
+              _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
+              console.log(_this.$store.state.vuexStore.txOnChannelInfo);
+              _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+              _this.ShowTxOnChannelBox = false;
+              _this.clearTxData();
+            });
+          } else {
+            _this.$notify.error({
+              title: _this.$t('common.info'),
+              dangerouslyUseHTMLString: true,
+              message:  _this.$t('index.callback-14'),
+              duration: 3000
+            });
+            _this.ShowTxOnChannelBox = false;
+            _this.clearTxData();
+          }
+        } else if (l == -1){        //未与该Uri直连,查询路由情况
+          console.log("H交易");
+
+          let i = -1;                           //声明通道序号
+          _this.$store.state.vuexStore.channelList.forEach(function(data,index){            //遍历通道列表,获取开通的通道
+            if(data.State == 3 && data.isConnect == true){
+              i = index;
+              return;
+            }
+          })
+
+          let UriList = [];                     //声明当前open状态的通道uri
+          _this.$store.state.vuexStore.channelList.forEach(function(data,index){            //遍历通道列表,获取通道uriList,用于获取路由信息
+            if(data.State == 3 && data.isConnect == true){
+              UriList.push(data.OtherUri);
+            }
+          })
+          console.log(UriList);
+
+          if(i < 0){                            //当l小于0时,未遍历到通道,给出提醒,停止交易
+            _this.$notify.error({
+              title: _this.$t('common.warning'),
+              dangerouslyUseHTMLString: true,
+              message: _this.$t('common.callback-14'),
+              duration: 3000
+            });
+            _this.ShowTxOnChannelBox = false;           //关闭当前窗口
+            _this.clearTxData();                        //清空当前数据 
+            return false;
+          } else {                              //遍历到开通的通道,进入Htlc交易
+            console.log(i);
+            _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[i].SelfUri;            //赋值sendUri
+            _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[i].ChannelName;    //赋值ChannelName
+            let Message = {         //构造消息,查询通道路由
+                "MessageType":"GetRouterInfo",
+                "Sender": _this.txOnChannelInfo.sendUri,
+                "Receiver": _this.txOnChannelInfo.receiverUri,
+                "Magic": _this.$store.state.vuexStore.NetMagic,
+                "MessageBody":{
+                    "NodeList": UriList,
+                    "AssetType": _this.txOnChannelInfo.assetType,
+                }
+            }
+            _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
+            console.log(_this.$store.state.vuexStore.txOnChannelInfo);
+            _this.$store.state.vuexStore.channelList[i].websock.send(JSON.stringify(Message));        //发送websocket消息
+            _this.ShowTxOnChannelBox = false;           //关闭当前窗口
+            _this.clearTxData();                        //清空当前数据  
+          }
+        } else {
+          console.log("l错误");
+        }
       }
     },
-    clearTxData() {       //清空转账信息
+    clearTxData() {                 //清空转账信息
       this.txOnChannelInfo = {      //清空通道转账信息
         "sendUri": '',
         "receiverUri": '',
@@ -426,7 +634,7 @@ p{
   margin-bottom: 0;
 }
 .contentBox{
-  height: calc(100vh - 311px);
+  height: calc(100vh - 112px);
   width: 100%;
   padding: 30px;
   box-sizing: border-box;
@@ -440,7 +648,7 @@ p{
   padding: 12px 0;
 }
 .transferBtn{
-  width: 100%;
+  width: 80%;
   /* max-width: 300px; */
 }
 .txOnChannelBox .el-dialog__body span{

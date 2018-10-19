@@ -39,7 +39,7 @@
             <h2 class="title_h2" style="margin: 0 30px;">交易记录</h2>
             <hr style="margin-bottom: 0;" />
             <div v-if="formatRecordList(recordData).length" style="overflow-x: hidden;height: 100%;">
-                <ul>
+                <ul class="listUl">
                     <li @click="showRecordInfo(data,index)" v-for="(data,index) in formatRecordList(recordData)" :key="index">
                         <h4>{{ data.isOnChannel }} - {{ data.name | formatAddress }}
                             <span style="float:right;">{{ data.isPay | formatIsPay }}{{ data.Amount / 10e7 }}{{ data.assetType }}</span>
@@ -90,29 +90,39 @@ export default {
     }
   },
   computed: {
+    channelName() {                               //当前显示channelName
+        return this.$store.state.vuexStore.activeAssetInfo.channelName;
+    },
     Data() {                       //获取router传递的值
-        if(this.$route.params.Data){
-            return this.$route.params.Data;
-        } else {
-        let Data1 = {
-            Alice: "",
-            ChannelName: "",
-            Ip: "",
-            OtherBalance: "",
-            OtherUri: "",
-            SelfBalance: "",
-            SelfUri: "",
-            State: "",
-            TxNonce: "",
-            assetType: "",
-            date: "",
-            isConnect: "",
-            isTestNet: "",
-            transactionHash: "",
-            websock: ""
-        }
+        let _this = this; 
+        let Data1 = {};
+        if(_this.$store.state.vuexStore.activeAssetInfo.channelName){
+            _this.$store.state.vuexStore.channelList.forEach(function(data,index){
+                if(data.ChannelName == _this.$store.state.vuexStore.activeAssetInfo.channelName){
+                    Data1 = data;      
+                }
+            })
+        } 
+        // else {
+        //     let Data1 = {
+        //         Alice: "",
+        //         ChannelName: "",
+        //         Ip: "",
+        //         OtherBalance: "",
+        //         OtherUri: "",
+        //         SelfBalance: "",
+        //         SelfUri: "",
+        //         State: "",
+        //         TxNonce: "",
+        //         assetType: "",
+        //         date: "",
+        //         isConnect: "",
+        //         isTestNet: "",
+        //         transactionHash: "",
+        //         websock: ""
+        //     }
+        // }
         return Data1;
-        }
     },
     recordData() {                              //当前显示资产交易记录
         return this.$store.state.vuexStore.recordList;
@@ -236,16 +246,6 @@ export default {
     background: #FFFFFF;
     z-index: 3;
 }
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
-    padding: 15px 20px;
-    box-sizing: border-box;
-    display: flex;
-    color: #FFFFFF;
-    padding: 0 20px;
-}
 h1{
     font-size: 18px;
     font-weight: 400;
@@ -285,7 +285,7 @@ p{
 .assetBox{
     height: 200px;
     width: 100%;
-    background-color: rgb(67, 74, 80);
+    background-color: RGBA(56, 56, 59, 0.97);
     color: #FFFFFF;
     padding: 20px;
     box-sizing: border-box;
@@ -327,7 +327,7 @@ ul li:hover{
     padding: 30px;
     box-sizing: border-box;
 }
-.assetInfo p{
+.channelAssetInfo p{
     font-size: 14px;
     line-height: 16px;
     word-break: break-all;

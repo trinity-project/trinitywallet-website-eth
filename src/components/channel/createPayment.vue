@@ -2,7 +2,7 @@
   <div class="descoverForm">
     <headBox/>
     <div class="contentBox">
-        <el-button @click="resetForm('ruleForm')" size="mini" style="font-size:12px;float:right;">{{ $t('receive.reset') }}</el-button>
+        <el-button @click="resetForm('ruleForm')" v-if="isPaymentCodeBoxShow" size="mini" style="font-size:12px;float:right;">{{ $t('receive.reset') }}</el-button>
         <h2 class="title_h2">创建收款码</h2>
         <hr/>
         <div v-if="!isPaymentCodeBoxShow">
@@ -12,8 +12,15 @@
                 </el-form-item>
                 <el-form-item :label="$t('receive.assetType')" prop="assetType" >
                     <el-select v-model="paymentCodeForm.assetType" :placeholder="$t('receive.chooseAssetType')" style="width:100%;">
-                    <el-option label="TNC" value="TNC"></el-option>
-                    <el-option label="ETH" value="ETH"></el-option>
+                    <template v-if="$store.state.vuexStore.baseChain == 'ETH'">
+                        <el-option label="TNC" value="TNC"></el-option>
+                        <el-option label="ETH" value="ETH" disabled></el-option>
+                    </template>
+                    <template v-if="$store.state.vuexStore.baseChain == 'NEO'">
+                        <el-option label="TNC" value="TNC"></el-option>
+                        <el-option label="NEO" value="NEO"></el-option>
+                        <el-option label="GAS" value="GAS"></el-option>
+                    </template>
                     </el-select>
                 </el-form-item>
                 <div style="text-align:center;">
@@ -117,57 +124,96 @@ export default {
         let _this = this;
         _this.$refs['paymentCodeForm'].validate((valid) => {
           if (valid) {
-            console.log('submit!');
-            if(_this.paymentCodeForm.assetType == "TNC"){
-                _this.paymentCodeForm.assetContractAddress = _this.$store.state.vuexStore.tncContractAddress;
-            } else if (_this.paymentCodeForm.assetType == "ETH"){
-                _this.paymentCodeForm.assetContractAddress = "";
-            } else {
-                _this.$notify.info({
-                    title: '警告',
-                    dangerouslyUseHTMLString: true,
-                    message: '资产类型出错',
-                    duration: 3000,
-                    type: 'warning'
-                });
-                return false;
-            }
-            //_this.paymentCodeForm.R = web3.utils.randomHex(32);                              //调用web3生成的位数有BUG,弃用
-            _this.paymentCodeForm.R = randomBytes(32);                                         //随机生成指定位数
-            console.log(_this.paymentCodeForm.R);
-            _this.paymentCodeForm.Hr = web3.utils.keccak256(_this.paymentCodeForm.R);          //sha3 Hash
-            console.log(_this.paymentCodeForm.Hr);
-            _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
-                if(data.State == 3 && data.assetType == _this.paymentCodeForm.assetType){
-                    _this.paymentCodeForm.selfUri = data.SelfUri;
+            if(_this.$store.state.vuexStore.baseChain == "ETH"){
+                if(_this.paymentCodeForm.assetType == "TNC"){
+                    _this.paymentCodeForm.assetContractAddress = _this.$store.state.vuexStore.tncContractAddress;
+                } else if (_this.paymentCodeForm.assetType == "ETH"){
+                    _this.paymentCodeForm.assetContractAddress = "";
+                } else {
+                    _this.$notify.info({
+                        title: '警告',
+                        dangerouslyUseHTMLString: true,
+                        message: '资产类型出错',
+                        duration: 3000,
+                        type: 'warning'
+                    });
+                    return false;
                 }
-            })
-            if(_this.paymentCodeForm.selfUri == ''){
-                _this.$notify.info({
-                    title: '警告',
-                    dangerouslyUseHTMLString: true,
-                    message: '没有该资产类型的通道',
-                    duration: 3000,
-                    type: 'warning'
-                });
-                return false;
+                //_this.paymentCodeForm.R = web3.utils.randomHex(32);                              //调用web3生成的位数有BUG,弃用
+                _this.paymentCodeForm.R = randomBytes(32);                                         //随机生成指定位数
+                console.log(_this.paymentCodeForm.R);
+                _this.paymentCodeForm.Hr = web3.utils.keccak256(_this.paymentCodeForm.R);          //sha3 Hash
+                console.log(_this.paymentCodeForm.Hr);
+                _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
+                    if(data.State == 3 && data.assetType == _this.paymentCodeForm.assetType){
+                        _this.paymentCodeForm.selfUri = data.SelfUri;
+                    }
+                })
+                if(_this.paymentCodeForm.selfUri == ''){
+                    _this.$notify.info({
+                        title: '警告',
+                        dangerouslyUseHTMLString: true,
+                        message: '没有该资产类型的通道',
+                        duration: 3000,
+                        type: 'warning'
+                    });
+                    return false;
+                }
+                let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetType + "&" + (_this.paymentCodeForm.amount).mul(10e7) + "&" + "PaymentCode";
+                console.log(PaymentCode);
+                _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
+                console.log(_this.paymentCodeForm.Code);
+                _this.isPaymentCodeBoxShow = true;
+                let Message = {
+                    "Hr": _this.paymentCodeForm.Hr,
+                    "R": _this.paymentCodeForm.R
+                }
+                _this.$store.state.vuexStore.RList.push(Message);
+                _this.$parent.$parent.StoreData("RList");
+            } else if (_this.$store.state.vuexStore.baseChain == "NEO"){
+                _this.createPaymentCodeNEO();
             }
-            let PaymentCode = _this.paymentCodeForm.selfUri + "&" +  _this.$store.state.vuexStore.NetMagic + "&" + _this.paymentCodeForm.Hr + "&" + _this.paymentCodeForm.assetType + "&" + (_this.paymentCodeForm.amount).mul(10e7) + "&" + "PaymentCode";
-            console.log(PaymentCode);
-            _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
-            console.log(_this.paymentCodeForm.Code);
-            _this.isPaymentCodeBoxShow = true;
-            let Message = {
-                "Hr": _this.paymentCodeForm.Hr,
-                "R": _this.paymentCodeForm.R
-            }
-            _this.$store.state.vuexStore.RList.push(Message);
-            _this.$parent.$parent.StoreData("RList");
           } else {
             console.log('error submit!!');
             return false;
           }
         });
+    },
+    createPaymentCodeNEO() {                            //NEO构造交易
+        console.log("NEO");
+        let _this = this;
+        _this.paymentCodeForm.R = randomBytes(32);                                         //随机生成指定位数
+        console.log(_this.paymentCodeForm.R);
+        _this.paymentCodeForm.Hr = createHr(_this.paymentCodeForm.R.slice(2));          //sha1 Hash
+        console.log(_this.paymentCodeForm.Hr);
+        _this.$store.state.vuexStore.channelList.forEach(function(data,index){   //遍历
+            if(data.State == 3 && data.assetType == _this.paymentCodeForm.assetType){
+                _this.paymentCodeForm.selfUri = data.SelfUri;
+            }
+        })
+        if(_this.paymentCodeForm.selfUri == ''){
+            _this.$notify.info({
+                title: '警告',
+                dangerouslyUseHTMLString: true,
+                message: '没有该资产类型的通道',
+                duration: 3000,
+                type: 'warning'
+            });
+            return false;
+        }
+        let assetId = _this.$parent.$parent.AssetTypeToAssetId1(_this.paymentCodeForm.assetType);
+        let PaymentCode = _this.paymentCodeForm.selfUri + "&" + _this.paymentCodeForm.Hr + "&" + assetId + "&" + _this.paymentCodeForm.amount + "&" + "PaymentCode";
+        console.log(PaymentCode);
+        _this.paymentCodeForm.Code = "TN" + base58encode(PaymentCode);
+        console.log(_this.paymentCodeForm.Code);
+        _this.isPaymentCodeBoxShow = true;
+
+        let Message = {
+            "Hr": _this.paymentCodeForm.Hr,
+            "R": _this.paymentCodeForm.R.slice(2)
+        }
+        _this.$store.state.vuexStore.RList.push(Message);
+        _this.$parent.$parent.StoreData("RList");
     },
     resetForm() {
         this.isPaymentCodeBoxShow = false;
@@ -217,6 +263,6 @@ h3{
     overflow: hidden;
 }
 .btncopy{
-    width: 180px;
+    width: 80%;
 }
 </style>

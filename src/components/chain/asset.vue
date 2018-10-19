@@ -24,7 +24,7 @@
             </div>
         </div>
         <div class="contentBox">
-            <h2 class="title_h2" style="margin: 0 30px;">交易记录</h2>
+            <h2 class="title_h2" style="margin: 0 30px;">{{ $t('record.title') }}</h2>
             <hr style="margin-bottom: 0;" />
             <div v-if="formatRecordList(recordData).length" style="overflow-x: hidden;height: 100%;">
                 <ul>
@@ -36,10 +36,10 @@
                     </li>
                 </ul>
             </div>
-            <p v-else style="margin: 30% 0 0;text-align: center;">没有交易记录</p>
+            <p v-else style="margin: 30% 0 0;text-align: center;">{{ $t('record.noRecord') }}</p>
         </div>
         <div v-if="isRecordInfoShow" class="assetInfo">
-            <h2 class="title_h2">交易详情</h2>
+            <h2 class="title_h2">{{ $t('record.recordInfo') }}</h2>
             <hr style="margin:8px 0 0 0;" />
             <h1>{{ activeData.isPay | formatIsPay }}{{ activeData.Amount / 10e7 }}{{ activeData.assetType }}</h1>
             <p>{{ $t('record.state') }}: {{ activeData.state | formatState}}</p>
@@ -64,12 +64,12 @@ export default {
     return {
         buttonBoxData:[                                     //按钮组数据
             {
-                name: "收 款",
+                name: this.$t('asset.receive'),
                 icon: "el-icon-ETH-shoukuan",
                 link: "receive1",
             },
             {
-                name: "付 款",
+                name: this.$t('asset.send'),
                 icon: "el-icon-ETH-fukuan",
                 link: "transfer",
             }
@@ -98,7 +98,7 @@ export default {
     },
     recordData() {                              //当前显示资产交易记录
         return this.$store.state.vuexStore.recordList;
-    }
+    },
   },
   filters:{
     formatAddress:function(val){
@@ -252,7 +252,7 @@ p{
 .assetBox{
     height: 200px;
     width: 100%;
-    background-color: rgb(67, 74, 80);
+    background-color: RGBA(56, 56, 59, 0.97);
     color: #FFFFFF;
     padding: 20px;
     box-sizing: border-box;

@@ -6,17 +6,24 @@
       </div>
       <h1>消息中心</h1>
       <div class="header-button is-right" style="text-align:right;">
-        
+        <p @click="clearAll()">清空全部</p>
       </div>
     </div>
     <div class="contentBox">
-        <a @click.stop="clearAll()" class="clearAllBtn">清除全部</a>
-        <ul>
-            <li @click.stop="showPrivateKey()">欢迎点击消息中心</li>
-            <li @click.stop="signFun()">目前该功能还未投入使用</li>
-            <li>敬请期待</li>
+        <ul class="listUl">
+            <li @click="readMessage(item)" v-for="(item,index) in messageList" :key="index">
+                <h2 class="title">{{ item.title }}<span :class='{ isRead: item.isRead }' class="readFlag"></span><span class="date">{{ item.date | formatDateTime }}</span></h2>
+                <div class="bottomBox">
+                    <img :src="item.imgLink" alt="image">
+                    <p>{{ item.content }}</p>
+                    <p v-if="item.sender.type == 'channel'">发起人: {{ item.sender.name }} - 通道</p>
+                    <p v-if="item.sender.type == 'address'">发起人: {{ item.sender.name | formatAddress }}</p>
+                    <p v-if="item.sender.type == 'trinity'">发起人: {{ item.sender.name }}</p>
+                </div>
+            </li>
         </ul>  
     </div>
+    <!-- <i @click="clearAll()" class="clearAllBtn el-icon-ETH-qingkong"></i> -->
   </div>
 </template>
 
@@ -25,13 +32,81 @@ export default {
   name: 'messageForm',
   data () {
     return {
-
+        messageList:[
+            {
+                title: "欢迎来到消息中心",
+                messageType: "signFun",
+                isRead: false,
+                date: 1539314320400,
+                imgLink: "./../../../static/Trinity.png",
+                content: "测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试",
+                sender: {
+                    type: "channel",
+                    name: "1" 
+                }
+            },
+            {
+                title: "目前该功能还在开发中",
+                messageType: "showPrivateKey",
+                isRead: false,
+                date: 1539314320400,
+                imgLink: "./../../../static/Trinity.png",
+                content: "测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试",
+                sender: {
+                    type: "address",
+                    name: "0xADCe15cDEc589f93D25BE13DFa9370F659e78D45" 
+                }
+            },
+            {
+                title: "敬请期待",
+                messageType: "testFun",
+                isRead: true,
+                date: 1539314320400,
+                imgLink: "./../../../static/Trinity.png",
+                content: "测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试",
+                sender: {
+                    type: "trinity",
+                    name: "Trinity" 
+                }
+            }
+        ]
     }
   },
   filters:{
-
+    formatAddress:function(val){
+        var address;
+        address = val.replace(/(.{8}).*(.{8})/,"$1...$2");
+        return address;
+    },
+    formatDateTime:function(val) {              //格式化时间戳
+        var date = new Date(val);
+        var MM = date.getMonth() + 1;    
+        MM = MM < 10 ? ('0' + MM) : MM;    
+        var DD = date.getDate();    
+        DD = DD < 10 ? ('0' + DD) : DD;
+        var hh = date.getHours();
+        var mm = date.getMinutes(); 
+        return MM + '-' + DD + ' ' + hh + ':' + mm;    
+    }
   },
   methods: {
+    readMessage(item) {
+        console.log(item);
+        switch (item.messageType)
+        {
+        case "signFun":
+            this.signFun();
+            break;
+        case "showPrivateKey":
+            this.showPrivateKey();
+            break;
+        case "testFun":
+            this.testFun();
+            break;
+        default:
+            alert("未知消息类型");
+        }
+    },
     clearAll() {
       console.log("清除全部");
       this.$store.state.vuexStore.channelList = [];
@@ -65,6 +140,9 @@ export default {
       let _this = this;
       let decryptPK = _this.$parent.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore, "123");
       console.log(decryptPK.privateKey);
+    },
+    testFun() {
+        createHr("7e50027b090d8a553203f9da6762b1f7907511a893b61a9fe0da531fdfd957fc");
     }
   }
 }
@@ -83,7 +161,7 @@ export default {
 .contentBox{
     height: 100%;
     width: 100%;
-    padding: 30px;
+    padding: 10px;
     box-sizing: border-box;
 }
 .content_text{
@@ -94,24 +172,27 @@ export default {
     width: 100%;
     margin:auto;
 }
-.clearAllBtn{
-    font-size: 13px;
-    height: 35px;
-    line-height: 25px;
-    padding: 5px 10px;
-    border-radius: 50px;
+/* .clearAllBtn{
     background: rgba(25, 25, 25, 1);
     cursor: pointer;
-    border: 1px solid rgba(25, 25, 25, 1);
+    position: absolute;
+    bottom: 86px;
+    left: 30px;
     color: #FFFFFF;
+    width: 60px;
+    height: 60px;
+    line-height: 62px;
+    font-size: 28px;
+    text-align: center;
+    border-radius: 50%;
+    opacity: 0.4;
 }
 .clearAllBtn:hover{
-    background: rgba(25, 25, 25, 0.6);
-    border: 1px solid #606266;
-}
+    opacity: 0.8;
+} */
 ul li{
-    height: 60px;
-    margin-bottom: 8px;
+    height: 136px;
+    margin-bottom: 20px;
     background: rgba(255, 255, 255, 1);
     border-radius: 7px;
     padding: 10px;
@@ -119,11 +200,47 @@ ul li{
     cursor: pointer;
     font-size: 14px;
 }
-.ulBox{
-    overflow-x:hidden;
-    height: calc(100% - 65px);
+li .title{
+    font-size: 16px;
+    margin: 6px 0;
+    font-weight: 500;
 }
-.ulBox::-webkit-scrollbar {           /* 隐藏滚动条 */
-    display: none;
+li .date{
+    float: right;
+    font-size: 13px;
+    color: #B7B7B7;
+}
+li .bottomBox{
+    width: 100%;
+    height: 86px;
+    background: #F9F9F9;
+    padding: 5px;
+    box-sizing: border-box;
+}
+li .bottomBox img{
+    padding: 10px;
+    width: 76px;
+    box-sizing: border-box;
+    float: left;
+}
+/* 超出2行部分显示为省略号 */
+li .bottomBox p{
+    margin-top: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.readFlag{
+    width: 10px;
+    height: 10px;
+    background: #f56c6c;
+    border-radius: 50%;
+    margin: 2px 0 2px 4px;
+    float: right;
+}
+.isRead{
+    background: inherit;
 }
 </style>

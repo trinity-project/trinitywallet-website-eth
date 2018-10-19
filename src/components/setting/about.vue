@@ -2,11 +2,12 @@
   <div class="aboutForm">
     <headBox/>
     <div class="contentBox">
-        <h2 class="title_h2">关于我们</h2>
+        <h2 class="title_h2">{{ $t('about.title') }}</h2>
         <hr/>
         <div style="text-align:center;">
             <img @click="clickNum += 1" src="./../../assets/img/Trinity.png" alt="Trinity">
             <h4>Trinity Wallet for ETH</h4>
+            <p v-if="$store.state.vuexStore.isTestNet" style="color:red;">Test Network</p>
             <p>Version: V{{ $store.state.vuexStore.version }}</p>
         </div>
         <div>
@@ -31,9 +32,9 @@ export default {
   },
   watch: {
     clickNum(newValue, oldValue) { 
-        console.log(newValue);
-        if(newValue > 4){
+        if(newValue%5 == 0){            //每5次切换网络
             console.log('切换主网/测试网')
+            this.switchNet();
         }
     }
   },
@@ -41,7 +42,9 @@ export default {
 
   },
   methods: {
-
+      switchNet() {
+          this.$store.state.vuexStore.isTestNet ? this.$store.state.vuexStore.isTestNet = false : this.$store.state.vuexStore.isTestNet = true;
+      }
   }
 }
 </script>
@@ -54,12 +57,7 @@ export default {
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;
-    z-index: 2;
-}
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
+    z-index: 4;
 }
 .contentBox{
     height: 100%;
@@ -71,10 +69,10 @@ h4{
     font-size: 16px;
 }
 img{
-    width: 120px;
+    width: 88px;
 }
 p{
-    font-size: 16px;
+    font-size: 13px;
     line-height: 20px;
 }
 </style>

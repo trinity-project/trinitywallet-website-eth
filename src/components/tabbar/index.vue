@@ -2,35 +2,37 @@
   <div class="indexBox">
     <div class="headBox">
       <div class="header-button is-left">
-        <p>ETH/NEO</p>
+        <p @click="changeWallet()">ETH/NEO</p>
       </div>
       <h1></h1>
       <div class="header-button is-right" style="text-align:right;">
-        <i class="notificationIcon el-icon-ETH-saoyisao"></i>
+        <router-link to="/scan">
+          <i click="$router.push('/scan')" class="notificationIcon el-icon-ETH-saoyisao"></i>
+        </router-link>
       </div>
     </div>
     <div class="assetBox">
       <div class="amountBox">
         <h3>TNC</h3>
-        <h1>{{ $store.state.vuexStore.balanceData.Chain.TNC }}</h1>
+        <h1>{{ balanceData.Chain.TNC }}</h1>
       </div>
       <div class="addressBox">
         <el-row :gutter="20">
-          <el-col :span="8" style="border-right: 1px solid #FFFFFF;">
-            链上资产
+          <el-col :span="8" style="border-right: 1px solid #8A9199;">
+            {{ baseChain }}
           </el-col>
           <el-col :span="16">
             <router-link to="/chain/receive1">
               <i class="el-icon-ETH-erweima"></i>
-              {{ $store.state.vuexStore.walletInfo.address | formatAddress }}
+              {{ walletInfo.address | formatAddress }}
             </router-link>
           </el-col>
         </el-row>
       </div>
     </div>
     <div class="content1Box">
-      <ul>
-        <li @click="toAssetForm(item.name)" v-for="(item,index) in assetList" :key="index">
+      <ul class="listUl">
+        <li @click="toAssetForm(item.name)" v-if="item.baseChain == baseChain || item.baseChain == 'all'" v-for="(item,index) in assetList" :key="index">
           <div class="assetIcon">
             <img :style="{ marginLeft : item.iconStyle}" src="./../../assets/img/assetIcon.png" alt="">
           </div>
@@ -211,23 +213,41 @@ export default {
         assetList: [
           {
             name: "TNC",
-            iconStyle: "-53px"
+            iconStyle: "-53px",
+            baseChain: "all",
           },
           {
             name: "ETH",
-            iconStyle: "-25px"
+            iconStyle: "-25px",
+            baseChain: "ETH",
           },
           {
             name: "NEO",
-            iconStyle: "3px"
+            iconStyle: "3px",
+            baseChain: "NEO",
+          },
+          {
+            name: "GAS",
+            iconStyle: "3px",
+            baseChain: "NEO",
           }
         ]
     }
   },
   computed: {
+    walletInfo() {                       //获取vuex中的address赋值给address
+      if(this.$store.state.vuexStore.baseChain == "ETH"){
+          return this.$store.state.vuexStore.walletInfo;
+      } else if(this.$store.state.vuexStore.baseChain == "NEO"){
+          return this.$store.state.vuexStore.NEOwalletInfo;
+      }
+    },
     balanceData() {
         return this.$store.state.vuexStore.balanceData;
-    }
+    },
+    baseChain() {                               //当前显示当前底层主链
+        return this.$store.state.vuexStore.baseChain;
+    },
   },
   filters:{
     formatAddress:function(val){
@@ -252,6 +272,11 @@ export default {
     toAssetForm(assetType) {           //跳转到资产页面
       this.$router.push('/chain/asset');
       this.$store.state.vuexStore.activeAssetInfo.assetType = assetType;
+    },
+    changeWallet() {
+      console.log(1);
+      this.$store.state.vuexStore.baseChain == "ETH" ? this.$store.state.vuexStore.baseChain = "NEO" : this.$store.state.vuexStore.baseChain = "ETH";
+      console.log(this.$store.state.vuexStore.baseChain);
     },
     // decryptPaymentCode() {    //解析Payment Code
     //   let _this = this;
@@ -816,12 +841,11 @@ export default {
 }
 p{
   font-size: 10px;
-  line-height: 32px;
 }
 .assetBox{
   height: 200px;
   width: 100%;
-  background-color: rgb(67, 74, 80);
+  background-color: RGBA(56, 56, 59, 0.97);
   position: relative;
 }
 .amountBox{
@@ -831,7 +855,7 @@ p{
   color: #FFFFFF;
 }
 .addressBox{
-  color: #FFFFFF;
+  color: #8A9199;
   padding: 8px 0;
   text-align: center;
   line-height: 20px;
@@ -841,7 +865,7 @@ p{
   right: 0;
 }
 .addressBox a{
-  color:#FFFFFF;
+  color:#8A9199;
   font-size: 10px;
 }
 .addressBox i{
@@ -858,14 +882,7 @@ p{
   text-align: right;
   font-weight: 400;
   margin: -17px 0;
-}
-
-.contentBox{
-  height: calc(100vh - 340px);
-  width: 100%;
-  padding: 30px;
-  box-sizing: border-box;
-  transition: 1s;
+  color: #FFFFFF;
 }
 .content1Box{
   height: calc(100% - 256px);
@@ -918,5 +935,8 @@ h2{
   margin: 10px 0;
   word-wrap: break-word;
   word-break: break-all;
+}
+.header-button a{
+  color: #FFFFFF;
 }
 </style>

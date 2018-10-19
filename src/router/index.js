@@ -7,6 +7,7 @@ import discoverForm from '@/components/tabbar/discover'
 import settingForm from '@/components/tabbar/setting'
 
 import scanForm from '@/components/common/scan'
+import EtherScanForm from '@/components/common/EtherScan'
 
 import receiveForm from '@/components/old/receive'
 import recordForm from '@/components/old/record'
@@ -78,6 +79,14 @@ export default new Router({
       path: '/scan',
       name: 'scan',
       component: scanForm,
+      meta: {
+        index: 3
+      },
+    },
+    {
+      path: '/EtherScan',
+      name: 'EtherScan',
+      component: EtherScanForm,
       meta: {
         index: 3
       },

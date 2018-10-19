@@ -4,18 +4,18 @@
     <div class="contentBox">
         <h2 class="title_h2">{{ $t('create.title') }}</h2>
         <hr/>
-        <el-form :model="createForm" status-icon :rules="createRules" ref="createForm" label-width="92px" class="demo-ruleForm">
+        <el-form :model="createForm" status-icon :rules="createRules" ref="createForm" label-position="top" class="demo-ruleForm">
             <el-form-item :label="$t('create.password')" prop="pass">
               <el-input type="password" v-model="createForm.pass" auto-complete="off"></el-input>
             </el-form-item>
             <el-form-item :label="$t('create.checkPass')" prop="checkPass">
               <el-input type="password" v-model="createForm.checkPass" auto-complete="off"></el-input>
             </el-form-item>
-            <el-form-item style="text-align:center;">
-                <el-button type="primary" @click="toLoginForm()" style="margin-left:-40px;width: 120px;">{{ $t('create.create') }}</el-button>
-            </el-form-item>
+            <div style="text-align:center;margin-bottom: 22px;">
+                <el-button type="primary" @click="toLoginForm()" style="width: 80%;">{{ $t('create.create') }}</el-button>
+            </div>
         </el-form>
-        <a @click="$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
+        <a @click="$parent.$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
     </div>
   </div>
 </template>
@@ -94,7 +94,7 @@ export default {
                         type: 'success'
                     });
                 }
-                this.$router.push('/backup');
+                this.$router.push('/setting/backup');
               } else if(this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
                 let privateKey = ab2hexstring(generatePrivateKey());
                 console.log(privateKey);
@@ -116,7 +116,7 @@ export default {
                         type: 'success'
                     });
                 }
-                this.$router.push('/backup');
+                this.$router.push('/setting/backup');
               }
             } else {
                 console.log('error submit!!');

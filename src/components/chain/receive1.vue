@@ -2,15 +2,15 @@
   <div class="receiveForm">
     <headBox/>
     <div class="contentBox">
-        <h2 class="title_h2">收款</h2>
+        <h2 class="title_h2">{{ $t('receive.title') }}</h2>
         <hr/>
         <div class="QRCodeBox QRCodeBox-white">
-            <qriously :value="this.$store.state.vuexStore.walletInfo.address" level="H" :size="210" />
-            <p>钱包地址二维码</p>
+            <qriously :value="walletInfo.address" level="H" :size="210" />
+            <p>{{ $t('receive.receiveAddressQRCode') }}</p>
         </div>
         <hr/>
-        <p>钱包地址</p>
-        <h3 id="receiveAddress">{{ $store.state.vuexStore.walletInfo.address }}</h3>
+        <p>{{ $t('receive.receiveAddress') }}</p>
+        <h3 id="receiveAddress">{{ walletInfo.address }}</h3>
         <div style="text-align:center;">
             <el-button data-clipboard-target="#receiveAddress" @click="copyfun()" type="primary" class="btncopy">{{ $t('receive.copy') }}</el-button>
         </div>
@@ -101,6 +101,15 @@ export default {
     this.$nextTick(function(){
 
     })
+  },
+  computed: {
+    walletInfo() {                       //获取vuex中的address赋值给address
+      if(this.$store.state.vuexStore.baseChain == "ETH"){
+          return this.$store.state.vuexStore.walletInfo;
+      } else if(this.$store.state.vuexStore.baseChain == "NEO"){
+          return this.$store.state.vuexStore.NEOwalletInfo;
+      }
+    }
   },
   methods: {
     copyfun (){			//copy
@@ -208,24 +217,6 @@ export default {
     background: #FFFFFF;
     z-index: 3;
 }
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
-    padding: 15px 20px;
-    box-sizing: border-box;
-    display: flex;
-    color: #FFFFFF;
-    padding: 0 20px;
-}
-.header-button{
-    flex: .5;
-    width: 100%;
-    max-width: 70px;
-    font-size: 26px;
-    height: 56px;
-    line-height: 56px;
-}
 h1{
     font-size: 18px;
     font-weight: 400;
@@ -268,7 +259,7 @@ h3{
     overflow: hidden;
 }
 .btncopy{
-    width: 180px;
+    width: 80%;
 }
 /* 手机端改变某些字体大小 */
 @media screen and (max-width: 450px) {

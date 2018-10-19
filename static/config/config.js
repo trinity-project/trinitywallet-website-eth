@@ -1,4 +1,4 @@
-{
+var configData = {
     "ETH":{
         "testNet":{
             "web3": "https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d",
@@ -6,7 +6,8 @@
             "NetMagic":"527465737419990331",
             "trinityContractAddress": "0x8A1956591FF19Aa4AdA437AF158404acfA40876C",
             "trinityDataContractAddress": "0xD634eFCA91cA716A46C3C603e29200b3907e4524",
-            "tncContractAddress": "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218"
+            "tncContractAddress": "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218",
+            "spvPort": 8866
         },
         "mainNet":{
             "web3": "https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d",
@@ -14,7 +15,8 @@
             "NetMagic": "4061696020030515",
             "trinityContractAddress": "0x7A332beF593d6bd6B9d314959295239c46D5C127",
             "trinityDataContractAddress": "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5",
-            "tncContractAddress": "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac"
+            "tncContractAddress": "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac",
+            "spvPort": 8866
         },
         "trinityContractAbi": [{
                 "constant": false,
@@ -1182,12 +1184,14 @@
     },
     "NEO":{
         "testNet": {
-            "NodeRpcUri": "http://47.254.64.251:21332",
-            "NetMagic": "195378745719990331"
+            "NodeRpcUri": "http://47.96.175.193:21332",
+            "NetMagic": "195378745719990331",
+            "spvPort": 8766
         },
         "mainNet": {
             "NodeRpcUri": "https://neoapi.trinity.ink",
-            "NetMagic": "763040120030515"
+            "NetMagic": "763040120030515",
+            "spvPort": 8766
         }
     }
 } 

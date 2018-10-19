@@ -3,7 +3,7 @@
     <div class="headBox">
       <div class="header-button is-left">
       </div>
-      <h1>设置</h1>
+      <h1>{{ $t('setting.title') }}</h1>
       <div class="header-button is-right"></div>
     </div>
     <div class="contentBox">
@@ -12,7 +12,7 @@
         <router-link to="/setting/backup" class="cell">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">备份钱包</span>
+                    <span class="cell-text">{{ $t('setting.backup') }}</span>
                 </div>
                 <div class="cell-right">
                     <i class="el-icon-ETH-qianjin"></i>
@@ -22,7 +22,7 @@
         <router-link to="/setting/changePassword" class="cell">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">修改密码</span>
+                    <span class="cell-text">{{ $t('setting.changePass') }}</span>
                 </div>
                 <div class="cell-right">
                     <i class="el-icon-ETH-qianjin"></i>
@@ -32,7 +32,7 @@
         <router-link to="/setting/contact" class="cell">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">联系人</span>
+                    <span class="cell-text">{{ $t('setting.contact') }}</span>
                 </div>
                 <div class="cell-right">
                     <i class="el-icon-ETH-qianjin"></i>
@@ -42,7 +42,7 @@
         <router-link to="/setting/language" class="cell">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">多语言</span>
+                    <span class="cell-text">{{ $t('setting.switchLang') }}</span>
                 </div>
                 <div class="cell-right">
                     <i class="el-icon-ETH-qianjin"></i>
@@ -52,7 +52,7 @@
         <router-link to="/setting/about" class="cell" style="margin-top: 30px;">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">关于我们</span>
+                    <span class="cell-text">{{ $t('setting.about') }}</span>
                 </div>
                 <div class="cell-right">
                     <i class="el-icon-ETH-qianjin"></i>
@@ -60,7 +60,7 @@
             </div>
         </router-link>
         <div style="text-align:center;margin-top:42px;">
-            <el-button style="width: 80%;" type="primary">退出</el-button>
+            <el-button @click="test()" style="width: 80%;" type="primary">{{ $t('setting.signOut') }}</el-button>
         </div>
     </div>
   </div>
@@ -78,7 +78,14 @@ export default {
 
   },
   methods: {
-
+    test() {
+        this.$message({
+          type:'success',
+          text:11111,
+          duration: 0
+        });
+        // this.$store.state.vuexStore.isNotifyShow == true ? this.$store.state.vuexStore.isNotifyShow = false : this.$store.state.vuexStore.isNotifyShow = true;
+    }
   }
 }
 </script>
@@ -92,24 +99,6 @@ export default {
     overflow: hidden;
     background: #F2F2F2;
     z-index: 1;
-}
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
-    padding: 15px 20px;
-    box-sizing: border-box;
-    display: flex;
-    color: #FFFFFF;
-    padding: 0 20px;
-}
-.header-button{
-    flex: .5;
-    width: 100%;
-    max-width: 70px;
-    font-size: 26px;
-    height: 56px;
-    line-height: 56px;
 }
 h1{
     font-size: 18px;

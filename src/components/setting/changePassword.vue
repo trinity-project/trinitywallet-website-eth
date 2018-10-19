@@ -137,7 +137,7 @@ export default {
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;
-    z-index: 2;
+    z-index: 3;
 }
 .contentBox{
     height: 100%;

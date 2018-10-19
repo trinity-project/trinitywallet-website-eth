@@ -11,11 +11,11 @@
             <el-form-item :label="$t('loginByKeyStore.password')" prop="keyStorePass">
                 <el-input type="password" v-model="keyStorePass" auto-complete="off"></el-input>
             </el-form-item>
-            <el-form-item style="text-align:center">
-                <el-button @click="login()" type="primary" style="width:120px;">{{ $t('loginByKeyStore.import') }}</el-button>
-            </el-form-item>
+            <div style="text-align:center;margin-bottom: 22px;">
+                <el-button @click="login()" type="primary" style="width: 80%;">{{ $t('loginByKeyStore.import') }}</el-button>
+            </div>
         </el-form>
-        <a @click="$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
+        <a @click="$parent.$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
     </div>
   </div>
 </template>
@@ -151,7 +151,6 @@ export default {
                     type: 'success'
                 });
                 this.$router.push('/wallet');         //跳转到首页
-                this.$store.state.vuexStore.activeNavIndex = "1-1";
             } else {
                 this.$notify.error({
                     title: this.$t('loginByKeyStore.callback-12'),
@@ -197,7 +196,6 @@ export default {
             this.keyStoreContent = '';      //清空数据
             this.keyStorePass = '';
             this.$router.push('/wallet');         //跳转到首页
-            this.$store.state.vuexStore.activeNavIndex = "1-1";
         }
     }
   }
@@ -211,11 +209,6 @@ export default {
     height: 100%;
     width: 100%;
     overflow: hidden;
-}
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
 }
 .contentBox{
     height: calc(100% - 56px);

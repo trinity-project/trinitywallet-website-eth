@@ -6,6 +6,7 @@
 
 <script>
 import Vue from 'Vue'
+import Bus from './../bus.js'
 export default {
   name: 'config',
   data () {
@@ -29,6 +30,8 @@ export default {
     },
   },
   watch: {
+    '$store.state.vuexStore.baseChain': 'UpdateConfig',               // 监测到主/测试网变化时,更新配置
+    '$store.state.vuexStore.isTestNet': 'UpdateConfig',               // 监测到主/测试网变化时,更新配置
     '$store.state.vuexStore.walletInfo.address': 'getAddressInfo',    // 监测store中的address,出现变化时获取相关信息
     '$store.state.vuexStore.NEOwalletInfo.address': 'getAddressInfo'
   },
@@ -48,57 +51,79 @@ export default {
         console.log(_this.baseChain);
         if(_this.isTestNet != "" && _this.baseChain != ""){
             console.log("更新当前参数");
-            _this.UpdateConfig();                              //更新配置文件信息
+            _this.getConfig();                              //更新配置文件信息
         }
     })
+    // Bus.$on('UpdateConfig', (e) => {
+    //     if(e){
+    //         this.UpdateConfig();                        //更新配置文件信息 
+    //     }
+    // })
   },
   methods: {
-    UpdateConfig() {                                     //更新配置文件信息        
+    getConfig() {                                       //获取配置文件信息,用于开始界面
       let _this = this;
-      axios({                                            //获取本地config
-        method: 'get',
-        url: './../../../static/config/config.json',
-        headers: {
-          'Content-Type': 'application/json;charset=UTF-8'
-        }
-      }).then(function(res){
-        if(res){
-          let data = res.data;
-          let Network;
-          _this.$store.state.vuexStore.isTestNet ? Network = "testNet" : Network = "mainNet";
-          if(_this.baseChain == "ETH"){                  //当底层链为ETH时
+      //   axios({                                            //获取本地config
+      //     method: 'get',
+      //     url: './../../../static/config/config.json',
+      //     headers: {
+      //       'Content-Type': 'application/json;charset=UTF-8'
+      //     }
+      //   }).then(function(res){
+      if(configData){
+        let Network;
+        _this.$store.state.vuexStore.isTestNet ? Network = "testNet" : Network = "mainNet";
+        if(_this.baseChain == "ETH"){                  //当底层链为ETH时
             console.log("切换到ETH");
-            _this.$store.state.vuexStore.NetMagic = data.ETH[Network].NetMagic;                                     //修改网络号
-            _this.$store.state.vuexStore.tncContractAddress = data.ETH[Network].tncContractAddress;                 //ERC20资产合约地址
-            _this.$store.state.vuexStore.trinityDataContractAddress = data.ETH[Network].trinityDataContractAddress; //Trinity状态通道数据合约地址
-            _this.$store.state.vuexStore.trinityContractAddress = data.ETH[Network].trinityContractAddress;   //Trinity状态通道合约地址
-            _this.$store.state.vuexStore.tncContractAbi = data.ETH.tncContractAbi;                            //ERC20资产合约Abi
-            _this.$store.state.vuexStore.trinityContractAbi = data.ETH.trinityContractAbi;                    //Trinity状态通道合约Abi
-          } else if(_this.baseChain == "NEO"){
+            web3 = new Web3(new Web3.providers.HttpProvider(configData.ETH[Network].web3));
+            _this.$store.state.vuexStore.NodeUriWebSocketIp = configData.ETH[Network].NodeUriWebSocketIp;               //全节点Ip
+            _this.$store.state.vuexStore.NetMagic = configData.ETH[Network].NetMagic;                                   //修改网络号
+            _this.$store.state.vuexStore.spvPort = configData.ETH[Network].spvPort                                      //spv端口号
+            _this.$store.state.vuexStore.tncContractAddress = configData.ETH[Network].tncContractAddress;               //ERC20资产合约地址
+            _this.$store.state.vuexStore.trinityDataContractAddress = configData.ETH[Network].trinityDataContractAddress; //Trinity状态通道数据合约地址
+            _this.$store.state.vuexStore.trinityContractAddress = configData.ETH[Network].trinityContractAddress; //Trinity状态通道合约地址
+            _this.$store.state.vuexStore.tncContractAbi = configData.ETH.tncContractAbi;                            //ERC20资产合约Abi
+            _this.$store.state.vuexStore.trinityContractAbi = configData.ETH.trinityContractAbi;                 //Trinity状态通道合约Abi
+        } else if(_this.baseChain == "NEO"){
             console.log("切换到NEO");
-            _this.$store.state.vuexStore.NetMagic = data.NEO[Network].NetMagic;                                     //修改网络号
-            _this.$store.state.vuexStore.NodeRpcUri = data.NEO[Network].NodeRpcUri;                                 //全节点通用Uri 
-          }
-          setTimeout(function (){                                           //连接全节点
+            _this.$store.state.vuexStore.NetMagic = configData.NEO[Network].NetMagic;                                    //修改网络号
+            _this.$store.state.vuexStore.NodeRpcUri = configData.NEO[Network].NodeRpcUri;                                //全节点通用Uri 
+            _this.$store.state.vuexStore.spvPort = configData.NEO[Network].spvPort;                                      //spv端口号
+        }
+        setTimeout(function (){                                           //连接全节点
             _this.$parent.connectWebSocketForNodeUri(); 
-          },1500);
+        },1500);
 
-          if(_this.baseChain == "ETH"){                //当ETH时连接全节点websocket
+        if(_this.baseChain == "ETH"){                //当ETH时连接全节点websocket
             setTimeout(function (){                                           //修改全节点IP
                 if(_this.$store.state.vuexStore.isLogin == true){
                     _this.getAddressInfo();
-                    _this.cycleReconnectWebsocket();
+                    //_this.cycleReconnectWebsocket();
                 }
             },3000);
-          }
-        } else {
-            console.log("获取配置文件失败");
         }
-      })
+
+        _this.$parent.saveAsString("baseChain",_this.$store.state.vuexStore.baseChain);                 // 存储底层主链信息
+        _this.$parent.saveAsString("isTestNet",_this.$store.state.vuexStore.isTestNet);                 // 存储主测试网信息
+      } else {
+        console.log("获取配置文件失败");
+      }
+    },
+    UpdateConfig() {                                     //更新配置文件信息        
+      console.log(this.address);
+      console.log(this.$store.state.vuexStore.isLogin);
+      console.log(this.$store.state.vuexStore.baseChain);
+      if(this.$store.state.vuexStore.isLogin && this.address != ""){
+        this.getConfig();                           //获取配置文件信息
+      } else {
+        this.$router.push('/start');
+      }
+    //   })
     },
     getAddressInfo() {                              // 监测store中的address,出现变化时获取相关信息
-        console.log(this.baseChain);
-        let channelList = this.$parent.fetchAsArray(this.address + "@channelList");//获取通道列表
+        let _this = this;
+        console.log(_this.baseChain);
+        let channelList = _this.$parent.fetchAsArray(_this.address + "@channelList");//获取通道列表
         console.log(channelList);
             let p = [];
             channelList.forEach(function(data,index){   //遍历chanelList,去除未上链(未成功)的通道
@@ -106,34 +131,38 @@ export default {
                     p.push(data);
                 }
             })
-        this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
-        this.$store.state.vuexStore.txList = this.$parent.fetchAsArray(this.address + "@txList");           //获取TxList列表
-        console.log(this.$store.state.vuexStore.txList);
-        this.$store.state.vuexStore.contactList = this.$parent.fetchAsArray(this.address + "@contactList");                            //获取联系人列表
-        this.$store.state.vuexStore.recordList = this.$parent.fetchAsArray(this.address + "@recordList");                             //获取交易记录列表
-        this.$store.state.vuexStore.eventList = this.$parent.fetchAsArray(this.address + "@eventList");
-        console.log(this.$store.state.vuexStore.eventList);                              //获取event列表
-        this.$store.state.vuexStore.RList = this.$parent.fetchAsArray(this.address + "@RList");
-        this.getBalance();                          //获取总的余额
+        _this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
+        _this.$store.state.vuexStore.txList = _this.$parent.fetchAsArray(_this.address + "@txList");           //获取TxList列表
+        console.log(_this.$store.state.vuexStore.txList);
+        _this.$store.state.vuexStore.contactList = _this.$parent.fetchAsArray(_this.address + "@contactList");                            //获取联系人列表
+        _this.$store.state.vuexStore.recordList = _this.$parent.fetchAsArray(_this.address + "@recordList");                             //获取交易记录列表
+        _this.$store.state.vuexStore.eventList = _this.$parent.fetchAsArray(_this.address + "@eventList");
+        console.log(_this.$store.state.vuexStore.eventList);                              //获取event列表
+        _this.$store.state.vuexStore.RList = _this.$parent.fetchAsArray(_this.address + "@RList");
+        console.log("HashR:fe9c65053a5ac416b756714e3cba5774572d37b2ea1a15360e51be3617745669");
+        console.log(_this.$store.state.vuexStore.RList);
+        _this.getBalance();                          //获取总的余额
 
-        if(this.baseChain == "ETH"){                  //当前为ETH钱包时
+        if(_this.baseChain == "ETH"){                  //当前为ETH钱包时
             let Message = {
                 "messageType":"init", 
-                "walletAddress":this.address
+                "walletAddress":_this.address
             }
-            this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+            _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
             let Message1 = {
                 "messageType":"monitorAddress",
-                "walletAddress": this.address,
-                "playload": this.address,
+                "walletAddress": _this.address,
+                "playload": _this.address,
                 "chainType":"ETH",
                 "comments":{}
             }
-            this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //向全节点请求监听到账信息
-            this.cycleReconnectWebsocket();             //循环连接websocket
-            this.BalanceCycle();                        //反复获取钱包余额
-            this.$parent.blockHeightCycle();                    //循环查询块高
+            _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //向全节点请求监听到账信息
+           
+            
+            _this.$parent.blockHeightCycle();                    //循环查询块高
         }
+        _this.BalanceCycle();                        //反复获取钱包余额
+        _this.cycleReconnectWebsocket();             //循环连接websocket
         //  else if (this.baseChain == "NEO"){               //当前为NEO钱包时
         //     console.log("获取钱包信息");
         //     let channelList = this.$parent.fetchAsArray(this.$store.state.vuexStore.NEOwalletInfo.address + "@channelList");//获取通道列表
@@ -155,7 +184,7 @@ export default {
         // }
     },
     BalanceCycle: function() {                //循环获取余额
-      setInterval(this.getBalance, 5000);
+      setInterval(this.getBalance, 20000);
     },
     getBalance() {                            //获取总的余额
       if(this.baseChain == "ETH"){                  //当前为ETH钱包时
@@ -165,7 +194,6 @@ export default {
             this.$parent.getChannelBalance();
         }
       } else if (this.baseChain == "NEO"){               //当前为NEO钱包时
-        console.log(this.address);
         if(this.address.length == 34){             //当钱包地址正确时获取余额
             this.NEOgetTncBalance();
             // this.$parent.getChannelBalance();
@@ -202,7 +230,7 @@ export default {
         });
       });
     },
-    NEOgetTncBalance() {       //获取TNC余额,NEO
+    NEOgetTncBalance() {       //获取余额,NEO
       let _this = this;
       axios({
         method: 'post',
@@ -220,17 +248,17 @@ export default {
         _this.$store.state.vuexStore.balanceData.Chain.TNC = _this.$parent.keepDecimalPlaces(res.data.result.tncBalance,3);
         _this.$store.state.vuexStore.balanceData.Chain.NEO = _this.$parent.keepDecimalPlaces(res.data.result.neoBalance,3);
         _this.$store.state.vuexStore.balanceData.Chain.GAS = _this.$parent.keepDecimalPlaces(res.data.result.gasBalance,3);
-        console.log(_this.address);
-        console.log(_this.$store.state.vuexStore.balanceData.Chain.TNC);
-        console.log(_this.$store.state.vuexStore.balanceData.Chain.NEO);
-        console.log(_this.$store.state.vuexStore.balanceData.Chain.GAS);
       });
     },
     cycleReconnectWebsocket() {             //登录后循环连接各个通道
         var _this = this;
         _this.$store.state.vuexStore.channelList.forEach(function(val,index){           //遍历channelList
             if(val.isTestNet == _this.$store.state.vuexStore.isTestNet){
-                _this.$parent.reconnectWebsocket(val.Ip + ":8866",val.ChannelName);
+                if(_this.baseChain == "ETH"){
+                    _this.$parent.reconnectWebsocket(val.Ip + ":8866",val.ChannelName);
+                } else if (_this.baseChain == "NEO"){
+                    _this.$parent.reconnectWebsocket(val.Ip + ":8766",val.ChannelName);
+                }
             }
         })
     },

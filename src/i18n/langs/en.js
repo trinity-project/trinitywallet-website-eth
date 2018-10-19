@@ -1,28 +1,25 @@
 import enLocale from 'element-ui/lib/locale/lang/en'
 const en = {
-    navMenu: {
-        'title': 'Menu',
-        'wallet': {
-            'title': 'Wallet',
-            'index': 'Home',
-            'receive': 'Receive',
+    tabbar: {
+        'wallet': 'Wallet',
+        'message': 'Message',
+        'channel': {
             'addChannel': 'Add Channel',
-            'channelList': 'Channel',
-            'record': 'Record'
+            'channelList': 'Channel List',
+            'payment': 'Payment',
+            'scan': 'Scan',
         },
+        'discover': 'Discover',
+        'setting': 'Me',
+    },
+    setting: {
+        'title': 'Setting',
+        'backup': 'Backup',
+        'changePass': 'Change Password',
         'contact': 'Contact',
-        'setting': {
-            'title': 'Setting',
-            'switchLang': '更改语言',
-            'switchNet': 'Switch Net',
-            'setGasPrice': 'Set Gas Price',
-            'recommendGasPrice': 'Current Lowest Gas',
-            'nightMode': 'Night Mode',
-            'changePass': 'Change Pass',
-            'backup': 'Backup',
-            'signOut': 'Sign Out'
-        },
-        'about': 'About Us'
+        'switchLang': 'Language',
+        'about': 'About Us',
+        'signOut': 'Sign Out'
     },
     start: {
         'title': 'Welcome',
@@ -93,10 +90,8 @@ const en = {
         'transfer': 'Transfer',
         'transferOnChian': 'Transfer On Chian',
         'transferOnChannel': 'Transfer On Channel',
-        'address': 'Address',
         'assetType': 'AssetType',
         'inputAssetType': 'Choose Asset Type',
-        'amount': 'Amount',
         'password': 'Password',
         'cancel': 'Cancel',
         'transfer-1': 'Send',
@@ -117,11 +112,15 @@ const en = {
         'callback-14': 'No channels open yet, please add one before',
         'callback-15': 'Channel not open'
     },
+    asset: {
+        'title': 'Asset',
+        'receive': 'Receive',
+        'send': 'Send'
+    },
     receive: {
         'title': 'Receive',
-        'chain': 'Chain',
-        'channel': 'Channel',
-        'receiveAddress': 'Receive Address',
+        'receiveAddressQRCode': 'Wallet Address QRCode',
+        'receiveAddress': 'Wallet Address',
         'copy': 'Copy',
         'amount': 'Amount',
         'assetType': 'Asset Type',
@@ -129,6 +128,14 @@ const en = {
         'create': 'Create',
         'reset': 'Reset',
         'receiveCode': 'Receive Code'
+    },
+    transferOnChian: {
+        'title1': 'Transfer ',
+        'title2': ' on chian',
+        'address': 'Address',
+        'amount': 'Amount',
+        'balance': 'Balance',
+        'miningFee': 'Mining Fee',
     },
     channelList: {
         'title': 'Channel List',
@@ -177,7 +184,7 @@ const en = {
     record: {
         'title': 'Record',
         'noRecord': 'No record yet',
-        'recordInfo': 'Record info',
+        'recordInfo': 'Record Details',
         'otherUri': 'Other address',
         'date': 'Transaction data',
         'amount': 'Transaction amount',
@@ -226,6 +233,7 @@ const en = {
         'tipsContent': 'After backed up the wallet, the system will generate a wallet backup file. When you clear the data, change the browser, or reinstall the system, you can use the wallet backup file to restore the wallet. Please save the file and the wallet password. Once lost wallet files or forgotten wallet passwords you may lost your assets.'
     },
     about: {
+        'title': 'About Us',
         'content': 'Trinity Wallet is a state channel based wallet App. Trinity provides users fast-speed transactions safely with “Trading off-chain, endorsement on-chain” state channels. Users can get the fastest payment experience by using this App.',
         'tipsTitle': 'Tips:',
         'tips': ' Carefully keep your private key, and confirm that the channel has been closed before uninstalling the App or deleting the data, otherwise you will lose the channel information.'
@@ -279,6 +287,8 @@ const en = {
         'callback-24': 'Disconnect',
         'callback-25': 'Transaction Failed',
         'verifyFail': 'The peer signature verification was failed, and the transaction was canceled.',
+        'switchLang': '切换语言',
+        'scan': 'Scan',
     }
 }
 

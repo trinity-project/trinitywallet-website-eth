@@ -1,5 +1,5 @@
 <template>
-    <div class="tabbar" v-if="$route.path !='/start' && $route.path !='/create' && $route.path !='/loginByPrivateKey' && $route.path !='/loginByKeyStore'">
+    <div class="tabbar" v-show="isTabbarShow">
         <div v-for="(item, index) in tabbarList" :key="index" style="flex: 1;">
             <a @click.stop="selectItems(index,item.router)" v-if="index != 2 && index != 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
                 <div class="tab-item-icon">
@@ -37,13 +37,13 @@ export default {
             {
                 index: "0",
                 icon: "el-icon-ETH-qianbao",
-                name: "钱包",
+                name: this.$t('tabbar.wallet'),
                 router: "/wallet"
             },
             {
                 index: "1",
                 icon: "el-icon-ETH-comment",
-                name: "消息",
+                name: this.$t('tabbar.message'),
                 router: "/message"
             },
             {
@@ -53,26 +53,31 @@ export default {
             {
                 index: "3",
                 icon: "el-icon-ETH-discover",
-                name: "发现",
+                name: this.$t('tabbar.discover'),
                 router: "/discover"
             },
             {
                 index: "4",
                 icon: "el-icon-ETH-wode",
-                name: "我的",
+                name: this.$t('tabbar.setting'),
                 router: "/setting"
             }
         ],
-        tabbarSelected: 0
+        tabbarSelected: 0,
+        isTabbarShow: true
     }
   },
   mounted() {
     this.$nextTick(function(){
-
+        
     })
   },
+  computed: {
+
+  },
   watch: {
-    
+    '$route.path': 'showTabbar',
+    '$i18n.locale': 'changeLang'
   },
   methods:{
     selectItems(index,router){
@@ -82,6 +87,20 @@ export default {
     },
     showChannelForm() {
         this.$store.state.vuexStore.isChannelFormShow = true;
+    },
+    showTabbar() {
+        let route = this.$route.path;
+        if(route =='/start' || route =='/create' || route =='/loginByPrivateKey' || route =='/loginByKeyStore' || route =='/scan' || route =='/setting/language'){
+            this.isTabbarShow = false;
+        } else {
+            this.isTabbarShow = true;
+        }
+    },
+    changeLang() {              //解决js中的i18n不切换的问题
+        this.tabbarList[0].name = this.$t('tabbar.wallet');
+        this.tabbarList[1].name = this.$t('tabbar.message');
+        this.tabbarList[3].name = this.$t('tabbar.discover');
+        this.tabbarList[4].name = this.$t('tabbar.setting');
     }
   }
 }

@@ -17,7 +17,7 @@
             </el-row>
         </div>
         <div v-if="formatChannelList(channelList).length" style="overflow-x: hidden;height: calc(100% - 220px);">
-            <ul>
+            <ul class="listUl">
                 <li @click="toChannelAssetForm(data,index)" v-for="(data,index) in formatChannelList(channelList)" :key="index">
                     <h3>{{ data.Alice }}</h3><br>
                     <p>{{ data.date | formatDateTime }}</p>
@@ -136,8 +136,9 @@ export default {
   methods: {
     toChannelAssetForm(data,index) {           //跳转到资产页面
       console.log(data);
-      if(data){
-          this.$router.push({name:'channelAsset',params: { Data: data }});
+      if(data.ChannelName){
+          this.$router.push('/channel/channelAsset');
+          this.$store.state.vuexStore.activeAssetInfo.channelName = data.ChannelName;
       }
     },
     formatChannelList(list) {
@@ -163,11 +164,6 @@ export default {
     overflow: hidden;
     background: #FFFFFF;
     z-index: 2;
-}
-.headBox{
-    height: 56px;
-    width: 100%;
-    background-color: rgb(67, 74, 80);
 }
 .contentBox{
     height: 100%;
