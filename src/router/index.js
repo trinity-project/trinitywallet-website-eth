@@ -28,6 +28,8 @@ import channelInfoForm from '@/components/channel/channelInfo'
 import paymentForm from '@/components/channel/payment'
 import createPaymentForm from '@/components/channel/createPayment'
 
+import ranking from '@/components/discover/ranking'
+
 import BackupForm from '@/components/setting/backup'
 import contactForm from '@/components/setting/contact'
 import changePasswordForm from '@/components/setting/changePassword'
@@ -257,6 +259,14 @@ export default new Router({
       path: '/setting/about',
       name: 'aboutForm',
       component: aboutForm,
+      meta: {
+        index: 1
+      },
+    },
+    {
+      path: '/discover/ranking',
+      name: 'ranking',
+      component: ranking,
       meta: {
         index: 1
       },

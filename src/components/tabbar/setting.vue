@@ -60,7 +60,7 @@
             </div>
         </router-link>
         <div style="text-align:center;margin-top:42px;">
-            <el-button @click="test()" style="width: 80%;" type="primary">{{ $t('setting.signOut') }}</el-button>
+            <el-button @click="showSignOutBox()" style="width: 80%;" type="primary">{{ $t('setting.signOut') }}</el-button>
         </div>
     </div>
   </div>
@@ -78,13 +78,8 @@ export default {
 
   },
   methods: {
-    test() {
-        this.$message({
-          type:'success',
-          text:11111,
-          duration: 0
-        });
-        // this.$store.state.vuexStore.isNotifyShow == true ? this.$store.state.vuexStore.isNotifyShow = false : this.$store.state.vuexStore.isNotifyShow = true;
+    showSignOutBox() {
+        this.$parent.$parent.showSignOutBox();
     }
   }
 }
@@ -99,6 +94,9 @@ export default {
     overflow: hidden;
     background: #F2F2F2;
     z-index: 1;
+}
+.headBox{
+    background-color: RGBA(64, 64, 67, 0.97);
 }
 h1{
     font-size: 18px;

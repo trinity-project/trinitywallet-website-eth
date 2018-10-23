@@ -145,20 +145,19 @@ export default {
 
         if(_this.baseChain == "ETH"){                  //当前为ETH钱包时
             let Message = {
-                "messageType":"init", 
-                "walletAddress":_this.address
+                "messageType": "init", 
+                "walletAddress": _this.address
             }
             _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
             let Message1 = {
-                "messageType":"monitorAddress",
+                "messageType": "monitorAddress",
                 "walletAddress": _this.address,
                 "playload": _this.address,
-                "chainType":"ETH",
-                "comments":{}
+                "chainType": "ETH",
+                "comments": {}
             }
             _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //向全节点请求监听到账信息
            
-            
             _this.$parent.blockHeightCycle();                    //循环查询块高
         }
         _this.BalanceCycle();                        //反复获取钱包余额

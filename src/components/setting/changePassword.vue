@@ -31,7 +31,7 @@ export default {
       if (!value) {
         return callback(new Error(this.$t('changePassword.callback-1')));
       } else {
-        let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, value);
+        let PrivateKey = this.$parent.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, value);
         setTimeout(() => {
             if(PrivateKey){
             callback();
@@ -91,7 +91,7 @@ export default {
     toLoginForm() {       //切换到登录窗口
         this.$refs['changePasswordForm'].validate((valid) => {
             if (valid) {
-                let PrivateKey = this.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, this.changePasswordForm.oldPass);
+                let PrivateKey = this.$parent.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, this.changePasswordForm.oldPass);
                 console.log(PrivateKey);
                 let keyStore = web3.eth.accounts.encrypt(PrivateKey.privateKey, this.changePasswordForm.pass);
                 console.log(keyStore);
@@ -107,6 +107,7 @@ export default {
                     duration: 3000,
                     type: 'success'
                 });
+                this.$router.push('/setting/backup');
                 } else {
                 this.$notify.error({
                     title: this.$t('changePassword.callback-8'),

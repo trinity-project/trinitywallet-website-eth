@@ -391,7 +391,7 @@ export default {
             _this.$notify.error({
               title: _this.$t('common.warning'),
               dangerouslyUseHTMLString: true,
-              message: _this.$t('common.callback-14'),
+              message: "没有开通的通道",
               duration: 3000
             });
             _this.ShowTxOnChannelBox = false;           //关闭当前窗口

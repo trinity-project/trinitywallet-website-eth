@@ -6,11 +6,11 @@
       </div>
       <h1>消息中心</h1>
       <div class="header-button is-right" style="text-align:right;">
-        <p @click="clearAll()">清空全部</p>
+        <p v-if="messageList.length" @click="clearAll()">清空全部</p>
       </div>
     </div>
     <div class="contentBox">
-        <ul class="listUl">
+        <ul v-if="messageList.length" class="listUl">
             <li @click="readMessage(item)" v-for="(item,index) in messageList" :key="index">
                 <h2 class="title">{{ item.title }}<span :class='{ isRead: item.isRead }' class="readFlag"></span><span class="date">{{ item.date | formatDateTime }}</span></h2>
                 <div class="bottomBox">
@@ -21,7 +21,10 @@
                     <p v-if="item.sender.type == 'trinity'">发起人: {{ item.sender.name }}</p>
                 </div>
             </li>
-        </ul>  
+        </ul>
+        <p v-else style="text-align:center;margin-top:20vh;font-size: 14px;color: #5e6d82;line-height: 1.5em;font-weight: 400;">
+            消息中心功能正在加入中...
+        </p>
     </div>
     <!-- <i @click="clearAll()" class="clearAllBtn el-icon-ETH-qingkong"></i> -->
   </div>
@@ -69,7 +72,8 @@ export default {
                     name: "Trinity" 
                 }
             }
-        ]
+        ],
+        messageList1: []
     }
   },
   filters:{
