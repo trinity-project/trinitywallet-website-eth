@@ -90,7 +90,7 @@ export default {
     },
     showTabbar() {
         let route = this.$route.path;
-        if(route =='/start' || route =='/create' || route =='/loginByPrivateKey' || route =='/loginByKeyStore' || route =='/scan' || route =='/setting/language'){
+        if(route =='/start' || route =='/create' || route =='/loginByPrivateKey' || route =='/loginByKeyStore' || route =='/scan' || route =='/setting/language' || route =='/discover/ranking'){
             this.isTabbarShow = false;
         } else {
             this.isTabbarShow = true;

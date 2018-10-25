@@ -385,8 +385,8 @@ export default {
             _this.Data.SelfBalance, 
             _this.Data.OtherUri.split("@")[0], 
             _this.Data.OtherBalance, 
-            HashR ? "0x" + HashR : "0x" + addPreZero(0 ,64), 
-            R ? "0x" + R : "0x" + addPreZero(0 ,64),
+            HashR ? HashR : "0x" + addPreZero(0 ,64), 
+            R ? R : "0x" + addPreZero(0 ,64),
             selfSignedData, 
             otherSignedData
         ];

@@ -2,7 +2,7 @@
   <div class="aboutForm">
     <headBox/>
     <div class="contentBox">
-        <h2 class="title_h2">{{ $t('about.title') }}</h2>
+        <h2 @click="test()" class="title_h2">{{ $t('about.title') }}</h2>
         <hr/>
         <div style="text-align:center;">
             <img @click="clickNum += 1" src="./../../assets/img/Trinity.png" alt="Trinity">
@@ -24,7 +24,8 @@ export default {
   name: 'aboutForm',
   data () {
     return {
-        clickNum: 0
+        clickNum: 0,
+        testWebSocket: ""
     }
   },
   components: {
@@ -44,6 +45,29 @@ export default {
   methods: {
       switchNet() {
           this.$store.state.vuexStore.isTestNet ? this.$store.state.vuexStore.isTestNet = false : this.$store.state.vuexStore.isTestNet = true;
+      },
+      test() {
+        let _this = this;
+        let wsuri = "ws://47.98.228.81:8866";               //建立websocket连接
+        _this.testWebSocket = new WebSocket(wsuri);
+        _this.testWebSocket.onmessage = _this.websocketOnMessage;
+        _this.testWebSocket.onclose = _this.websocketClose;
+        let Message = {
+            AssetType: "TNC",
+            MessageBody: {},
+            MessageType: "GetNodeList",
+            NetMagic: "527465737419990331",
+            Sender: "0x4E801062608188F5d6815ddC3e98B766088784CE@47.98.228.81:8866"
+        }
+        setTimeout(function(){
+            _this.testWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+        },1000);
+      },
+      websocketOnMessage(e) {
+          console.log(e);
+      },
+      websocketClose() {
+          console.log("关闭");
       }
   }
 }

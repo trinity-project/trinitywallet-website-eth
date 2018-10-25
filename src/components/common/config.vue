@@ -46,7 +46,6 @@ export default {
         _this.isTestNet ? _this.$store.state.vuexStore.isTestNet = true : _this.$store.state.vuexStore.isTestNet = false
     
         _this.$store.state.vuexStore.baseChain = _this.$parent.fetchAsString("baseChain") || "ETH";                  //获取底层链
-
         console.log(_this.isTestNet);
         console.log(_this.baseChain);
         if(_this.isTestNet != "" && _this.baseChain != ""){
@@ -139,8 +138,12 @@ export default {
         _this.$store.state.vuexStore.eventList = _this.$parent.fetchAsArray(_this.address + "@eventList");
         console.log(_this.$store.state.vuexStore.eventList);                              //获取event列表
         _this.$store.state.vuexStore.RList = _this.$parent.fetchAsArray(_this.address + "@RList");
-        console.log("HashR:fe9c65053a5ac416b756714e3cba5774572d37b2ea1a15360e51be3617745669");
-        console.log(_this.$store.state.vuexStore.RList);
+        
+        let isOneStepPayment = _this.$parent.fetchAsString(_this.address + "@isOneStepPayment");
+        console.log(isOneStepPayment);
+        isOneStepPayment == "true" ? _this.$store.state.vuexStore.isOneStepPayment = true : _this.$store.state.vuexStore.isOneStepPayment = false;                                                    //免密支付
+        console.log(_this.$store.state.vuexStore.isOneStepPayment);
+        
         _this.getBalance();                          //获取总的余额
 
         if(_this.baseChain == "ETH"){                  //当前为ETH钱包时

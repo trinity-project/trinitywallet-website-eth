@@ -14,7 +14,7 @@
             <h1>排行榜</h1>
             <p>Trinity状态通道排行榜</p>
         </div>
-        <img src="./../../../static/Trinity.png" alt="">
+        <img src="./../../../static/img/discover/ranking/ranking.png" alt="">
     </div>
     <div class="tabs">
         <div @click="selectPane(index)" :class="{'is-selected': tabPaneSelected == index}" v-for="(item, index) in tabsItems" :key="index" class="tab-pane">

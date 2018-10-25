@@ -14,10 +14,12 @@ export default {
     NodeUriWebSocket: "",                           //全节点websocket方法
     NodeRpcUri: 'http://47.254.64.251:21332',     //全节点通用RPC接口   NEO
     isNotifyShow: false,
+    isOneStepPayment: "",        //是否开启免密支付
     walletInfo: {               //钱包信息
       keyStore: "",
       publicKey: "",
-      address: ""
+      address: "",
+      keyStorePass: ""
     },
     NEOwalletInfo: {            //NEO钱包消息
       keyStore: "",

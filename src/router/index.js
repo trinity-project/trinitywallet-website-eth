@@ -35,6 +35,7 @@ import contactForm from '@/components/setting/contact'
 import changePasswordForm from '@/components/setting/changePassword'
 import languageForm from '@/components/setting/language'
 import aboutForm from '@/components/setting/about'
+import moreForm from '@/components/setting/more'
 
 
 Vue.use(Router)
@@ -261,6 +262,14 @@ export default new Router({
       component: aboutForm,
       meta: {
         index: 1
+      },
+    },
+    {
+      path: '/setting/more',
+      name: 'moreForm',
+      component: moreForm,
+      meta: {
+        index: 2
       },
     },
     {

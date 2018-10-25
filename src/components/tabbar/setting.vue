@@ -9,7 +9,7 @@
     <div class="contentBox">
         <!-- <h2></h2> -->
         <!-- <hr style=" height:2px;border:none;border-top:2px dotted #EBEEF5;" /> -->
-        <router-link to="/setting/backup" class="cell">
+        <router-link to="/setting/backup" class="cell cell-hover">
             <div class="cell-wrapper">
                 <div class="cell-title">
                     <span class="cell-text">{{ $t('setting.backup') }}</span>
@@ -19,7 +19,7 @@
                 </div>
             </div>
         </router-link>
-        <router-link to="/setting/changePassword" class="cell">
+        <router-link to="/setting/changePassword" class="cell cell-hover">
             <div class="cell-wrapper">
                 <div class="cell-title">
                     <span class="cell-text">{{ $t('setting.changePass') }}</span>
@@ -29,7 +29,7 @@
                 </div>
             </div>
         </router-link>
-        <router-link to="/setting/contact" class="cell">
+        <router-link to="/setting/contact" class="cell cell-hover">
             <div class="cell-wrapper">
                 <div class="cell-title">
                     <span class="cell-text">{{ $t('setting.contact') }}</span>
@@ -39,7 +39,7 @@
                 </div>
             </div>
         </router-link>
-        <router-link to="/setting/language" class="cell">
+        <router-link to="/setting/language" class="cell cell-hover">
             <div class="cell-wrapper">
                 <div class="cell-title">
                     <span class="cell-text">{{ $t('setting.switchLang') }}</span>
@@ -49,7 +49,17 @@
                 </div>
             </div>
         </router-link>
-        <router-link to="/setting/about" class="cell" style="margin-top: 30px;">
+        <router-link to="/setting/more" class="cell cell-hover">
+            <div class="cell-wrapper">
+                <div class="cell-title">
+                    <span class="cell-text">更多</span>
+                </div>
+                <div class="cell-right">
+                    <i class="el-icon-ETH-qianjin"></i>
+                </div>
+            </div>
+        </router-link>
+        <router-link to="/setting/about" class="cell cell-hover" style="margin-top: 30px;">
             <div class="cell-wrapper">
                 <div class="cell-title">
                     <span class="cell-text">{{ $t('setting.about') }}</span>
