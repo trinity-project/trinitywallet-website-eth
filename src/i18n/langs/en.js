@@ -18,6 +18,10 @@ const en = {
         'changePass': 'Change Password',
         'contact': 'Contact',
         'switchLang': 'Language',
+        'more': {
+            'title': 'More',
+            'oneStepPayment': 'One-step Payment'
+        },
         'about': 'About Us',
         'signOut': 'Sign Out'
     },

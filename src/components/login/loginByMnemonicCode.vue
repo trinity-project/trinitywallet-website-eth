@@ -177,9 +177,9 @@ export default {
     overflow: hidden;
 }
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
-    padding: 30px;
+    padding: 30px 20px;
     box-sizing: border-box;
 }
 .fullPage{

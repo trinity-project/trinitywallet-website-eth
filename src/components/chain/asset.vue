@@ -7,12 +7,12 @@
       <h1>{{ assetType }}</h1>
       <div class="header-button is-right"></div>
     </div>
-    <div style="position: relative;height:calc(100% - 56px)">
+    <div style="position: relative;height:calc(100% - 44px)">
         <div class="assetBox">
             <div class="amountBox">
                 <h3>{{ balanceData.Chain[assetType] }}</h3>
             </div>
-            <div class="buttonBox">
+            <div class="buttonBox clearfloat">
                 <el-row :gutter="20">
                     <el-col v-for="(item,index) in buttonBoxData" :key="index" :span="12">
                         <a @click="toOtherForm(item.link)" class="button-item">
@@ -66,7 +66,7 @@ export default {
             {
                 name: this.$t('asset.receive'),
                 icon: "el-icon-ETH-shoukuan",
-                link: "receive1",
+                link: "receive",
             },
             {
                 name: this.$t('asset.send'),
@@ -213,18 +213,18 @@ export default {
     background: #FFFFFF;
     z-index: 2;
 }
-h1{
+/* h1{
     font-size: 18px;
     font-weight: 400;
     margin: 0;
     text-align: center;
-    line-height: 56px;
+    line-height: 44px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
-}
+} */
 .contentBox{
-    height: calc(100% - 230px);
+    height: calc(70vh - 44px);
     width: 100%;
     padding: 30px 0 0;
     box-sizing: border-box;
@@ -233,7 +233,7 @@ h3 {
     font-size: 28px;
     text-align: center;
     margin: 0;
-    line-height: 60px;
+    line-height: 44px;
     font-weight: 400;
 }
 h4{
@@ -244,27 +244,30 @@ h4{
 img{
     width: 130px;
 }
-p{
-    font-size: 13px;
-    line-height: 20px;
+.contentBox p{
+    font-size: 12px;
+    line-height: 16px;
     margin: 10px 0 0;
 }
 .assetBox{
-    height: 200px;
+    height: 30vh;
     width: 100%;
     background-color: RGBA(56, 56, 59, 0.97);
     color: #FFFFFF;
-    padding: 20px;
+    padding: 10px 20px;
     box-sizing: border-box;
+}
+.assetBox p{
+    font-size: 13px;
 }
 .amountBox{
     width: 100%; 
-    height: 60px; 
+    height: 54px; 
 }
 .amountBox span{
-    display:inline-block; 
-    font-size:0.1em; 
-    vertical-align:middle;
+    display: inline-block; 
+    font-size: 0.1em; 
+    vertical-align: middle;
 }
 .buttonBox{
     height: calc(100% - 130px);

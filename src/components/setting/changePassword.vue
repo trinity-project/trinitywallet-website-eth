@@ -134,7 +134,7 @@ export default {
 <style scoped>
 .changePasswordForm{
     float: left;
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;

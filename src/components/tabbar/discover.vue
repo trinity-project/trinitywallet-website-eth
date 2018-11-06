@@ -34,7 +34,7 @@ export default {
         {
             title: "排行榜",
             link: "/discover/ranking",
-            imgLink: "./../../../static/img/ranking.png",
+            imgLink: require('./../../assets/img/discover/ranking/ranking.png'),
             style: {
               background: "#CCCCCC"
             }
@@ -59,10 +59,11 @@ export default {
     float: left;
     height: 100%;
     width: 100%;
+    background: #F2F2F2;
     overflow: hidden;
 }
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     padding: 10px;
     box-sizing: border-box;
@@ -79,15 +80,15 @@ li{
   border-radius: 10px;
   float: left;
   margin: 0 2% 10px;
-  padding: 20px;
+  padding: 20px 10px;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
 }
 li img{
-  width: 70px;
+  width: 66px;
   position: absolute;
-  right: 10px;
-  top: 30%;
+  right: 0px;
+  top: 35%;
 }
 </style>

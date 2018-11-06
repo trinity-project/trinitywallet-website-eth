@@ -7,7 +7,7 @@
       <h1>通道 - {{ Data.Alice }}</h1>
       <div class="header-button is-right"></div>
     </div>
-    <div style="position: relative;height:calc(100% - 56px)">
+    <div style="position: relative;height:calc(100% - 44px)">
         <div class="assetBox">
             <div class="amountBox">
                 <h3>{{ Data.SelfBalance | formatBalance }}{{ Data.assetType }}</h3>
@@ -251,13 +251,13 @@ h1{
     font-weight: 400;
     margin: 0;
     text-align: center;
-    line-height: 56px;
+    line-height: 44px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .contentBox{
-    height: calc(100% - 230px);
+    height: calc(70vh - 44px);
     width: 100%;
     padding: 30px 0 0;
     box-sizing: border-box;
@@ -283,7 +283,7 @@ p{
     margin: 10px 0 0;
 }
 .assetBox{
-    height: 200px;
+    height: 30vh;
     width: 100%;
     background-color: RGBA(56, 56, 59, 0.97);
     color: #FFFFFF;

@@ -6,7 +6,7 @@
                     <i :class="item.icon"></i>
                 </div>
                 <div class="tab-item-label">
-                    {{ item.name }}
+                    <p><span>{{ item.name }}</span></p>
                 </div>
             </a>
             <a @click.stop="selectItems(index,item.router)" v-if="index == 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
@@ -15,7 +15,7 @@
                         <i :class="item.icon"></i>
                     </div>
                     <div class="tab-item-label">
-                        {{ item.name }}
+                        <p><span>{{ item.name }}</span></p>
                     </div>
                 </el-badge>
             </a>
@@ -64,7 +64,7 @@ export default {
             }
         ],
         tabbarSelected: 0,
-        isTabbarShow: true
+        isTabbarShow: false
     }
   },
   mounted() {
@@ -90,7 +90,7 @@ export default {
     },
     showTabbar() {
         let route = this.$route.path;
-        if(route =='/start' || route =='/create' || route =='/loginByPrivateKey' || route =='/loginByKeyStore' || route =='/scan' || route =='/setting/language' || route =='/discover/ranking'){
+        if(route =='/start' || route =='/create' || route =='/loginByPrivateKey' || route =='/loginByKeyStore' || route =='/scan' || route =='/setting/language' || route =='/discover/ranking' || route =='/back'){
             this.isTabbarShow = false;
         } else {
             this.isTabbarShow = true;
@@ -109,7 +109,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .tabbar{
-    height: 55px;
+    height: 48px;
     right: 0;
     bottom: 0;
     left: 0;
@@ -149,17 +149,17 @@ a{
     text-align: center;
 }
 .TrinityButton img{
-    margin: 2px 0 4px;
-    width: 38px;
+    margin: 0;
+    width: 36px;
 }
 [class^="el-icon-ETH"], [class*=" el-icon-ETH"] {
-    font-size: 21px;
+    font-size: 19px;
     margin: 0;
 }
 
 .tab-item{
     display: block;
-    padding: 7px 0;
+    padding: 5px 0;
     text-decoration: none;
     cursor: pointer;
 }
@@ -169,12 +169,21 @@ a{
 .tab-item-icon{
     width: 24px;
     height: 24px;
-    margin: 0 auto 5px;
+    margin: 0 auto 2px;
 }
 .tab-item-label {
     color: inherit;
-    font-size: 12px;
+    font-size: 10px;
     line-height: 1;
+}
+.tab-item-label p {
+    font-size: 10px;
+    margin: 0;
+}
+.tab-item-label p span {
+    -webkit-transform:scale(0.85);
+    -o-transform:scale(1); 
+    display:inline-block
 }
 @keyframes antzone {
     0% {

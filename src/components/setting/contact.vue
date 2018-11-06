@@ -162,7 +162,7 @@ export default {
 <style scoped>
 .contactBox{
     float: left;
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;

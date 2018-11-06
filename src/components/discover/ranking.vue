@@ -14,10 +14,10 @@
             <h1>排行榜</h1>
             <p>Trinity状态通道排行榜</p>
         </div>
-        <img src="./../../../static/img/discover/ranking/ranking.png" alt="">
+        <img src="./../../assets/img/discover/ranking/ranking.png" alt="">
     </div>
     <div class="tabs">
-        <div @click="selectPane(index)" :class="{'is-selected': tabPaneSelected == index}" v-for="(item, index) in tabsItems" :key="index" class="tab-pane">
+        <div @click="selectPane(item.func, index)" :class="{'is-selected': tabPaneSelected == index}" v-for="(item, index) in tabsItems" :key="index" class="tab-pane">
             {{ item.name }}
             <div style="position: absolute;bottom: 0;text-align:center;left: 0;bottom: 0px;width: 100%;">
                 <div class="sanjiao"></div>
@@ -25,7 +25,7 @@
         </div>
     </div>
     <div class="contentBox">
-        <div class="cell" v-for="(data, index) in DataList" :key="index">
+        <div class="cell" v-for="(data, index) in rankingDataOrderBy" :key="index">
             <div class="cell-wrapper">
                 <div class="cell-title">
                     <div v-if="index == 0" class="indexBox">
@@ -48,8 +48,11 @@
                     </div>
                     <span class="cell-text">{{ data.address | formatAddress }}</span>
                 </div>
-                <div class="cell-right">
-                        {{ data.number }}{{ data.assetType }}
+                <div class="cell-right" v-if="dataOrderBy == 'payment' || dataOrderBy == 'income'">
+                    {{ data[dataOrderBy] | formatBalance }}{{ data.assetType }}
+                </div>
+                <div class="cell-right" v-if="dataOrderBy == 'nonce'">
+                    {{ data.nonce }}
                 </div>
             </div>
         </div>
@@ -65,70 +68,31 @@ export default {
     return {
         tabsItems: [
             {
-                name: "按交易量",
-                func: ""
-            },
-            {
-                name: "按交易次数",
-                func: ""
+                name: "按支付量",
+                func: "payment"
             },
             {
                 name: "按收款量",
-                func: ""
+                func: "income"
+            },
+            {
+                name: "按交易次数",
+                func: "nonce"
             }
         ],
         tabPaneSelected: 0,
-        DataList: [
-            {
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 10000,
-                assetType: "TNC"
-            },
-            {
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 9000,
-                assetType: "TNC"
-            },
-            {
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 8000,
-                assetType: "TNC"
-            },
-            {
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 1700,
-                assetType: "TNC"
-            },
-            {
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 1000,
-                assetType: "TNC"
-            },{
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 1000,
-                assetType: "TNC"
-            },{
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 1000,
-                assetType: "TNC"
-            },{
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 1000,
-                assetType: "TNC"
-            },{
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 1000,
-                assetType: "TNC"
-            },{
-                address: "0xDc1FF8Ee46f97F6089aa17553F1531f81C33fe7F",
-                number: 1000,
-                assetType: "TNC"
-            },
-        ]
+        dataOrderBy: "payment",
+        DataList: []
     }
   },
   components: {
     
+  },
+  mounted() {
+    this.$nextTick(function(){      //首次加载时连接至全节点
+        //let _this = this;
+        this.getnodeList();         //获取排行榜信息
+    })
   },
   watch: {
 
@@ -141,11 +105,110 @@ export default {
         }
         return address;
     },
+    formatBalance(val) {
+        var value = "";
+        if(val > 0){
+            value = Number(val).div(10e7);
+        } else {
+            value = 0;
+        }
+        return value;
+    }
+  },
+  computed: {
+    rankingDataOrderBy() {
+      return this.DataList.sort((a,b) => b[this.dataOrderBy] - a[this.dataOrderBy]);             //降序
+    },
+    nodeWebSocketIp() {                                 //稳定的node节点
+      return this.$store.state.vuexStore.nodeWebSocketIp;
+    },
+    spvPort() {                                         //spv端口号
+      return this.$store.state.vuexStore.spvPort;
+    },
   },
   methods: {
-      selectPane(index){
-          this.tabPaneSelected = index;                  //Nav选中之后设置store里的值为当前的index。
+    selectPane(func, index){                                 //切换Nav事件
+      this.tabPaneSelected = index;                  //Nav选中之后设置store里的值为当前的index。
+      this.dataOrderBy = func;
+    },
+    getnodeList() {
+      let _this = this;
+      let wsuri = _this.nodeWebSocketIp + ":" + _this.spvPort;               //建立websocket连接
+      _this.testWebSocket = new WebSocket(wsuri);
+      _this.testWebSocket.onmessage = _this.websocketOnMessage;
+      _this.testWebSocket.onclose = _this.websocketClose;
+      let Message = {
+        AssetType: "TNC",
+        MessageBody: {},
+        MessageType: "GetNodeList",
+        NetMagic: "527465737419990331",
+        Sender: "0x4E801062608188F5d6815ddC3e98B766088784CE@47.98.228.81:8866"
       }
+      setInterval(_this.testWebSocket.send(JSON.stringify(Message)), 30000);      //循环获取
+    },
+    websocketOnMessage(e) {
+      let redata = JSON.parse(e.data);
+      let nodeList = [];
+      redata.Nodes.nodes.forEach(function(data, index){
+        nodeList.push(data.Publickey + "@" + data.Ip.split(":")[0] + ":21556");
+      });
+      this.$store.state.vuexStore.nodeList = nodeList;
+      console.log(this.$store.state.vuexStore.nodeList);
+
+      this.getRankingData();                        //立即获取排行榜数据
+      setInterval(this.getRankingData, 10000);      //循环获取
+    },
+    websocketClose() {
+      console.log("关闭");
+    },
+    getRankingData() {
+      let _this = this;
+      let list = this.$store.state.vuexStore.nodeList;
+      for(var i = 0; i < list.length; i++){
+      axios({
+        method: 'post',
+        url: "http://" + list[i].split("@")[1],
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+        },
+        data: JSON.stringify({
+          "jsonrpc": "2.0",
+          "method": "GetWalletStatistics",
+          "params": [list[i].split("@")[0]],
+          "id": 1
+        })
+      }).then(function(res){
+        if(res.data.result.MessageType == "GetWalletStatisticsAck"){
+          console.log(res.data.result.MessageBody);
+          let data = res.data.result.MessageBody;
+          let Message = {
+            address: data.address,
+            assetType: "TNC",
+            income: data.income || 0,
+            rsmc_successed: data.rsmc_successed || 0,
+            total_rsmc_transaction: data.total_rsmc_transaction || 0,
+            htlc_successed: data.htlc_successed || 0,
+            total_htlc_transaction: data.total_htlc_transaction || 0,
+            total_free: data.total_free || 0,
+            payment: data.payment || 0,
+            nonce: (data.rsmc_successed + data.htlc_successed) || 0,
+          }
+          console.log(Message);
+          let isNewData = true;
+          _this.DataList.forEach(function(val, index){
+              if(val.address == data.address){
+                  val = Message;
+                  isNewData = false;
+                  return;
+              }
+          })
+          if(isNewData){
+              _this.DataList.push(Message);
+          }
+        }
+      })
+      }
+    },
   }
 }
 </script>
@@ -183,10 +246,10 @@ h1{
     margin: 5px 0;
 }
 .banner img{
-    width: 100px;
+    width: 76px;
     position: absolute;
     right: 30px;
-    top: -25px;
+    top: -3px;
 }
 .contentBox{
     height: calc(100% - 206px);
@@ -251,7 +314,7 @@ p{
 }
 .cell:last-child{
     border-bottom: none;
-    margin-bottom: 56px;
+    margin-bottom: 44px;
 }
 .rankingForm .icon {
    width: 30px;

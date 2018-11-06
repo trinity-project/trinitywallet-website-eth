@@ -5,7 +5,7 @@
         <router-link to="/setting/more" class="cell">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">免密转账</span>
+                    <span class="cell-text">{{ $t('setting.more.oneStepPayment') }} ( Test ) </span>
                 </div>
                 <div class="cell-right">
                     <el-switch v-model="$store.state.vuexStore.isOneStepPayment" active-color="#13ce66" inactive-color="#CCCCCC">
@@ -91,7 +91,8 @@ export default {
     },
     confirm() {
       this.$refs['activeInfo'].validate((valid) => {
-        this.$store.state.vuexStore.keyStorePass = this.activeInfo.keyStorePass;                     //储存keystore密码
+        this.$store.state.vuexStore.walletInfo.keyStorePass = this.activeInfo.keyStorePass;                     //储存keystore密码
+        console.log(this.$store.state.vuexStore.walletInfo.keyStorePass);
         this.$parent.$parent.saveAsString(this.$store.state.vuexStore.walletInfo.address + "@isOneStepPayment", this.$store.state.vuexStore.isOneStepPayment);         // 存储免密支付信息
         this.isComfirmOneStepPaymentShow = false;
       })
@@ -118,7 +119,7 @@ h1{
     font-weight: 400;
     margin: 0;
     text-align: center;
-    line-height: 56px;
+    line-height: 44px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;

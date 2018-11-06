@@ -22,6 +22,7 @@
 
 <script>
 import headBox from './../common/headBoxForChild'
+import Bus from './../bus.js'
 export default {
   name: 'createForm',
   data () {
@@ -69,62 +70,69 @@ export default {
   },
   methods: {
     toLoginForm() {       //切换到登录窗口
-        this.$refs['createForm'].validate((valid) => {
-            if (valid) {
-              if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
-                let privateKey = web3.eth.accounts.create().privateKey.slice(2);
-                console.log(privateKey);
-                let keyStore = web3.eth.accounts.encrypt('0x' + privateKey, this.createForm.pass);
-                console.log(keyStore);
-                let address = web3.utils.toChecksumAddress(keyStore.address);
-                console.log(address);
-                if(web3.utils.checkAddressChecksum(address)){
-                    this.$store.state.vuexStore.walletInfo.keyStore = keyStore;
-                    // console.log(this.$store.state.vuexStore.walletInfo.keyStore);
-                    // this.$store.state.vuexStore.walletInfo.publicKey = privateKey2PublicKey(privateKey).toString('hex');   //存入publicKey
-                    // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
-                    this.$store.state.vuexStore.walletInfo.address = address;       //存入地址
-                    // console.log(this.$store.state.vuexStore.walletInfo.address);
-                    this.$store.state.vuexStore.isLogin = true;
-                    this.$notify({
-                        title: this.$t('create.callback-4'),
-                        dangerouslyUseHTMLString: true,
-                        message: this.$t('create.callback-5'),
-                        duration: 3000,
-                        type: 'success'
-                    });
-                }
-                this.$router.push('/setting/backup');
-              } else if(this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
-                let privateKey = ab2hexstring(generatePrivateKey());
-                console.log(privateKey);
-                let keyStore = scrypt_module_factory(generateWalletFileBlob, {}, {'privateKey':privateKey,'password':this.createForm.pass});
-                console.log(keyStore);
-                let address = keyStore.accounts[0].address;
-                console.log(address);
-                if(address.length == 34){
-                    this.$store.state.vuexStore.NEOwalletInfo.keyStore = keyStore;     //存入KeyStore
-                    this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(privateKey, 0)));                      //存入publicKey
-                    this.$store.state.vuexStore.NEOwalletInfo.address = address;       //存入地址
-                    // console.log(this.$store.state.vuexStore.NEOwalletInfo);
-                    this.$store.state.vuexStore.isLogin = true;
-                    this.$notify({
-                        title: this.$t('create.callback-4'),
-                        dangerouslyUseHTMLString: true,
-                        message: this.$t('create.callback-5'),
-                        duration: 3000,
-                        type: 'success'
-                    });
-                }
-                this.$router.push('/setting/backup');
-              }
-            } else {
-                console.log('error submit!!');
-                return false;
+      this.$refs['createForm'].validate((valid) => {
+        if (valid) {
+          if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
+            let privateKey = web3.eth.accounts.create().privateKey.slice(2);
+            console.log(privateKey);
+            let keyStore = web3.eth.accounts.encrypt('0x' + privateKey, this.createForm.pass);
+            console.log(keyStore);
+            let address = web3.utils.toChecksumAddress(keyStore.address);
+            console.log(address);
+            if(web3.utils.checkAddressChecksum(address)){
+              this.$store.state.vuexStore.walletInfo.keyStore = keyStore;
+              // console.log(this.$store.state.vuexStore.walletInfo.keyStore);
+              // this.$store.state.vuexStore.walletInfo.publicKey = privateKey2PublicKey(privateKey).toString('hex');   //存入publicKey
+              // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
+              this.$store.state.vuexStore.walletInfo.address = address;       //存入地址
+              // console.log(this.$store.state.vuexStore.walletInfo.address);
+              this.$store.state.vuexStore.isLogin = true;
+              this.$notify({
+                title: this.$t('create.callback-4'),
+                dangerouslyUseHTMLString: true,
+                message: this.$t('create.callback-5'),
+                duration: 3000,
+                type: 'success'
+              });
+              console.log(this.$store.state.vuexStore.walletInfo);
+              Bus.$emit('getAddressInfo', true);
+              this.$parent.$parent.saveAsString("isLogin", this.$store.state.vuexStore.isLogin);                      // 存储wallet信息
+              this.$parent.$parent.saveAsArray("walletInfo", this.$store.state.vuexStore.walletInfo);                 // 存储wallet信息
             }
-            this.createForm.pass = '';
-            this.createForm.checkPass = '';
-        });
+            this.$router.push('/setting/backup');
+          } else if(this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
+            let privateKey = ab2hexstring(generatePrivateKey());
+            console.log(privateKey);
+            let keyStore = scrypt_module_factory(generateWalletFileBlob, {}, {'privateKey':privateKey,'password':this.createForm.pass});
+            console.log(keyStore);
+            let address = keyStore.accounts[0].address;
+            console.log(address);
+            if(address.length == 34){
+                this.$store.state.vuexStore.NEOwalletInfo.keyStore = keyStore;     //存入KeyStore
+                this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(privateKey, 0)));                      //存入publicKey
+                this.$store.state.vuexStore.NEOwalletInfo.address = address;       //存入地址
+                // console.log(this.$store.state.vuexStore.NEOwalletInfo);
+                this.$store.state.vuexStore.isLogin = true;
+                this.$notify({
+                    title: this.$t('create.callback-4'),
+                    dangerouslyUseHTMLString: true,
+                    message: this.$t('create.callback-5'),
+                    duration: 3000,
+                    type: 'success'
+                });
+            }
+            Bus.$emit('getAddressInfo', true);
+            this.$parent.$parent.saveAsString("isLogin", this.$store.state.vuexStore.isLogin);                      // 存储wallet信息
+            this.$parent.$parent.saveAsArray("walletInfo", this.$store.state.vuexStore.NEOwalletInfo);              // 存储wallet信息
+            this.$router.push('/setting/backup');
+          }
+        } else {
+            console.log('error submit!!');
+            return false;
+        }
+        this.createForm.pass = '';
+        this.createForm.checkPass = '';
+      });
     }
   }
 }
@@ -139,9 +147,9 @@ export default {
     overflow: hidden;
 }
 .contentBox{
-    height: 100%;
+    height: calc(100% - 44px);
     width: 100%;
-    padding: 30px;
+    padding: 30px 20px;
     box-sizing: border-box;
 }
 .PrivateKeyBox{

@@ -22,6 +22,7 @@
 
 <script>
 import headBox from './../common/headBoxForChild'
+import Bus from './../bus.js'
 export default {
   name: 'loginByKeyStoreForm',
   data () {
@@ -90,18 +91,7 @@ export default {
             });
             return false;
         }
-        // let loading = this.$loading({
-        //     lock: true,
-        //     text: 'Loading',
-        //     spinner: 'el-icon-loading',
-        //     background: 'rgba(0, 0, 0, 0.7)',
-        //     target: document.querySelector('.loginByKeyStoreContentBox')
-        // });
-        // let _this = this;
-        // setTimeout(function () {
-            this.loginByKeyStore();
-            //loading.close();
-        // }, 2000);
+        this.loginByKeyStore();
     },
     loginByKeyStore() {              //解锁Ketstore
         if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
@@ -150,6 +140,9 @@ export default {
                     duration: 3000,
                     type: 'success'
                 });
+                Bus.$emit('getAddressInfo', true);
+                this.$parent.$parent.saveAsString("isLogin", this.$store.state.vuexStore.isLogin);                      // 存储wallet信息
+                this.$parent.$parent.saveAsArray("walletInfo", this.$store.state.vuexStore.walletInfo);                 // 存储wallet信息
                 this.$router.push('/wallet');         //跳转到首页
             } else {
                 this.$notify.error({
@@ -159,8 +152,6 @@ export default {
                     duration: 3000
                 });
             }
-            this.keyStoreContent = '';      //清空数据
-            this.keyStorePass = '';
         } else if (this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
             console.log(this.keyStoreContent);
             let decryptPK;
@@ -180,7 +171,7 @@ export default {
                 });
                 return false;
             }
-
+            Bus.$emit('getAddressInfo', true);
             this.$store.state.vuexStore.NEOwalletInfo.keyStore = this.keyStoreContent;                        //存入KeyStore
             this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(decryptPK, 0)));   //存入publicKey
             console.log(this.$store.state.vuexStore.NEOwalletInfo.publicKey);
@@ -193,10 +184,13 @@ export default {
                 duration: 3000,
                 type: 'success'
             });
-            this.keyStoreContent = '';      //清空数据
-            this.keyStorePass = '';
+            Bus.$emit('getAddressInfo', true);
+            this.$parent.$parent.saveAsString("isLogin", this.$store.state.vuexStore.isLogin);                      // 存储wallet信息
+            this.$parent.$parent.saveAsArray("walletInfo", this.$store.state.vuexStore.NEOwalletInfo);                 // 存储wallet信息
             this.$router.push('/wallet');         //跳转到首页
         }
+        this.keyStoreContent = '';      //清空数据
+        this.keyStorePass = '';
     }
   }
 }
@@ -211,9 +205,9 @@ export default {
     overflow: hidden;
 }
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
-    padding: 30px;
+    padding: 30px 20px;
     box-sizing: border-box;
 }
 .upload-demo{

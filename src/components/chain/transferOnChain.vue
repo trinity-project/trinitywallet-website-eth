@@ -9,10 +9,10 @@
           <i class="el-icon-ETH-lianxiren"></i>
           <p>{{ $t('setting.contact') }}</p>
         </router-link>
-        <a class="button-item">
+        <router-link to="/scan" class="button-item">
           <i class="el-icon-ETH-saoyisao"></i>
           <p>{{ $t('common.scan') }}</p>
-        </a>
+        </router-link>
       </div>
       <el-form :model="txOnChainInfo" status-icon :rules="txOnChainRules" ref="txOnChainInfo" class="demo-ruleForm">
           <el-form-item prop="address">
@@ -52,10 +52,10 @@ export default {
         return callback(new Error(this.$t('index.callback-1')));
       } else {
         if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
-          if (value.length !== 42) {
-              callback(new Error(this.$t('index.callback-2')));
+          if(web3.utils.checkAddressChecksum(value)){
+            callback();
           } else {
-              callback();
+            callback(new Error(this.$t('index.callback-2')));
           }
         } else if(this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
           if (value.length !== 34) {
@@ -170,6 +170,9 @@ export default {
       web3.eth.getGasPrice().then(function(gasPrice){
         _this.txOnChainInfo.gasPrice = Number(gasPrice).div(10e8);
       })
+      if(_this.$route.params.address){
+        _this.txOnChainInfo.address = _this.$route.params.address;
+      }
     })
   },
   methods: {
@@ -212,58 +215,29 @@ export default {
     },
     txEthOnChain() {    //链上ETH转账方法
       let _this = this;
-      let decryptPK = _this.$parent.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.txOnChainInfo.keyStorePass);
       web3.eth.getTransactionCount(_this.$store.state.vuexStore.walletInfo.address, web3.eth.defaultBlock.pending).then(function(nonce){
         // 获取交易次数
-        console.log(nonce);
+        let gasPrice = _this.$store.state.vuexStore.gasPrice;                 //gas价格
+        let decryptPK = _this.$parent.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore,_this.txOnChainInfo.keyStorePass);                                     //解锁keyStore得到私钥
+        let sendAddress = _this.$store.state.vuexStore.walletInfo.address;     //发送地址 
+        let receiveAddress = _this.txOnChainInfo.address;                      //接收地址
+        let value = _this.txOnChainInfo.amount.mul(10e17);                     //转账金额
+
         var txData = {
-          // nonce每次++，以免覆盖之前pending中的交易
           nonce: web3.utils.toHex(nonce++),
           gasLimit: web3.utils.toHex(22000),                    //上链转账ETH Gas估算
-          gasPrice: web3.utils.toHex(_this.$store.state.vuexStore.gasPrice),  
-          to: _this.txOnChainInfo.address,
-          from: _this.$store.state.vuexStore.walletInfo.address,
-          value: web3.utils.toHex(_this.txOnChainInfo.amount.mul(10e17)),         
+          gasPrice: web3.utils.toHex(gasPrice),  
+          to: receiveAddress,
+          from: sendAddress,
+          value: web3.utils.toHex(value),         
           data: ''
         }
         console.log(txData);
 
-        let signedData = signData(txData,decryptPK.privateKey);
+        let signedData = signData(txData, decryptPK.privateKey);   //签名
         console.log(signedData);
 
-        let date = new Date().getTime();        //获取当前时间戳
-        web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {     //发送交易上链
-          if (!err) {       //当不错误的时候
-            console.log(hash);
-            _this.$notify({
-                title: _this.$t('common.success'),
-                dangerouslyUseHTMLString: true,
-                message: _this.$t('common.callback-14'),
-                duration: 3000,
-                type: 'success'
-            });
-
-            let recordMessage = {       //构造交易记录信息
-              date: date,
-              name: _this.txOnChainInfo.address,
-              Amount: _this.txOnChainInfo.amount.mul(10e7),
-              assetType: 'ETH',
-              isOnChannel: false,
-              isPay: true,
-              state: 0,
-              isTestNet: _this.$store.state.vuexStore.isTestNet,
-              transactionHash : hash,
-              blockHash: ""
-            }
-            _this.$store.state.vuexStore.recordList.push(recordMessage);
-            _this.$parent.$parent.StoreData("recordList");         //保存交易信息
-            _this.$parent.$parent.cycleGetTransactionReceipt(hash);           //循环查询交易hash
-            _this.clearTxData();                                      //清空交易数据
-            _this.$router.go(-1);                                      //返回上一页面
-          } else {
-              console.log(err);
-          }
-        })
+        _this.sendSignedTransaction(signedData);                  //发送已经签名的交易
       })
     },
     async txTncOnChain() {    //链上TNC转账方法
@@ -277,49 +251,8 @@ export default {
       let signedData = await _this.$parent.$parent.signDataForERC20Contract(_this.$store.state.vuexStore.tncContractAddress, "transfer", dataTypeList, dataList, _this.txOnChainInfo.keyStorePass, _this.txOnChainInfo.gasPrice.mul(10e8));               //签名
       console.log(signedData);
       _this.sendSignedTransaction(signedData);
-      // let date = new Date().getTime();        //获取当前时间戳
-      // web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
-      //   if (!err) {
-      //     console.log(hash);
-      //     _this.$notify({
-      //         title: _this.$t('common.success'),
-      //         dangerouslyUseHTMLString: true,
-      //         message: _this.$t('common.callback-14'),
-      //         duration: 3000,
-      //         type: 'success'
-      //     });
-          
-      //     let recordMessage = {
-      //       date: date,
-      //       name: _this.txOnChainInfo.address,
-      //       Amount: _this.txOnChainInfo.amount.mul(10e7),
-      //       assetType: 'TNC',
-      //       isOnChannel: false,
-      //       isPay: true,
-      //       state: 0,
-      //       isTestNet: _this.$store.state.vuexStore.isTestNet,
-      //       transactionHash : hash,
-      //       blockHash: ""
-      //     }
-      //     console.log(_this.txOnChainInfo.address);
-      //     console.log(recordMessage);
-      //     _this.$store.state.vuexStore.recordList.push(recordMessage);
-      //     _this.$parent.$parent.StoreData("recordList");         //保存交易记录
-      //     _this.$parent.$parent.cycleGetTransactionReceipt(hash);           //循环查询交易hash
-      //     _this.$router.go(-1);                                      //清空交易数据
-      //   } else {
-      //     _this.$notify({
-      //         title: _this.$t('common.warning'),
-      //         dangerouslyUseHTMLString: true,
-      //         message: _this.$t('common.callback-25') + err,
-      //         duration: 3000,
-      //         type: 'error'
-      //     });
-      //     _this.$router.go(-1);                                      //清空交易数据
-      //   }
-      // })
     },
-    sendSignedTransaction(signedData) {
+    sendSignedTransaction(signedData) {                  //发送已经签名的交易
       let _this = this;
       let date = new Date().getTime();        //获取当前时间戳
       web3.eth.sendSignedTransaction('0x' + signedData, function(err, hash) {
@@ -337,7 +270,7 @@ export default {
             date: date,
             name: _this.txOnChainInfo.address,
             Amount: _this.txOnChainInfo.amount.mul(10e7),
-            assetType: 'TNC',
+            assetType: _this.assetType,
             isOnChannel: false,
             isPay: true,
             state: 0,
@@ -503,7 +436,7 @@ h1{
     font-weight: 400;
     margin: 0;
     text-align: center;
-    line-height: 56px;
+    line-height: 44px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -517,7 +450,7 @@ h1{
   float: left;
   color: #000000;
 }
-.buttonBox i{
+/* .buttonBox i{
   color:#FFFFFF;
   width: 60px;
   height: 60px;
@@ -525,7 +458,7 @@ h1{
   font-size: 28px;
   text-align: center; 
   border-radius: 50%; 
-}
+} */
 .el-icon-ETH-lianxiren{
     background: #FF7600;
 }
@@ -537,7 +470,7 @@ p{
     margin-bottom: 0;
 }
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     padding: 30px 30px 56px;
     box-sizing: border-box;

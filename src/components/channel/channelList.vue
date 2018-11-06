@@ -166,7 +166,7 @@ export default {
     z-index: 2;
 }
 .contentBox{
-    height: 100%;
+    height: calc(100% - 44px);
     width: 100%;
     padding: 30px 30px 0;
     box-sizing: border-box;

@@ -1,20 +1,21 @@
 export default {
   state: {
     version: '0.0.1',               //版本号
-    isLogin: false,                 //登录标志
     baseChain: 'ETH',               //底层主链
     isTestNet: true,                //是否为测试网
+    isLogin: false,                 //登录标志
     activeNavIndex: '1-1',          //当前active Nav
     isNavShow: true,                //Nav显示
     isMessageBoxShow: false,        //MessageBox显示
     isChannelFormShow: false,       //通道页面显示
-    NetMagic: "195378745719990331", //网络magic
     gasPrice: 5000000000,           //Gas Price倍数
-    NodeUriWebSocketIp: "ws://47.104.81.20:9000", //全节点websocket IP
-    NodeUriWebSocket: "",                           //全节点websocket方法
-    NodeRpcUri: 'http://47.254.64.251:21332',     //全节点通用RPC接口   NEO
-    isNotifyShow: false,
+    
+    isNotifyShow: false,          //消息弹窗显示,测试
     isOneStepPayment: "",        //是否开启免密支付
+    RSMCNum: 0,
+    HTLCNum: 0,
+    HTLCRNum: 0,
+    nodeList: [],                //当前网络的钱包
     walletInfo: {               //钱包信息
       keyStore: "",
       publicKey: "",
@@ -47,18 +48,26 @@ export default {
     addChannelInfo: [],         //添加通道信息
     txOnChannelInfo: [],        //通道转账信息
     closeChannelInfo: [],       //关闭通道信息
+
     channelList: [],            //通道列表
+    webSocketList: [],          //websocket列表
     contactList: {},            //联系人列表
     txList: [],                 //交易签名列表
     recordList: [],             //交易记录列表
     RList: [],                  //R与hashR对应表
     eventList: [],              //与块高相关的event事件列表
+
+    NetMagic: "",                   //网络magic
+    NodeUriWebSocketIp: "",         //全节点websocket IP
+    NodeUriWebSocket: "",           //全节点websocket方法
     tncContractAddress: "",         //ERC20资产合约地址
     tncContractAbi: [],             //ERC20资产合约Abi
     trinityContractAddress: "",     //Trinity状态通道合约地址
     trinityDataContractAddress: "", //Trinity状态通道合约Abi
     trinityContractAbi: [],         //Trinity状态通道数据合约地址,
-    spvPort: ""
+    spvPort: "",                    //spv 端口号
+    nodeWebSocketIp: "",            //稳定的node节点,用于获取nodeList
+    NodeRpcUri: "",                 //全节点通用RPC接口   NEO
   },
   getters: {
     channelList(state) {

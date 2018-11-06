@@ -60,11 +60,20 @@ export default {
       
     })
   },
+  watch: {
+    '$i18n.locale': 'changeLang'
+  },
   methods:{
     toOtherForm(router) {                   //跳转页面时判断是否正在关闭channel页面,为防止关闭时的误触情况
       if(this.$store.state.vuexStore.isChannelFormShow == true){
         this.$router.push(router);
       }
+    },
+    changeLang() {              //解决js中的i18n不切换的问题
+      this.buttonItem[0].name = this.$t('tabbar.channel.addChannel');
+      this.buttonItem[1].name = this.$t('tabbar.channel.channelList');
+      this.buttonItem[2].name = this.$t('tabbar.channel.payment');
+      this.buttonItem[3].name = this.$t('tabbar.channel.scan');
     }
   }
 }

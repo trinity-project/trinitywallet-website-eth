@@ -123,7 +123,7 @@ export default {
     };
     var checkAlice = (rule, value, callback) => {         //add Channel Alice输入规则
       if (value === '') {
-        callback(new Error(_this.$t('addChannel.callback-10')));
+        callback(new Error(this.$t('addChannel.callback-10')));
       } else {
         callback();
       }
@@ -134,6 +134,8 @@ export default {
       } else {
         let PrivateKey;
         if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+          console.log(this.$store.state.vuexStore.walletInfo);
+          console.log(value);
           PrivateKey = this.$parent.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
         } else if (this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为ETH钱包时
           PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
@@ -143,12 +145,12 @@ export default {
           });
         }
         setTimeout(() => {
-            if(PrivateKey){
+          if(PrivateKey){
             callback();
-            } else {
-            return callback(new Error(_this.$t('common.callback-2')));
-            }
-        }, 1000);
+          } else {
+            return callback(new Error(this.$t('common.callback-2')));
+          }
+        }, 300);
       }
     };
     return {
@@ -206,13 +208,14 @@ export default {
           _this.addChannelForm.channelName = "0x" + ChannelNamePart1 + ChannelNamePart2;       //生成ChannelName
           console.log(_this.addChannelForm.channelName);
 
-          var channelInfo = {
-            "websock":new WebSocket(wsuri)
+          var webSocketInfo = {
+            "Ip": _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null),
+            "websock": new WebSocket(wsuri)
           }
-          console.log(channelInfo);
-          _this.$store.state.vuexStore.channelList.push(channelInfo);
-          _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.$parent.$parent.websocketOnmessage;
-          _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.$parent.$parent.websocketClose;
+          webSocketInfo.websock.onmessage = _this.$parent.$parent.websocketOnmessage;
+          webSocketInfo.websock.onclose = _this.$parent.$parent.websocketClose;
+          console.log(webSocketInfo);
+          _this.$store.state.vuexStore.webSocketList.push(webSocketInfo);
 
           let txData = web3.utils.soliditySha3(         //生成代签名交易数据
             {t: 'bytes32', v: _this.addChannelForm.channelName},    //通道名称
@@ -245,25 +248,41 @@ export default {
             }
           }
           setTimeout(function (){
-              _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+            _this.$parent.$parent.sendWebsocket(_this.addChannelForm.uri, Message);        //发送websocket消息
           }, 2000);
           
           _this.$store.state.vuexStore.addChannelInfo = _this.addChannelForm;     //保存信息,用于后续信息来回传输
           console.log(_this.$store.state.vuexStore.addChannelInfo);
 
-          _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
-          _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
-          _this.$store.state.vuexStore.channelList[l].State = 2;            //通道初始状态
-          _this.$store.state.vuexStore.channelList[l].isConnect = true;         //是否连接上websocket
-          _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit.mul(10e7);      //本端余额
-          _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit.mul(10e7);     //对端余额
-          _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
-          _this.$store.state.vuexStore.channelList[l].isTestNet = _this.$store.state.vuexStore.isTestNet;             //是否为测试网
-          _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
-          _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
-          _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
-          _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
-          _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
+          let channelInfo = {
+            ChannelName: _this.addChannelForm.channelName,                  //通道名字
+            Alice: _this.addChannelForm.alice,                              //通道昵称
+            State: 2,                                                       //通道初始状态
+            isConnect: true,                                                //是否连接上websocket
+            SelfBalance: _this.addChannelForm.selfDeposit.mul(10e7),        //本端余额
+            OtherBalance: _this.addChannelForm.otherDeposit.mul(10e7),      //对端余额
+            assetType : _this.addChannelForm.assetType,                     //资产类型
+            isTestNet: _this.$store.state.vuexStore.isTestNet,              //是否为测试网
+            SelfUri: SelfUri,                                               //本端Uri
+            OtherUri: _this.addChannelForm.uri,                             //对端Uri
+            TxNonce: 1,                                                     //交易次数
+            date: date,                                                     //时间戳
+            Ip: _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null),//IP
+          }
+          _this.$store.state.vuexStore.channelList[l] = channelInfo;
+          // _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
+          // _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
+          // _this.$store.state.vuexStore.channelList[l].State = 2;            //通道初始状态
+          // _this.$store.state.vuexStore.channelList[l].isConnect = true;         //是否连接上websocket
+          // _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit.mul(10e7);      //本端余额
+          // _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.otherDeposit.mul(10e7);     //对端余额
+          // _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
+          // _this.$store.state.vuexStore.channelList[l].isTestNet = _this.$store.state.vuexStore.isTestNet;             //是否为测试网
+          // _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
+          // _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
+          // _this.$store.state.vuexStore.channelList[l].TxNonce = 1;                  //交易次数
+          // _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
+          // _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
 
           _this.$parent.$parent.StoreData("channelList");         //储存通道信息
           _this.$router.push('/channel/channelList');       //跳转到channelList页面
@@ -279,13 +298,22 @@ export default {
             _this.addChannelForm.channelName = md5encode(_this.addChannelForm.uri, date);                  //NEO ChannelName加密方式
             console.log(_this.addChannelForm.channelName);
 
-            var channelInfo = {
-              "websock":new WebSocket(wsuri)
+            // var channelInfo = {
+            //   "websock":new WebSocket(wsuri)
+            // }
+            // console.log(channelInfo);
+            // _this.$store.state.vuexStore.channelList.push(channelInfo);
+            // _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.$parent.$parent.websocketOnmessage;
+            // _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.$parent.$parent.websocketClose;
+
+            var webSocketInfo = {
+              "Ip": _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null),
+              "websock": new WebSocket(wsuri)
             }
-            console.log(channelInfo);
-            _this.$store.state.vuexStore.channelList.push(channelInfo);
-            _this.$store.state.vuexStore.channelList[l].websock.onmessage = _this.$parent.$parent.websocketOnmessage;
-            _this.$store.state.vuexStore.channelList[l].websock.onclose = _this.$parent.$parent.websocketClose;
+            webSocketInfo.websock.onmessage = _this.$parent.$parent.websocketOnmessage;
+            webSocketInfo.websock.onclose = _this.$parent.$parent.websocketClose;
+            console.log(webSocketInfo);
+            _this.$store.state.vuexStore.webSocketList.push(webSocketInfo);
 
             var Message = {
               "MessageType":"RegisterChannel",
@@ -299,26 +327,43 @@ export default {
               }
             }
             setTimeout(function (){
-                _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+              _this.$parent.$parent.sendWebsocket(_this.addChannelForm.uri, Message);        //发送websocket消息
             }, 2000);
             
             _this.$store.state.vuexStore.addChannelInfo = _this.addChannelForm;     //保存信息,用于后续信息来回传输
             console.log(_this.$store.state.vuexStore.addChannelInfo);
 
-            _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
-            _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
-            _this.$store.state.vuexStore.channelList[l].State = 2;                                //通道初始状态
-            _this.$store.state.vuexStore.channelList[l].isConnect = true;                         //是否连接上websocket
-            _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit.mul(10e7);      //本端余额
-            _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.selfDeposit.mul(10e7);     //对端余额
-            _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
-            _this.$store.state.vuexStore.channelList[l].isTestNet = _this.$store.state.vuexStore.isTestNet;             //是否为测试网
-            _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
-            _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
-            _this.$store.state.vuexStore.channelList[l].TxNonce = 0;                  //交易次数
-            _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
-            _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
-            _this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
+            let channelInfo = {
+              ChannelName: _this.addChannelForm.channelName,                  //通道名字
+              Alice: _this.addChannelForm.alice,                              //通道昵称
+              State: 2,                                                       //通道初始状态
+              isConnect: true,                                                //是否连接上websocket
+              SelfBalance: _this.addChannelForm.selfDeposit.mul(10e7),        //本端余额
+              OtherBalance: _this.addChannelForm.otherDeposit.mul(10e7),      //对端余额
+              assetType : _this.addChannelForm.assetType,                     //资产类型
+              isTestNet: _this.$store.state.vuexStore.isTestNet,              //是否为测试网
+              SelfUri: SelfUri,                                               //本端Uri
+              OtherUri: _this.addChannelForm.uri,                             //对端Uri
+              TxNonce: 1,                                                     //交易次数
+              date: date,                                                     //时间戳
+              Ip: _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null),//IP
+            }
+
+            // _this.$store.state.vuexStore.channelList[l] = channelInfo;
+            // _this.$store.state.vuexStore.channelList[l].ChannelName = _this.addChannelForm.channelName;     //通道名字
+            // _this.$store.state.vuexStore.channelList[l].Alice = _this.addChannelForm.alice;       //通道昵称
+            // _this.$store.state.vuexStore.channelList[l].State = 2;                                //通道初始状态
+            // _this.$store.state.vuexStore.channelList[l].isConnect = true;                         //是否连接上websocket
+            // _this.$store.state.vuexStore.channelList[l].SelfBalance = _this.addChannelForm.selfDeposit.mul(10e7);      //本端余额
+            // _this.$store.state.vuexStore.channelList[l].OtherBalance = _this.addChannelForm.selfDeposit.mul(10e7);     //对端余额
+            // _this.$store.state.vuexStore.channelList[l].assetType = _this.addChannelForm.assetType;     //资产类型
+            // _this.$store.state.vuexStore.channelList[l].isTestNet = _this.$store.state.vuexStore.isTestNet;             //是否为测试网
+            // _this.$store.state.vuexStore.channelList[l].SelfUri = SelfUri;            //本端Uri
+            // _this.$store.state.vuexStore.channelList[l].OtherUri = _this.addChannelForm.uri;        //对端Uri
+            // _this.$store.state.vuexStore.channelList[l].TxNonce = 0;                  //交易次数
+            // _this.$store.state.vuexStore.channelList[l].date = date;                  //时间戳
+            // _this.$store.state.vuexStore.channelList[l].Ip = _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null);       //IP
+            // _this.$store.state.vuexStore.channelList[l].blockNumber = 0;                        //settle块高
             //_this.$store.state.vuexStore.channelList[l].baseChain = _this.$store.state.vuexStore.baseChain;             //底层链
 
             _this.$parent.$parent.StoreData("channelList");         //储存通道信息
@@ -349,7 +394,7 @@ export default {
     width: 100%;
 }
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     padding: 30px 0;
 }

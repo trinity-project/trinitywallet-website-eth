@@ -1,21 +1,25 @@
 <template>
   <div class="scanForm">
-      <headBox/>
-      <div id= "bcid"></div>
+    <div class="headBox">
+      <div class="header-button is-left">
+        <i @click="back()" class="el-icon-ETH-fanhui"></i>
+      </div>
+      <h1>{{ $router.name }}</h1>
+      <div class="header-button is-right" style="text-align:right;">
+        
+      </div>
+    </div>
+    <div id= "bcid"></div>
   </div>
 </template>
 
 <script>
-import headBox from './../common/headBoxForChild'
 export default {
   name: 'scanForm',
   data () {
     return {
 
     }
-  },
-  components: {
-    headBox
   },
   computed: {
 
@@ -35,6 +39,10 @@ export default {
 
   },
   methods: {
+    back() {
+      this.$router.go(-1);
+      scan.close();
+    },
     startRecognize() {
         scan = new plus.barcode.Barcode('bcid');
         scan.onmarked = this.onmarked;
@@ -80,7 +88,7 @@ export default {
   z-index: 3;
 }
 #bcid{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     /* height:480px;
     width:360px; */

@@ -1,24 +1,26 @@
 var configData = {
     "ETH":{
         "testNet":{
-            "web3": "https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d",
-            "NodeUriWebSocketIp": "ws://47.104.81.20:9000",
-            "NetMagic":"527465737419990331",
-            "trinityContractAddress": "0x8A1956591FF19Aa4AdA437AF158404acfA40876C",
-            "trinityDataContractAddress": "0xD634eFCA91cA716A46C3C603e29200b3907e4524",
-            "tncContractAddress": "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218",
-            "spvPort": 8866
+            "web3": "https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d",        //web接口
+            "NodeUriWebSocketIp": "ws://47.104.81.20:9000",                                 //全节点IP
+            "NetMagic":"527465737419990331",                                                //网络号
+            "trinityContractAddress": "0x8A1956591FF19Aa4AdA437AF158404acfA40876C",         //Trinity状态通道逻辑合约地址
+            "trinityDataContractAddress": "0xD634eFCA91cA716A46C3C603e29200b3907e4524",     //Trinity状态通道数据合约地址
+            "tncContractAddress": "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218",             //TNC代币合约地址
+            "spvPort": 8866,                                                                //SPV端口号
+            "nodeWebSocketIp": "ws://47.88.52.211",                                         //任意稳定节点IP,用于获取图的数据
         },
         "mainNet":{
-            "web3": "https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d",
-            "NodeUriWebSocketIp": "wss://wss.trinity.ink:9000",
-            "NetMagic": "4061696020030515",
-            "trinityContractAddress": "0x7A332beF593d6bd6B9d314959295239c46D5C127",
-            "trinityDataContractAddress": "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5",
-            "tncContractAddress": "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac",
-            "spvPort": 8866
+            "web3": "https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d",        //web接口
+            "NodeUriWebSocketIp": "wss://wss.trinity.ink:9000",                             //全节点IP
+            "NetMagic": "4061696020030515",                                                 //网络号
+            "trinityContractAddress": "0x7A332beF593d6bd6B9d314959295239c46D5C127",         //Trinity状态通道逻辑合约地址
+            "trinityDataContractAddress": "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5",     //Trinity状态通道数据合约地址
+            "tncContractAddress": "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac",             //TNC代币合约地址
+            "spvPort": 8866,                                                                //SPV端口号
+            "nodeWebSocketIp": "ws://39.105.110.25",                                        //任意稳定节点IP,用于获取图的数据
         },
-        "trinityContractAbi": [{
+        "trinityContractAbi": [{                                                            //Trinity状态通道逻辑合约Abi
                 "constant": false,
                 "inputs": [{
                         "name": "channelId",
@@ -773,7 +775,7 @@ var configData = {
                 "type": "function"
             }
         ],  
-        "tncContractAbi": [{
+        "tncContractAbi": [{                                                            //ERC20代币通用合约Abi
                 "constant": true,
                 "inputs": [],
                 "name": "mintingFinished",

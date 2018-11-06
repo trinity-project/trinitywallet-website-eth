@@ -22,6 +22,10 @@ const cn = {
         'changePass': '修改密码',
         'contact': '联系人',
         'switchLang': '多语言',
+        'more': {
+            'title': '更多',
+            'oneStepPayment': '免密支付'
+        },
         'about': '关于我们',
         'signOut': '退出'
     },

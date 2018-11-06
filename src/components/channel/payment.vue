@@ -139,7 +139,7 @@ export default {
           });
           return;
       } else {
-        if(_this.paymentCode.substr(0,2) == "TN"){        //判断开头是否为"TN",如是进入交易码解析
+        if(_this.paymentCode.startsWith('TN')){                         //判断开头是否为"TN",如是进入交易码解析
           console.log("进入通道交易");
           let LinkData;
           try {
@@ -279,8 +279,9 @@ export default {
             return false;
           }
         } else {      //开头不是"TN",判断是否为地址给出提示并返回
-          if (_this.paymentCode.length === 42) {           //判断paymentCode是否为ETH地址
-            if (_this.paymentCode === _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
+          if (_this.paymentCode.length == 42 && _this.$store.state.vuexStore.baseChain == "ETH" || 
+              _this.paymentCode.length == 34 && _this.$store.state.vuexStore.baseChain == "NEO") {        //判断paymentCode是否为地址
+            if (_this.paymentCode == _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
               _this.$notify.error({
                 title: _this.$t('common.warning'),
                 dangerouslyUseHTMLString: true,
@@ -290,6 +291,7 @@ export default {
               return;
             } else {
               console.log("进入链上转账");
+              _this.$router.push({ name: 'transferOnChain', params: { address: _this.paymentCode }});
               return;
             }
           } else {
@@ -357,7 +359,7 @@ export default {
             }
             _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
             console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-            _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+            _this.$parent.$parent.sendWebsocket(_this.txOnChannelInfo.receiverUri, Message);        //发送websocket消息
             _this.ShowTxOnChannelBox = false;
             _this.clearTxData();
           } else {
@@ -413,7 +415,7 @@ export default {
             }
             _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
             console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-            _this.$store.state.vuexStore.channelList[i].websock.send(JSON.stringify(Message));        //发送websocket消息
+            _this.$parent.$parent.sendWebsocket(_this.txOnChannelInfo.sendUri, Message);        //发送websocket消息
             _this.ShowTxOnChannelBox = false;           //关闭当前窗口
             _this.clearTxData();                        //清空当前数据  
           }
@@ -511,7 +513,7 @@ export default {
               // _this.PaymentLink = "";
               _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
               console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-              _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送websocket消息
+              _this.$parent.$parent.sendWebsocket(_this.txOnChannelInfo.receiverUri, Message);        //发送websocket消息
               _this.ShowTxOnChannelBox = false;
               _this.clearTxData();
             });
@@ -613,15 +615,6 @@ export default {
   width: 50%;
   float: left;
   color: #000000;
-}
-.buttonBox i{
-  color:#FFFFFF;
-  width: 60px;
-  height: 60px;
-  line-height: 62px;
-  font-size: 28px;
-  text-align: center; 
-  border-radius: 50%; 
 }
 .el-icon-ETH-shoukuan{
     background: #FF7600;

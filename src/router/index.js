@@ -9,16 +9,14 @@ import settingForm from '@/components/tabbar/setting'
 import scanForm from '@/components/common/scan'
 import EtherScanForm from '@/components/common/EtherScan'
 
-import receiveForm from '@/components/old/receive'
-import recordForm from '@/components/old/record'
-
 import startForm from '@/components/login/start'
 import createForm from '@/components/login/create'
 import loginByPrivateKeyForm from '@/components/login/loginByPrivateKey'
 import loginByKeyStoreForm from '@/components/login/loginByKeyStore'
+import backForm from '@/components/login/back'
 
 import assetForm from '@/components/chain/asset'
-import receive1Form from '@/components/chain/receive1'
+import receiveForm from '@/components/chain/receive'
 import transferOnChainForm from '@/components/chain/transferOnChain'
 
 import addChannelForm from '@/components/channel/addChannel'
@@ -95,14 +93,6 @@ export default new Router({
       },
     },
     {
-      path: '/receive',
-      name: 'receiveForm',
-      component: receiveForm,
-      meta: {
-        index: 1
-      },
-    },
-    {
       path: '/start',
       name: 'startForm',
       component: startForm,
@@ -135,9 +125,12 @@ export default new Router({
       },
     },
     {
-      path: '/record',
-      name: 'recordForm',
-      component: recordForm
+      path: '/back',
+      name: 'backForm',
+      component: backForm,
+      meta: {
+        index: 0
+      },
     },
     {
       path: '/chain/asset',
@@ -148,9 +141,9 @@ export default new Router({
       },
     },
     {
-      path: '/chain/receive1',
-      name: 'receive1',
-      component: receive1Form,
+      path: '/chain/receive',
+      name: 'receive',
+      component: receiveForm,
       meta: {
         index: 2
       },
@@ -161,7 +154,10 @@ export default new Router({
       component: transferOnChainForm,
       meta: {
         index: 2
-      },
+      }, 
+      params: {
+        address: ""
+      }
     },
     {
       path: '/channel/addChannel',

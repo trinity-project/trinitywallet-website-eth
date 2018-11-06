@@ -24,7 +24,7 @@
                     </el-select>
                 </el-form-item>
                 <div style="text-align:center;">
-                    <el-button type="primary" @click="createPaymentCode()">{{ $t('receive.create') }}</el-button>
+                    <el-button type="primary" @click="createPaymentCode()" style="width: 80%;">{{ $t('receive.create') }}</el-button>
                 </div>
                 
             </el-form>
@@ -38,7 +38,7 @@
             <p>收款码</p>
             <h3 id="receivePaymentCode">{{ paymentCodeForm.Code }}</h3>
             <div style="text-align:center;">
-                <el-button data-clipboard-target="#receivePaymentCode" @click="copyfun()" type="primary" class="btncopy">{{ $t('receive.copy') }}</el-button>
+                <el-button data-clipboard-target="#receivePaymentCode" @click="copyfun()" style="width: 80%;" type="primary" class="btncopy">{{ $t('receive.copy') }}</el-button>
             </div>
         </div>
     </div>
@@ -242,7 +242,7 @@ export default {
 }
 
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

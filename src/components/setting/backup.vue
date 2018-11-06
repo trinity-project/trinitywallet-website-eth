@@ -1,6 +1,13 @@
 <template>
   <div class="backupForm">
-    <headBox/>
+    <div class="headBox">
+      <div class="header-button is-left">
+          <i @click="$router.push('/wallet')" class="el-icon-ETH-fanhui"></i>
+      </div>
+      <h1></h1>
+      <div class="header-button is-right" style="text-align:right;">
+      </div>
+    </div>
     <div class="contentBox">
         <h2 class="title_h2">{{$t('backup.title')}}</h2>
         <hr/>
@@ -14,7 +21,6 @@
 </template>
 
 <script>
-import headBox from './../common/headBoxForChild'
 export default {
   name: 'backupForm',
   data () {
@@ -23,7 +29,7 @@ export default {
     }
   },
   components: {
-    headBox
+
   },
   methods: {
       backup() {            //备份事件,生成json文件
@@ -63,7 +69,7 @@ export default {
 <style scoped>
 .backupForm{
     float: left;
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     overflow: hidden;
     background: #FFFFFF;

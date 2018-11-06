@@ -125,6 +125,9 @@ export default {
         }
         return Data1;
         }
+    },
+    spvPort() {
+      return this.$store.state.vuexStore.spvPort;
     }
   },
   mounted() {
@@ -196,8 +199,11 @@ export default {
     }
   },
   methods: {
+    // test() {
+    //   this.$store.state.vuexStore.webSocketList[0].websock.close();
+    // },
     reconnectWebsocket() {         //重连websocket
-        this.$parent.$parent.reconnectWebsocket(this.Data.Ip + ":8866", this.Data.ChannelName);
+        this.$parent.$parent.reconnectWebsocket(this.Data.Ip, this.Data.ChannelName);
         //this.isChannelInfoBoxShow = false;
     },
     closeChannel() {                //快速关闭通道
@@ -243,7 +249,7 @@ export default {
                     },
                     "Comments": {}
                 }
-                _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
+                _this.$parent.$parent.sendWebsocket(_this.Data.OtherUri, Message);        //发送websocket消息
                 _this.$store.state.vuexStore.closeChannelInfo = _this.Data;
                 _this.$store.state.vuexStore.closeChannelInfo.txData = txData;
                 _this.$store.state.vuexStore.closeChannelInfo.keyStorePass = _this.channelInfo.keyStorePass;
@@ -325,7 +331,7 @@ export default {
                             "Balance": balanceInfo
                         }
                     }
-                    _this.$store.state.vuexStore.channelList[l].websock.send(JSON.stringify(Message));        //发送消息
+                    _this.$parent.$parent.sendWebsocket(_this.Data.OtherUri, Message);        //发送websocket消息
                     
                     setTimeout(() => {
                         _this.$router.push('/channel/channelList');                         //返回到channelList页面
@@ -436,12 +442,8 @@ export default {
     background: #FFFFFF;
     z-index: 4;
 }
-.header-button p{
-    line-height: 56px;
-    margin: 0;
-}
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
@@ -449,7 +451,7 @@ export default {
 h4{
     font-size: 16px;
 }
-p{
+.contentBox p{
     font-size: 14px;
     line-height: 16px;
     word-break: break-all;
@@ -476,15 +478,6 @@ p{
 .button-item p {
     font-size: 12px;
     margin: 10px 0 0 0;
-}
-.buttonBox i{
-    color:#FFFFFF;
-    width: 60px;
-    height: 60px;
-    line-height: 60px;
-    font-size: 36px;
-    text-align: center; 
-    border-radius: 50%; 
 }
 .el-icon-ETH-fanhui1{
     background: #409EFF;

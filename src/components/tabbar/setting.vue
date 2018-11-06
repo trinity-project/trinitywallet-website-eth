@@ -32,7 +32,7 @@
         <router-link to="/setting/contact" class="cell cell-hover">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">{{ $t('setting.contact') }}</span>
+                    <span class="cell-text">{{ $t('setting.contact') }}( Test )</span>
                 </div>
                 <div class="cell-right">
                     <i class="el-icon-ETH-qianjin"></i>
@@ -52,7 +52,7 @@
         <router-link to="/setting/more" class="cell cell-hover">
             <div class="cell-wrapper">
                 <div class="cell-title">
-                    <span class="cell-text">更多</span>
+                    <span class="cell-text">{{ $t('setting.more.title') }}</span>
                 </div>
                 <div class="cell-right">
                     <i class="el-icon-ETH-qianjin"></i>
@@ -105,19 +105,19 @@ export default {
     background: #F2F2F2;
     z-index: 1;
 }
-.headBox{
+/* .headBox{
     background-color: RGBA(64, 64, 67, 0.97);
-}
-h1{
+} */
+/* h1{
     font-size: 18px;
     font-weight: 400;
     margin: 0;
     text-align: center;
-    line-height: 56px;
+    line-height: 44px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
-}
+} */
 .contentBox{
     height: calc(100% - 106px);
     width: 100%;

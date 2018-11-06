@@ -222,15 +222,15 @@ h1{
     font-weight: 400;
     margin: 0;
     text-align: center;
-    line-height: 56px;
+    line-height: 44px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .contentBox{
-    height: 100%;
+    height: calc(100% - 44px);;
     width: 100%;
-    padding: 30px;
+    padding: 30px 20px;
     box-sizing: border-box;
 }
 .QRCodeBox{
@@ -252,7 +252,7 @@ h1{
     font-size: 16px;
 }
 h3{
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 400;
     word-wrap: break-word;
     word-break: break-all;

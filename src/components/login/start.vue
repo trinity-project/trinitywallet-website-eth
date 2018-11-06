@@ -10,7 +10,7 @@
     <div class="contentBox">
         <div>
             <div class="chainIconBox">
-                <p>切换主链:</p>
+                <p>切换主链: </p>
                 <i @click="switchNet('ETH')" :class="{ active: $store.state.vuexStore.baseChain == 'ETH' }" class="el-icon-ETH-ETH"></i>
                 <i @click="switchNet('NEO')" :class="{ active: $store.state.vuexStore.baseChain == 'NEO' }" class="el-icon-ETH-NEO"></i>
             </div>
@@ -23,6 +23,10 @@
         </div>
         <div @click="toOtherForm('./loginByPrivateKey')" class="clooseLoginBox clooseLoginBox-green">
             <h3>{{ $t('start.loginByPrivateKey') }}</h3>
+            <p>{{ $t('start.loginByPrivateKeyTxt') }}</p>
+        </div>
+        <div @click="toOtherForm('./loginByKeyStore')" style="display:none;" class="clooseLoginBox clooseLoginBox-yellow">
+            <h3>从助记词恢复</h3>
             <p>{{ $t('start.loginByPrivateKeyTxt') }}</p>
         </div>
         <div @click="toOtherForm('./loginByKeyStore')" class="clooseLoginBox clooseLoginBox-gray">
@@ -74,9 +78,9 @@ export default {
     overflow: hidden;
 }
 .contentBox{
-    height: calc(100% - 56px);
+    height: calc(100% - 44px);
     width: 100%;
-    padding: 30px;
+    padding: 30px 20px;
     box-sizing: border-box;
 }
 .chainIconBox{
@@ -87,12 +91,14 @@ export default {
 .chainIconBox p{
     margin: 0;
     font-size: 14px;
-    display: inline-block;
+    height: 20px;
+    line-height: 20px;
     float: left;
 }
 .chainIconBox i{
     font-size: 27px;
     color: #DCDFE6;
+    margin: -4px 0 0 6px;
     cursor: pointer;
 }
 .chainIconBox .el-icon-ETH-ETH.active{
@@ -102,9 +108,9 @@ export default {
     color: RGBA(89, 191, 1, 1.00);
 }
 .clooseLoginBox{
-    padding: 8px 16px;
+    padding: 2px 16px;
     border-radius: 4px;
-    margin: 20px 0;
+    margin: 5% 0;
     cursor: pointer;
 }
 .clooseLoginBox-blue{
@@ -118,6 +124,10 @@ export default {
 .clooseLoginBox-gray{
     background-color: #f4f4f5;
     border-left: 5px solid #909399;
+}
+.clooseLoginBox-yellow{
+    background-color: #FEFBE5;
+    border-left: 5px solid #FFBD2D;
 }
 .clooseLoginBox h3{
     display: inline-block;
