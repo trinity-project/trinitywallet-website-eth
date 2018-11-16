@@ -348,7 +348,7 @@ export default {
     },
     sendWebsocket(uri, message) {           //与gateway通用发送消息方法
       let ip = this.uri2Ip(uri);
-      this.$store.state.vuexStore.webSocketList.forEach(function(data,index){   //遍历
+      this.$store.state.vuexStore.webSocketList.every(function(data,index){   //遍历
         if(data.Ip == ip && data.websock != ""){
             data.websock.send(JSON.stringify(message));
             return false;
@@ -1715,6 +1715,7 @@ export default {
           _this.$store.state.vuexStore.recordList.push(recordMessage);
           let recordMessage1 = {                            //构造通道record消息
             date: date,
+            channelName: channelName,
             name: peerAddress,
             Amount: founderDeposit,
             assetType: 'TNC',
@@ -2428,6 +2429,7 @@ export default {
                   let date = new Date().getTime();        //获取当前时间戳
                   let recordMessage = {           //构造通道record消息
                     date: date,
+                    channelName: channelName,
                     name: redata.Sender.split("@")[0],
                     Amount: paymentCount,
                     assetType: assetType,

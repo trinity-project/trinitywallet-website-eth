@@ -195,22 +195,20 @@ export default {
       formatRecordList (val){          //过滤交易记录为当前资产类型
         let _this = this;
         let result = [];
-        console.log(val);
-        console.log(val.length);
-        if(val.length > 0){
+        if(val.length){
             val.forEach(function(data,index){
-                if(data.isOnChannel == true && data.assetType == _this.Data.assetType){
+                if(data.channelName == _this.channelName){
                     result.push(data);
                 }
             })
-        }
-        var min;
-        for(var i = 0; i < result.length; i++){
-            for(var j = i; j < result.length;j++){
-                if(result[i].date < result[j].date){              //按时间戳由大到小排序
-                    min = result[j];
-                    result[j] = result[i];
-                    result[i] = min;
+            var min;
+            for(var i = 0; i < result.length; i++){
+                for(var j = i; j < result.length;j++){
+                    if(result[i].date < result[j].date){              //按时间戳由大到小排序
+                        min = result[j];
+                        result[j] = result[i];
+                        result[i] = min;
+                    }
                 }
             }
         }
