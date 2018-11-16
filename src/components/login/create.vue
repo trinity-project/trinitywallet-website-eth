@@ -94,7 +94,7 @@ export default {
                 duration: 3000,
                 type: 'success'
               });
-              console.log(this.$store.state.vuexStore.walletInfo);
+              console.log(JSON.stringify(this.$store.state.vuexStore.walletInfo));
               Bus.$emit('getAddressInfo', true);
               this.$parent.$parent.saveAsString("isLogin", this.$store.state.vuexStore.isLogin);                      // 存储wallet信息
               this.$parent.$parent.saveAsArray("walletInfo", this.$store.state.vuexStore.walletInfo);                 // 存储wallet信息

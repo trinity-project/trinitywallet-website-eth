@@ -10,7 +10,7 @@
                 </div>
             </a>
             <a @click.stop="selectItems(index,item.router)" v-if="index == 1" :class="{'is-selected': tabbarSelected == index}" class="tab-item">
-                <el-badge  :value="3" :max="99" class="item">
+                <el-badge :hidden="MessageValue == 0" :value="MessageValue" :max="99" class="item">
                     <div class="tab-item-icon">
                         <i :class="item.icon"></i>
                     </div>
@@ -33,6 +33,7 @@ export default {
   name: 'tabbar',
   data () {
     return {
+        MessageValue: 0,
         tabbarList:[
             {
                 index: "0",

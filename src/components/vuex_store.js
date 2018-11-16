@@ -9,6 +9,7 @@ export default {
     isMessageBoxShow: false,        //MessageBox显示
     isChannelFormShow: false,       //通道页面显示
     gasPrice: 5000000000,           //Gas Price倍数
+    isMobile: true,                 //是否为移动端
     
     isNotifyShow: false,          //消息弹窗显示,测试
     isOneStepPayment: "",        //是否开启免密支付
@@ -25,7 +26,8 @@ export default {
     NEOwalletInfo: {            //NEO钱包消息
       keyStore: "",
       publicKey: "",
-      address: ""
+      address: "",
+      keyStorePass: ""
     },
     balanceData: {              //余额信息
       Chain: {                  //链上余额

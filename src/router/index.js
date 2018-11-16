@@ -12,6 +12,7 @@ import EtherScanForm from '@/components/common/EtherScan'
 import startForm from '@/components/login/start'
 import createForm from '@/components/login/create'
 import loginByPrivateKeyForm from '@/components/login/loginByPrivateKey'
+import loginByMnemonicForm from '@/components/login/loginByMnemonic'
 import loginByKeyStoreForm from '@/components/login/loginByKeyStore'
 import backForm from '@/components/login/back'
 
@@ -112,6 +113,14 @@ export default new Router({
       path: '/loginByPrivateKey',
       name: 'loginByPrivateKeyForm',
       component: loginByPrivateKeyForm,
+      meta: {
+        index: 0
+      },
+    },
+    {
+      path: '/loginByMnemonic',
+      name: 'loginByMnemonicForm',
+      component: loginByMnemonicForm,
       meta: {
         index: 0
       },

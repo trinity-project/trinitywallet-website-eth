@@ -6,11 +6,11 @@
       </div>
       <h1>消息中心</h1>
       <div class="header-button is-right" style="text-align:right;">
-        <p v-if="messageList1.length" @click="clearAll()">清空全部</p>
+        <p v-if="messageList.length" @click="clearAll()">清空全部</p>
       </div>
     </div>
     <div class="contentBox">
-        <ul v-if="messageList1.length" class="listUl">
+        <ul v-if="messageList.length" class="listUl">
             <li @click="readMessage(item)" v-for="(item,index) in messageList" :key="index">
                 <h2 class="title">{{ item.title }}<span :class='{ isRead: item.isRead }' class="readFlag"></span><span class="date">{{ item.date | formatDateTime }}</span></h2>
                 <div class="bottomBox">
@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import Vue from 'Vue'
 export default {
   name: 'messageForm',
   data () {
@@ -141,12 +142,29 @@ export default {
       console.log(selfSignedData);
     },
     showPrivateKey() {
-      let _this = this;
-      let decryptPK = _this.$parent.$parent.decryptPrivateKey(_this.$store.state.vuexStore.walletInfo.keyStore, "123");
-      console.log(decryptPK.privateKey);
+      console.log(this.$store.state.vuexStore.txList);
     },
     testFun() {
-        createHr("7e50027b090d8a553203f9da6762b1f7907511a893b61a9fe0da531fdfd957fc");
+        let channelName = "0x0f18fed0788117ccae43b7d4980f492a6b4def465b27d2270e6e0a6fc5b9613f";
+        let TxNonce = 2;
+        let founderBalance = 1000000000;
+        let peerBalance = 1000000000;
+        let txListMessage = {                           //txData
+            "state": "confirming",
+            "founderSignedData": ""
+        }
+        this.$parent.$parent.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
+        this.$parent.$parent.updateTxListLength(channelName, TxNonce + 1);
+        this.$parent.$parent.StoreData("txList");
+
+        let l = this.$parent.$parent.getChannelSerial("ChannelName", channelName);
+        let channelInfo = this.$store.state.vuexStore.channelList[l];
+        channelInfo.SelfBalance = founderBalance;     //本端余额更新
+        channelInfo.OtherBalance = peerBalance;    //对端余额更新
+        channelInfo.TxNonce = TxNonce;
+        Vue.set(this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+        console.log(this.$store.state.vuexStore.channelList[l]);
+        this.$parent.$parent.StoreData("channelList");                   //保存通道信息
     }
   }
 }

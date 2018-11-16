@@ -41,25 +41,36 @@ export default {
   mounted() {
     this.$nextTick(function(){      //首次加载时判断是否登录，是否为夜间模式,连接至全节点
         let _this = this;
-        _this.$store.state.vuexStore.isLogin = _this.$parent.fetchAsString("isLogin") || false;                     //获取登录标记
-        _this.isLogin == "false" ? _this.$store.state.vuexStore.isLogin = false : _this.$store.state.vuexStore.isLogin = true;
-        console.log("登录状态:" + _this.$store.state.vuexStore.isLogin);
+        let isLogin = _this.$parent.fetchAsString("isLogin");                     //获取登录标记
+        console.log(isLogin);
+        isLogin === "true" ? _this.$store.state.vuexStore.isLogin = true : _this.$store.state.vuexStore.isLogin = false;
+        console.log(_this.$store.state.vuexStore.isLogin);
+                
+        _this.$store.state.vuexStore.isTestNet = _this.$parent.fetchAsString("isTestNet") || true;                  //获取网络
+        _this.isTestNet ? _this.$store.state.vuexStore.isTestNet = true : _this.$store.state.vuexStore.isTestNet = false
+        console.log(_this.isTestNet);
+        _this.$store.state.vuexStore.baseChain = _this.$parent.fetchAsString("baseChain") || "ETH";                  //获取底层链
+        console.log(_this.baseChain);
+
         let nullWalletInfo = {               //钱包信息
             keyStore: "",
             publicKey: "",
             address: "",
             keyStorePass: ""
         }
-        _this.$store.state.vuexStore.walletInfo = _this.$parent.fetchAsArray("walletInfo") || nullWalletInfo;        //获取钱包信息
-        console.log(_this.$store.state.vuexStore.walletInfo);
-        _this.$store.state.vuexStore.isLogin ? _this.$router.push('/back') : _this.$router.push('/start');         
-        // _this.$router.push('/start');
-        _this.$store.state.vuexStore.isTestNet = _this.$parent.fetchAsString("isTestNet") || true;                  //获取网络
-        _this.isTestNet ? _this.$store.state.vuexStore.isTestNet = true : _this.$store.state.vuexStore.isTestNet = false
-    
-        _this.$store.state.vuexStore.baseChain = _this.$parent.fetchAsString("baseChain") || "ETH";                  //获取底层链
-        console.log(_this.isTestNet);
-        console.log(_this.baseChain);
+        if(_this.baseChain == "ETH"){
+            _this.$store.state.vuexStore.walletInfo = _this.$parent.fetchAsArray("walletInfo");                             //获取钱包信息
+            if(_this.$store.state.vuexStore.walletInfo.length){
+                _this.$store.state.vuexStore.walletInfo = nullWalletInfo;
+            }
+            console.log(_this.$store.state.vuexStore.walletInfo);
+        } else if (_this.baseChain == "NEO"){
+            _this.$store.state.vuexStore.NEOwalletInfo = _this.$parent.fetchAsArray("walletInfo") || nullWalletInfo;        //获取钱包信息
+            console.log(_this.$store.state.vuexStore.NEOwalletInfo);
+        }
+        console.log(_this.$store.state.vuexStore.isLogin?1:2);
+        _this.$store.state.vuexStore.isLogin ? _this.$router.push('/back') : _this.$router.push('/start'); 
+
         if(_this.isTestNet != "" && _this.baseChain != ""){
             console.log("更新当前参数");
             _this.getConfig();                              //更新配置文件信息
@@ -72,13 +83,6 @@ export default {
   methods: {
     getConfig() {                                       //获取配置文件信息,用于开始界面
       let _this = this;
-      //   axios({                                            //获取本地config
-      //     method: 'get',
-      //     url: './../../../static/config/config.json',
-      //     headers: {
-      //       'Content-Type': 'application/json;charset=UTF-8'
-      //     }
-      //   }).then(function(res){
       if(configData){
         let Network;
         _this.$store.state.vuexStore.isTestNet ? Network = "testNet" : Network = "mainNet";
@@ -123,12 +127,11 @@ export default {
       console.log(this.address);
       console.log(this.$store.state.vuexStore.isLogin);
       console.log(this.$store.state.vuexStore.baseChain);
-      if(this.$store.state.vuexStore.isLogin && this.address != ""){
+      //if(this.$store.state.vuexStore.isLogin && this.address != ""){
         this.getConfig();                           //获取配置文件信息
-      } else {
-        this.$router.push('/start');
-      }
-    //   })
+    //   } else {
+    //     this.$router.push('/start');
+    //   }
     },
     getAddressInfo() {                              // 监测store中的address,出现变化时获取相关信息
         let _this = this;
@@ -136,21 +139,22 @@ export default {
         let channelList = _this.$parent.fetchAsArray(_this.address + "@channelList");//获取通道列表
         console.log(channelList);
             let p = [];
-            channelList.forEach(function(data,index){   //遍历chanelList,去除未上链(未成功)的通道
-                if(data.transactionHash != undefined){
-                    p.push(data);
-                }
-            })
+            if(channelList){
+                channelList.forEach(function(data,index){   //遍历chanelList,去除未上链(未成功)的通道
+                    if(data.transactionHash != undefined){
+                        p.push(data);
+                    }
+                })
+            }
         _this.$store.state.vuexStore.channelList = p;           //赋值有transactionHash的通道列表
-        _this.$store.state.vuexStore.txList = _this.$parent.fetchAsArray(_this.address + "@txList");           //获取TxList列表
+        _this.$store.state.vuexStore.txList = _this.$parent.fetchAsArray(_this.address + "@txList");                 //获取TxList列表
         console.log(_this.$store.state.vuexStore.txList);
-        _this.$store.state.vuexStore.contactList = _this.$parent.fetchAsArray(_this.address + "@contactList");                            //获取联系人列表
-        _this.$store.state.vuexStore.recordList = _this.$parent.fetchAsArray(_this.address + "@recordList");                             //获取交易记录列表
-        _this.$store.state.vuexStore.eventList = _this.$parent.fetchAsArray(_this.address + "@eventList");
-        console.log(_this.$store.state.vuexStore.eventList);                              //获取event列表
-        _this.$store.state.vuexStore.RList = _this.$parent.fetchAsArray(_this.address + "@RList");
-        
-        let isOneStepPayment = _this.$parent.fetchAsString(_this.address + "@isOneStepPayment");
+        _this.$store.state.vuexStore.contactList = _this.$parent.fetchAsArray(_this.address + "@contactList");       //获取联系人列表
+        _this.$store.state.vuexStore.recordList = _this.$parent.fetchAsArray(_this.address + "@recordList");         //获取交易记录列表
+        _this.$store.state.vuexStore.eventList = _this.$parent.fetchAsArray(_this.address + "@eventList");           //获取event列表
+        console.log(_this.$store.state.vuexStore.eventList);
+        _this.$store.state.vuexStore.RList = _this.$parent.fetchAsArray(_this.address + "@RList");                   //获取R和HashR的列表
+        let isOneStepPayment = _this.$parent.fetchAsString(_this.address + "@isOneStepPayment");                     //获取是否开启免密支付
         console.log(isOneStepPayment);
         isOneStepPayment == "true" ? _this.$store.state.vuexStore.isOneStepPayment = true : _this.$store.state.vuexStore.isOneStepPayment = false;                                                    //免密支付
         console.log(_this.$store.state.vuexStore.isOneStepPayment);
@@ -177,10 +181,10 @@ export default {
         _this.BalanceCycle();                        //反复获取钱包余额
         _this.cycleReconnectWebsocket();             //循环连接websocket
     },
-    BalanceCycle: function() {                //循环获取余额
+    BalanceCycle: function() {                      //循环获取余额
       setInterval(this.getBalance, 20000);
     },
-    getBalance() {                            //获取总的余额
+    getBalance() {                                  //获取总的余额
       if(this.baseChain == "ETH"){                  //当前为ETH钱包时
         if(web3.utils.isAddress(this.address)){             //当钱包地址正确时获取余额
             this.getEthBalance();

@@ -14,7 +14,7 @@
                 <i @click="switchNet('ETH')" :class="{ active: $store.state.vuexStore.baseChain == 'ETH' }" class="el-icon-ETH-ETH"></i>
                 <i @click="switchNet('NEO')" :class="{ active: $store.state.vuexStore.baseChain == 'NEO' }" class="el-icon-ETH-NEO"></i>
             </div>
-            <h2 class="title_h2">{{ $t('start.title') }}</h2>
+            <h2 @click="test1()" class="title_h2">{{ $t('start.title') }}</h2>
         </div>
         <hr/>
         <div @click="toOtherForm('./create')" class="clooseLoginBox clooseLoginBox-blue">
@@ -25,11 +25,11 @@
             <h3>{{ $t('start.loginByPrivateKey') }}</h3>
             <p>{{ $t('start.loginByPrivateKeyTxt') }}</p>
         </div>
-        <div @click="toOtherForm('./loginByKeyStore')" style="display:none;" class="clooseLoginBox clooseLoginBox-yellow">
+        <div v-if="$store.state.vuexStore.isMobile" @click="toOtherForm('./loginByMnemonic')" class="clooseLoginBox clooseLoginBox-yellow">
             <h3>从助记词恢复</h3>
             <p>{{ $t('start.loginByPrivateKeyTxt') }}</p>
         </div>
-        <div @click="toOtherForm('./loginByKeyStore')" class="clooseLoginBox clooseLoginBox-gray">
+        <div v-else @click="toOtherForm('./loginByKeyStore')" class="clooseLoginBox clooseLoginBox-gray">
             <h3>{{ $t('start.loginByKeystore') }}</h3>
             <p>{{ $t('start.loginByKeystoreTxt') }}</p>
         </div>
@@ -64,6 +64,12 @@ export default {
         _this.$store.state.vuexStore.baseChain = Base;
         _this.$parent.$parent.saveAsString("baseChain",_this.$store.state.vuexStore.baseChain);                 // 存储底层主链信息
         Bus.$emit('UpdateConfig', true);                                                                        //调用config.vue更新配置
+      },
+      test1() {
+        let a = createMnemonic();
+        if(validateMnemonic(a)){
+            mnemonic2privateKey(a);
+        }
       }
   }
 }

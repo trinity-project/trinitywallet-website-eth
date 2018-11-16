@@ -35,6 +35,11 @@ export default {
                 name: 'English',
                 lang: 'en',
                 isSelected: false
+            },
+            {
+                name: 'Español (coming soon)',
+                lang: undefined,
+                isSelected: false
             }
         ]
     }
@@ -64,7 +69,7 @@ export default {
     ChangeLang(data, index) {
         //this.$i18n.locale === 'cn' ? this.$i18n.locale ='en' : this.$i18n.locale ='cn';
         data.lang != undefined ? this.$i18n.locale = data.lang : this.$i18n.locale ='cn';            //切换i18n语言
-        this.$parent.$parent.saveAsString("lang",this.$i18n.locale);                                 //localstorage储存语言设置
+        this.$parent.$parent.saveAsString("lang", this.$i18n.locale);                                 //localstorage储存语言设置
 
         this.languageData.forEach(function(data1,index1){                                           //移除所有选中样式
             data1.isSelected = false;

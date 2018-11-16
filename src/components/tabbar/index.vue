@@ -41,7 +41,7 @@
         </li>
       </ul>
     </div>
-    <el-dialog title="切换钱包" :visible.sync="isChangeWalletBoxShow" width="30%" center>
+    <el-dialog title="切换钱包" :visible.sync="isChangeWalletBoxShow" width="calc(100% - 20px)" center>
       <span> 是否切换钱包 </span>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="changeWallet()()">{{ $t('common.continue') }}</el-button>
@@ -120,6 +120,11 @@ export default {
       console.log(1);
       this.$store.state.vuexStore.baseChain == "ETH" ? this.$store.state.vuexStore.baseChain = "NEO" : this.$store.state.vuexStore.baseChain = "ETH";
       console.log(this.$store.state.vuexStore.baseChain);
+      if(this.$store.state.vuexStore.isLogin && this.address != ""){
+
+      } else {
+        this.$router.push('/start');
+      }
     }
   }
 }

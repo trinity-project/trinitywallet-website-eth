@@ -24,7 +24,7 @@
           </el-form-item>
         </el-form>
     </div>
-    <el-dialog class="txOnChannelBox" :title="$t('index.transferOnChannel')" :visible.sync="ShowTxOnChannelBox" width="30%" center :modal-append-to-body='false'>
+    <el-dialog class="txOnChannelBox" :title="$t('index.transferOnChannel')" :visible.sync="ShowTxOnChannelBox" width="calc(100% - 20px)" center :modal-append-to-body='false'>
       <span>{{ $t('index.transfer-1') }}{{ txOnChannelInfo.receiverUri.split("@")[0] }}</span>
       <span style="color:#F56C6C;font-size: 16px;">{{ $t('index.transfer-2') }} {{ txOnChannelInfo.value / 10e7 }} {{ txOnChannelInfo.assetType }}</span>
       <el-form :model="txOnChannelInfo" status-icon :rules="txOnChannelRules" ref="txOnChannelInfo" label-width="90px" class="demo-ruleForm">
@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import Vue from 'Vue'
 import headBox from './../common/headBoxForChild'
 export default {
   name: 'paymentBox',
@@ -50,9 +51,9 @@ export default {
         return callback(new Error(this.$t('index.callback-7')));
       } else {
         let PrivateKey;
-        if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+        if(this.baseChain == "ETH"){                  //当前为ETH钱包时
           PrivateKey = this.$parent.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
-        } else if (this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为ETH钱包时
+        } else if (this.baseChain == "NEO"){                  //当前为ETH钱包时
           PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
               'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
               'password': value,
@@ -101,9 +102,9 @@ export default {
         return this.$store.state.vuexStore.txList;
     },
     walletInfo() {                       //获取vuex中的address赋值给address
-      if(this.$store.state.vuexStore.baseChain == "ETH"){
+      if(this.baseChain == "ETH"){
           return this.$store.state.vuexStore.walletInfo;
-      } else if(this.$store.state.vuexStore.baseChain == "NEO"){
+      } else if(this.baseChain == "NEO"){
           return this.$store.state.vuexStore.NEOwalletInfo;
       }
     },
@@ -279,8 +280,8 @@ export default {
             return false;
           }
         } else {      //开头不是"TN",判断是否为地址给出提示并返回
-          if (_this.paymentCode.length == 42 && _this.$store.state.vuexStore.baseChain == "ETH" || 
-              _this.paymentCode.length == 34 && _this.$store.state.vuexStore.baseChain == "NEO") {        //判断paymentCode是否为地址
+          if (_this.paymentCode.length == 42 && _this.baseChain == "ETH" || 
+              _this.paymentCode.length == 34 && _this.baseChain == "NEO") {        //判断paymentCode是否为地址
             if (_this.paymentCode == _this.$store.state.vuexStore.walletInfo.address){   //判断是否为本端地址
               _this.$notify.error({
                 title: _this.$t('common.warning'),
@@ -310,13 +311,13 @@ export default {
       let _this = this;
       _this.$refs['txOnChannelInfo'].validate((valid) => {
         if (valid) {
-          if(_this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
+          if(_this.baseChain == "ETH"){                  //当前为ETH钱包时
             if(_this.txOnChannelInfo.assetType == "ETH"){
               _this.txEthOnChannel();
             } else if (_this.txOnChannelInfo.assetType == "TNC") {
               _this.txTncOnChannel();
             }
-          } else if (_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时
+          } else if (_this.baseChain == "NEO"){                  //当前为NEO钱包时
             _this.txTncOnChannel();
           }
         } else {
@@ -332,36 +333,90 @@ export default {
       let _this = this;
       console.log("进入通道交易");
 
-      if(_this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
-        let l = _this.$parent.$parent.getChannelSerial("OtherUri",_this.txOnChannelInfo.receiverUri,'open',false);
+      if(_this.baseChain == "ETH"){                  //当前为ETH钱包时
+        let peerUri = _this.txOnChannelInfo.receiverUri;
+        console.log(peerUri);
+        let l = _this.$parent.$parent.getChannelSerial("OtherUri", peerUri, 'open', false);
+        console.log(l);
         if(l >= 0){
-          if(_this.$store.state.vuexStore.channelList[l].SelfBalance >= _this.txOnChannelInfo.value){
-            _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
-            _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[l].ChannelName;    //赋值ChannelName
-            console.log(l);
-            let Message = {                       //构造Rsmc消息体
+          let channelName = _this.$store.state.vuexStore.channelList[l].ChannelName;
+          let founderUri = _this.$store.state.vuexStore.channelList[l].SelfUri;
+          let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
+          let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
+          let paymentCount = Number(_this.txOnChannelInfo.value);
+          let hashR = _this.txOnChannelInfo.hr;
+          let assetType = _this.txOnChannelInfo.assetType;
+          let TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1;
+          let NetMagic = _this.$store.state.vuexStore.NetMagic;
+
+          let checkResult = _this.$parent.$parent.checkHistory(channelName, TxNonce);
+          let ResignBody;
+          if(checkResult.type == "Resign"){
+            console.log("上次交易未确认,请求回签");
+            ResignBody = checkResult.ResignBody;
+            console.log(checkResult);
+
+            let typeList = ['paymentCount'];
+            let result = _this.$parent.$parent.getTxListInfo(channelName, ResignBody.Nonce, typeList);              //查询当前nonce的状态
+            founderBalance = founderBalance + result.paymentCount;
+            peerBalance = peerBalance - result.paymentCount;
+          } else if (checkResult.type == "Same"){
+            console.log("检查正常");
+          }
+
+          if(founderBalance >= paymentCount){                                     //判断余额大于交易金额
+            let Message = {                                                       //构造Rsmc消息体
               "MessageType":"Rsmc",
-              "Sender": _this.txOnChannelInfo.sendUri,
-              "Receiver": _this.txOnChannelInfo.receiverUri,
-              "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
-              "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
-              "NetMagic": _this.$store.state.vuexStore.NetMagic,
-              "AssetType": _this.txOnChannelInfo.assetType,
+              "Sender": founderUri,
+              "Receiver": peerUri,
+              "TxNonce": TxNonce,
+              "ChannelName": channelName,
+              "NetMagic": NetMagic,
+              "AssetType": assetType,
               "MessageBody": {
-                "PaymentCount": _this.txOnChannelInfo.value,
-                "SenderBalance": Number(_this.$store.state.vuexStore.channelList[l].SelfBalance) - Number(_this.txOnChannelInfo.value),
-                "ReceiverBalance": Number(_this.$store.state.vuexStore.channelList[l].OtherBalance) + Number(_this.txOnChannelInfo.value),
-                //"HashR": 0x0,
-                "Commitment": "",
-                "RoleIndex": 0
+                PaymentCount: paymentCount,
+                SenderBalance: founderBalance - paymentCount,
+                ReceiverBalance: peerBalance + paymentCount,
+                // "HashR": 0x0,
+                Commitment: "",
+                RoleIndex: 0,
+                ResignBody: ResignBody
               },
-              "Comments": {}
+              "Comments": hashR
             }
-            _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
+            _this.txOnChannelInfo.sendUri = peerUri;                              //赋值sendUri
+            _this.txOnChannelInfo.ChannelName = channelName;                      //赋值ChannelName
+            _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo; //保存通道转账信息
             console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-            _this.$parent.$parent.sendWebsocket(_this.txOnChannelInfo.receiverUri, Message);        //发送websocket消息
+            _this.$parent.$parent.StoreData("channelList");           //保存通道信息
+            _this.$parent.$parent.sendWebsocket(peerUri, Message);                //发送websocket消息
+
+            let txListMessage = {                           //txData
+              "state": "INIT",
+              "nonce": TxNonce,
+              "founder": founderUri.split("@")[0],
+              "founderBalance": founderBalance - paymentCount,
+              "peer": peerUri.split("@")[0],
+              "peerBalance": peerBalance + paymentCount,
+              "paymentCount": paymentCount,
+              "isFounder": true,
+              "founderSignedData": "",
+              "peerSignedData": "",
+              "HashR": "0x" + addPreZero(0,64),
+              "R": "0x" + addPreZero(0,64),
+              // "delayBlock":,
+              // "payment": ,
+              // "delayCommitment": ,
+            }
+            _this.$parent.$parent.newTxList(channelName, txListMessage);           //增加TxList信息
+            console.log(_this.$store.state.vuexStore.txList);
+            let channelInfo = _this.$store.state.vuexStore.channelList[l];
+            channelInfo.TxNonce = TxNonce;                                      //TxNoce增加1
+            Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+            console.log(_this.$store.state.vuexStore.channelList[l].TxNonce);
+
             _this.ShowTxOnChannelBox = false;
-            _this.clearTxData();
+            _this.clearTxData();                                                  //清除交易数据
           } else {
             _this.$notify.error({
               title: _this.$t('common.info'),
@@ -432,7 +487,7 @@ export default {
             // });
             return;
         }
-      } else if (_this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为NEO钱包时
+      } else if (_this.baseChain == "NEO"){                  //当前为NEO钱包时
         console.log("NEO通道交易");
         let l = _this.$parent.$parent.getChannelSerial("OtherUri", _this.txOnChannelInfo.receiverUri, 'open', false);
         if(l >= 0){

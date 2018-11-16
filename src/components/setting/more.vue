@@ -14,7 +14,7 @@
             </div>
         </router-link>
     </div>
-    <el-dialog title="免密支付" :visible.sync="isComfirmOneStepPaymentShow" width="30%" center>
+    <el-dialog title="免密支付" :visible.sync="isComfirmOneStepPaymentShow" width="calc(100% - 20px)" center>
         <span>注意:开启免密支付后收付款不用再输入密码</span>
         <span slot="footer" class="dialog-footer">
             <el-form :model="activeInfo" status-icon :rules="oneStepPaymentRules" ref="activeInfo" label-width="80px" class="demo-ruleForm">

@@ -10,7 +10,7 @@
       </div>
     </div>
     <div class="contentBox">
-        <h2 class="title_h2">恢复钱包</h2>
+        <h2 @click="test()" class="title_h2">恢复钱包</h2>
         <hr/>
         <el-form :model="backForm" status-icon :rules="backRules" ref="backForm" label-position="top" class="demo-ruleForm">
             <el-form-item :label="$t('create.password')" prop="pass">
@@ -110,6 +110,7 @@ export default {
 
             if(web3.utils.checkAddressChecksum(address)){
               this.$store.state.vuexStore.isLogin = true;
+              this.$store.state.vuexStore.walletInfo.keyStorePass = this.backForm.pass;
               this.$notify({
                 title: this.$t('loginByKeyStore.callback-10'),
                 dangerouslyUseHTMLString: true,
@@ -118,6 +119,9 @@ export default {
                 type: 'success'
               });
               Bus.$emit('getAddressInfo', true);
+              
+              this.keyStoreContent = '';      //清空数据
+              this.keyStorePass = '';
               this.$router.push('/wallet');         //跳转到首页
             } else {
               this.$notify.error({
@@ -134,9 +138,9 @@ export default {
             let decryptPK;
             try {
               decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
-                'WalletScript':this.keyStoreContent.accounts[0].key,
+                'WalletScript':this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
                 'password': this.keyStorePass,
-                'address': this.keyStoreContent.accounts[0].address
+                'address': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
               });
               console.log(decryptPK);
             } catch (e) {
@@ -149,10 +153,10 @@ export default {
               return false;
             }
 
-            this.$store.state.vuexStore.NEOwalletInfo.keyStore = this.keyStoreContent;                        //存入KeyStore
-            this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(decryptPK, 0)));   //存入publicKey
-            console.log(this.$store.state.vuexStore.NEOwalletInfo.publicKey);
-            this.$store.state.vuexStore.NEOwalletInfo.address = this.keyStoreContent.accounts[0].address;       //存入地址
+            //this.$store.state.vuexStore.NEOwalletInfo.keyStore = this.keyStoreContent;                        //存入KeyStore
+            //this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(decryptPK, 0)));   //存入publicKey
+            //console.log(this.$store.state.vuexStore.NEOwalletInfo.publicKey);
+            //this.$store.state.vuexStore.NEOwalletInfo.address = this.keyStoreContent.accounts[0].address;       //存入地址
             this.$store.state.vuexStore.isLogin = true;                     //登录标志
             this.$notify({
               title: this.$t('loginByKeyStore.callback-10'),
@@ -171,6 +175,9 @@ export default {
         }
         this.backForm.pass = '';
       });
+    },
+    test() {
+      console.log(1);
     }
   }
 }
