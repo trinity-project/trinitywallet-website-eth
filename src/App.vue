@@ -1836,40 +1836,38 @@ export default {
       let l = _this.getChannelSerial("ChannelName", redata.ChannelName, 'open');      //获取所需的channel在List的位置
       if(_this.baseChain == "ETH"){
         if(l >= 0){ 
-          let Message;
+          let Message, R, nonce;                                             //申明消息体,用于发送websocket, nonce用于该笔交易真正的nonce
           let channelName = redata.ChannelName;
           let TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1;
           let paymentCount = Number(redata.MessageBody.PaymentCount);
           let founderAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
           let founderBalance = _this.$store.state.vuexStore.channelList[l].OtherBalance;
           let peerAddress = _this.$store.state.vuexStore.walletInfo.address;
-          let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance) + Number(paymentCount);
+          let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance) + paymentCount;
           let HashR = redata.MessageBody.HashR;
           let NetMagic = _this.$store.state.vuexStore.NetMagic;
           let assetType = _this.$store.state.vuexStore.channelList[l].assetType;
           let keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass;
-          let R, nonce;
-          if(HashR == undefined){                  //如果Rsmc交易,对端更新balance
-            founderBalance = Number(founderBalance) - Number(paymentCount);
+          if(HashR == undefined){                                                      //如果Rsmc交易,对端更新balance
+            founderBalance = Number(founderBalance) - paymentCount;
           } else {                                                                     //如果HTLC-R交易,对端不更新balance,因为已经锁定
             founderBalance = Number(founderBalance);
-            R = _this.getRByHashR(HashR);
+            R = _this.getRByHashR(HashR);                                             //由HashR获取对应的R值
           }
 
-          let checkResult = _this.checkHistory(channelName, redata.TxNonce);     //检查历史记录
-          let ResignBody;                 //申明变量,用于赋值回签数据
-          if(redata.MessageBody.ResignBody){                    //如果收到的redata含ResignBody字段
+          let checkResult = _this.checkHistory(channelName, redata.TxNonce);          //检查历史记录
+          let ResignBody;                                                             //申明变量,用于赋值回签数据
+          if(redata.MessageBody.ResignBody){                                          //如果收到的redata含ResignBody字段
             let ResignTxNonce = redata.MessageBody.ResignBody.Nonce;
-            checkResult = _this.checkHistory(channelName, ResignTxNonce);     //检查历史记录
-            if (checkResult.type == "approveNonce" || redata.TxNonce - ResignTxNonce == 1){            
+            checkResult = _this.checkHistory(channelName, ResignTxNonce);             //检查请求回签的Nonce历史记录
+            if (checkResult.type == "approveNonce" || redata.TxNonce - ResignTxNonce == 1){
               //当Rmsc带有ResignBody字段,
               //且Resign的交易状态为"INIT",
               //且TxNonce比ResignTxNonce只大1,
               //则同时回签1,2的签名,2-②
               console.log("同时回签1,2的签名");
-              nonce = TxNonce;
-              // ResignTxNonce = redata.MessageBody.ResignBody.TxNonce;
-              let ResignCommitment = redata.MessageBody.ResignBody.Commitment;
+              nonce = TxNonce;                    //将TxNonce赋值给nonce,用于回签2的签名
+              let ResignCommitment = redata.MessageBody.ResignBody.Commitment;                      //对端回签的签名,用于后续认证
               let typeList = ['founder', 'founderBalance', 'peer', 'peerBalance', 'isFounder','nonce', 'HashR', 'R'];
               let result = _this.getTxListInfo(channelName, ResignTxNonce, typeList);              //查询当前nonce的状态
               let ResignFounderAddress = result.founder;
@@ -1879,30 +1877,33 @@ export default {
               let ResignOtherAddress = result.isFounder ? ResignPeerAddress : ResignFounderAddress;
               let ResignHashR = result.HashR;
               let ResignR = result.R;
+
               let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
               let dataList = [channelName, ResignTxNonce, ResignFounderAddress, ResignFounderBalance, ResignPeerAddress, ResignPeerBalance, ResignHashR, ResignR];
-              let ResignedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
+              let ResignedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);   //签名1的数据
               console.log(ResignOtherAddress.toLowerCase());
-              if(ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase())){ //验证签名
-                let txListMessage = {                           //txData
+              if(ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase())){    //验证对端ReSign的签名
+                let txListMessage = {                           //申明需要更新的txData
                   "state": "confirmed",
                   "founderSignedData": ResignCommitment
                 }
-                _this.updateTxList1(channelName, ResignTxNonce, txListMessage);                  //更新TxList
-                ResignBody = {
+                _this.updateTxList1(channelName, ResignTxNonce, txListMessage);                  //更新TxData
+                
+                ResignBody = {                                                      //将签名与Nonce赋值给ResignBody,用于发送回签消息
                   Commitment: ResignedDataResult.signedData,
                   Nonce: ResignTxNonce,
                 }
 
+                //回签部分的交易已完成,更新通道信息
                 let channelInfo = _this.$store.state.vuexStore.channelList[l];
                 channelInfo.SelfBalance = ResignFounderBalance;                                     //本端余额更新
                 channelInfo.OtherBalance = ResignPeerBalance;                                       //对端余额更新
-                Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+                Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);                  //更改通道信息
                 console.log(_this.$store.state.vuexStore.channelList[l]);
-                _this.StoreData("channelList");           //保存通道信息
-                _this.getChannelBalance();              //更新通道余额
+                _this.StoreData("channelList");                                                     //保存通道信息
+                _this.getChannelBalance();                                                          //更新通道余额
                 
-                founderBalance = ResignFounderBalance + paymentCount;
+                founderBalance = ResignFounderBalance + paymentCount;                               //更新交易数据中的Balance
                 peerBalance = ResignPeerBalance - paymentCount;
               } else {
                 console.log("签名验证失败");
@@ -1913,30 +1914,25 @@ export default {
           } else {                                              //收到的redata不含ResignBody字段
             if(checkResult.type == "ResetTxNonce"){                    //请求重设TxNonce,1-①
               console.log("nonce错误,请求重设nonce");
-              nonce = checkResult.ResetTxNonce;
+              nonce = checkResult.ResetTxNonce;                        //将nonce设为请求重设的nonce,用于后续签名
             } else if(checkResult.type == "Resign"){                   //请求回签,2-①
               console.log("上次交易未确认,请求回签");
-              ResignBody = checkResult.ResignBody;
-              nonce = TxNonce;
+              ResignBody = checkResult.ResignBody;                     
+              nonce = TxNonce;                                         //将nonce设为TxNoce,用于同时回签1,2签名
 
               console.log(ResignBody.Nonce);
               let typeList = ['paymentCount'];
               let result = _this.getTxListInfo(channelName, ResignBody.Nonce, typeList);              //查询当前nonce的状态
-              console.log(result.paymentCount);
-              console.log(founderBalance);
-              console.log(peerBalance);
-              founderBalance = founderBalance - result.paymentCount;
+              founderBalance = founderBalance - result.paymentCount;   //更新当前MessageBody中的余额(在回签的基础上)
               peerBalance = peerBalance + result.paymentCount;
-              console.log(founderBalance);
-              console.log(peerBalance);
             } else if (checkResult.type == "approveNonce"){            //将对端发送的TxNonce作为nonce,1-②
               console.log("对端发送的TxNonce作为nonce");
-              nonce = Number(redata.TxNonce);
+              nonce = Number(redata.TxNonce);                          //将对端发送的TxNonce作为nonce
               console.log(nonce);
               _this.updateTxListLength(channelName, nonce);         //删除多余的nonce
               console.log(_this.$store.state.vuexStore.txList);
             }
-            else if (checkResult.type == "Same"){
+            else if (checkResult.type == "Same"){                     //状态正常,将当前TxNonce赋值给nonce
               console.log("检查正常");
               nonce = TxNonce;
             }
@@ -1959,21 +1955,21 @@ export default {
               "MessageType": "RsmcSign",
               "Sender": redata.Receiver,
               "Receiver": redata.Sender,
-              "TxNonce": nonce,
+              "TxNonce": checkResult.type == "ResetTxNonce" ? redata.TxNonce :  nonce, //当type为ResetTxNonce时.TxNonce为对端发起的TxNonce
               "ChannelName": channelName,
               "NetMagic": NetMagic,
               "AssetType": assetType,
-              "ResetTxNonce": checkResult.type == "ResetTxNonce" ? nonce : undefined,
+              "ResetTxNonce": checkResult.type == "ResetTxNonce" ? nonce : undefined,  //当type不为ResetTxNonce时.不带该参数
               "MessageBody": {
                 PaymentCount: paymentCount,
                 SenderBalance: founderBalance,
                 ReceiverBalance: peerBalance,
                 HashR: HashR,
-                Commitment: checkResult.type == "Resign" ? undefined : signedDataResult.signedData,
+                Commitment: checkResult.type == "Resign" ? undefined : signedDataResult.signedData,   //当回签时,不带普通的签名
                 RoleIndex: 0,
                 ResignBody: ResignBody
               },
-              "Comments": {},
+              "Comments": redata.Comments,
               "Status": "RESPONSE_OK",
             }
             console.log(Message);
@@ -2000,7 +1996,6 @@ export default {
             // "payment": ,
             // "delayCommitment": ,
           }
-          console.log(txListMessage);
           console.log(_this.$store.state.vuexStore.txList);
           _this.newTxList(channelName, txListMessage);                                        //增加TxList信息
 
@@ -2388,6 +2383,27 @@ export default {
                   }
                   _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
 
+                  if(isNonceChange){                                                        //当对端申请修改nonce同意时,删除多余的TxList数据
+                    _this.updateTxListLength(channelName, TxNonce);
+                    let txListMessage1 = {                                                               //txData
+                      "state": "confirming",
+                      "nonce": TxNonce,
+                      "founder": founderAddress,
+                      "peer": peerAddress,
+                      "paymentCount": paymentCount,
+                      "isFounder": true,
+                      "founderSignedData": "",
+                      "peerSignedData": "",
+                      "HashR": HashR ? HashR : "0x" + addPreZero(0,64),
+                      "R": R ? R : "0x" + addPreZero(0,64),
+                      "txData": signedDataResult.txData,
+                      // "delayBlock":,
+                      // "payment": ,
+                      // "delayCommitment": ,
+                    }
+                    _this.newTxList(channelName, txListMessage1);                                        //增加TxList信息
+                    console.log(_this.$store.state.vuexStore.txList);
+                  }
                   let txListMessage = {                           //txData
                     "state": "confirmed",
                     "founderSignedData": signedDataResult.signedData,
@@ -2396,9 +2412,6 @@ export default {
                     "peerBalance": peerBalance
                   }
                   _this.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
-                  if(isNonceChange){                                                        //当对端申请修改nonce同意时,删除多余的TxList数据
-                    _this.updateTxListLength(channelName, TxNonce);
-                  }
 
                   let channelInfo = _this.$store.state.vuexStore.channelList[l];
                   channelInfo.SelfBalance = founderBalance;                           //本端余额更新
@@ -2529,7 +2542,7 @@ export default {
                   Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
                   console.log(_this.$store.state.vuexStore.channelList[l]);
                   _this.StoreData("channelList");                   //保存通道信息
-                  _this.getChannelBalance();              //更新通道余额
+                  _this.getChannelBalance();                        //更新通道余额
 
                   let txListMessage = {                           //txData
                     "state": "confirmed",
@@ -4123,8 +4136,9 @@ export default {
       let _this = this;
       _this.$store.state.vuexStore.txList.forEach(function(value, index){
         if(value.channelName == channelName){
-            value.history.length = length * 1;
-            console.log(value.history);
+          value.history.length = length * 1;
+          console.log(value.history);
+          return false;
         }
       })
       _this.StoreData("txList");
