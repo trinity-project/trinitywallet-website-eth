@@ -68,6 +68,7 @@ export default {
     trinityDataContractAddress: "", //Trinity状态通道合约Abi
     trinityContractAbi: [],         //Trinity状态通道数据合约地址,
     spvPort: "",                    //spv 端口号
+    delayBlock: "",                 //HTLC延迟块高数(每一跳)
     nodeWebSocketIp: "",            //稳定的node节点,用于获取nodeList
     NodeRpcUri: "",                 //全节点通用RPC接口   NEO
   },

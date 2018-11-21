@@ -388,7 +388,7 @@ export default {
             _this.txOnChannelInfo.ChannelName = channelName;                      //赋值ChannelName
             _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo; //保存通道转账信息
             console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-            _this.$parent.$parent.StoreData("channelList");           //保存通道信息
+            
             _this.$parent.$parent.sendWebsocket(peerUri, Message);                //发送websocket消息
 
             let txListMessage = {                           //txData
@@ -414,6 +414,7 @@ export default {
             channelInfo.TxNonce = TxNonce;                                      //TxNoce增加1
             Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
             console.log(_this.$store.state.vuexStore.channelList[l].TxNonce);
+            _this.$parent.$parent.StoreData("channelList");           //保存通道信息
 
             _this.ShowTxOnChannelBox = false;
             _this.clearTxData();                                                  //清除交易数据

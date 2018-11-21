@@ -323,7 +323,11 @@ export default {
     },
     fetchAsArray:function(key){     //获取localStorage的数组，boolean等数据
       let KEY1 = key.toString();
-      return JSON.parse(window.localStorage.getItem(KEY1) || '[]')
+      if(KEY1 == "walletInfo"){
+        return JSON.parse(window.localStorage.getItem(KEY1) || '{}')
+      } else {
+        return JSON.parse(window.localStorage.getItem(KEY1) || '[]')
+      }
     },
     fetchAsString:function(key){           //获取localStorage的String数据
       let KEY1 = key.toString();
@@ -1325,6 +1329,7 @@ export default {
     async OnMesMonitorSendUnlockAmount(redata) {                    //HTLC交易到达指定块高仍未获得  R,可以申请解冻资产
       let _this = this;
 
+      console.log(redata);
       let l = _this.getChannelSerial('ChannelName', redata.channelName);
       let keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass;
       let dataTypeList = ['bytes32','address','address','uint256','uint256','bytes32','bytes','bytes','bytes32']; 
@@ -1333,7 +1338,7 @@ export default {
           _this.$store.state.vuexStore.walletInfo.address, 
           redata.data.peer, 
           redata.data.delayBlock,
-          redata.data.payment,
+          redata.data.paymentCount,
           redata.data.HashR,
           redata.data.founderDelayCommitment,
           redata.data.peerDelayCommitment,
@@ -1841,7 +1846,7 @@ export default {
           let TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1;
           let paymentCount = Number(redata.MessageBody.PaymentCount);
           let founderAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
-          let founderBalance = _this.$store.state.vuexStore.channelList[l].OtherBalance;
+          let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
           let peerAddress = _this.$store.state.vuexStore.walletInfo.address;
           let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance) + paymentCount;
           let HashR = redata.MessageBody.HashR;
@@ -1851,7 +1856,6 @@ export default {
           if(HashR == undefined){                                                      //如果Rsmc交易,对端更新balance
             founderBalance = Number(founderBalance) - paymentCount;
           } else {                                                                     //如果HTLC-R交易,对端不更新balance,因为已经锁定
-            founderBalance = Number(founderBalance);
             R = _this.getRByHashR(HashR);                                             //由HashR获取对应的R值
           }
 
@@ -1992,9 +1996,9 @@ export default {
             "HashR": HashR ? HashR : "0x" + addPreZero(0,64),
             "R": R ? R : "0x" + addPreZero(0,64),
             "txData": signedDataResult.txData,
-            // "delayBlock":,
-            // "payment": ,
-            // "delayCommitment": ,
+            //"delayBlock": DelayBlock,
+            "founderDelayCommitment": "",
+            "peerDelayCommitment": "",
           }
           console.log(_this.$store.state.vuexStore.txList);
           _this.newTxList(channelName, txListMessage);                                        //增加TxList信息
@@ -2241,22 +2245,22 @@ export default {
           let l = _this.getChannelSerial("ChannelName", redata.ChannelName);
           console.log(l);
           if(l >= 0){          //检测到通道
-            let Message, ResignRoleIndex;
-            let RoleIndex = redata.MessageBody.RoleIndex;
-            let channelName = _this.$store.state.vuexStore.channelList[l].ChannelName;
-            let TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce;
-            let paymentCount = Number(redata.MessageBody.PaymentCount);
-            let founderAddress = _this.$store.state.vuexStore.walletInfo.address;
-            let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
-            let peerAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
-            let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance) + paymentCount;
-            let HashR = redata.MessageBody.HashR || "0x" + addPreZero(0,64);
-            let NetMagic = _this.$store.state.vuexStore.NetMagic;
-            let assetType = _this.$store.state.vuexStore.channelList[l].assetType;
-            let Commitment = redata.MessageBody.Commitment;
-            let keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass;
-            console.log(keyStorePass);
-            let isNonceChange = false;                                                    //用于标记TxNonce是否改变
+            let Message, ResignRoleIndex,
+                RoleIndex = redata.MessageBody.RoleIndex,
+                channelName = _this.$store.state.vuexStore.channelList[l].ChannelName,
+                TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce,
+                paymentCount = Number(redata.MessageBody.PaymentCount),
+                founderAddress = _this.$store.state.vuexStore.walletInfo.address,
+                founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance),
+                peerAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0],
+                peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance) + paymentCount,
+                HashR = redata.MessageBody.HashR || "0x" + addPreZero(0,64),
+                NetMagic = _this.$store.state.vuexStore.NetMagic,
+                assetType = _this.$store.state.vuexStore.channelList[l].assetType,
+                Commitment = redata.MessageBody.Commitment,
+                keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass,
+                isNonceChange = false;                                                    //用于标记TxNonce是否改变
+                console.log(keyStorePass);
 
             if(RoleIndex == 0){         //如果不带RoleIndex,发送RsmcSign
               console.log(redata);
@@ -2341,7 +2345,10 @@ export default {
                 //如果是普通的RSMC交易,则founder需要扣除金额,因为HTLC已经锁定那部分,所以不用扣除
                 founderBalance = founderBalance - paymentCount;
               } else {
-                R = _this.getRByHashR(HashR);
+                let typeList = ['R'];
+                let result =  _this.getTxListInfo(channelName, TxNonce - 1, typeList);              //取上一笔HTLC内存的R
+                R = result.R;
+                console.log("R:" + R);
               }
 
               if(Commitment){
@@ -2411,6 +2418,7 @@ export default {
                     "founderBalance": founderBalance,
                     "peerBalance": peerBalance
                   }
+                  console.log(txListMessage);
                   _this.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
 
                   let channelInfo = _this.$store.state.vuexStore.channelList[l];
@@ -2554,6 +2562,7 @@ export default {
                   console.log(paymentCount);
                   let recordMessage = {           //构造通道record消息
                     date: date,
+                    channelName: channelName,
                     name: redata.Sender.split("@")[0],
                     Amount: paymentCount,
                     assetType: assetType,
@@ -2630,7 +2639,7 @@ export default {
             }
           }
         } else {             //当得到非确认后,进行输出状态
-          console.log(redata.Status)
+          console.log(redata.Status);
         }
       } else if (_this.baseChain == "NEO"){
         console.log("NEO");
@@ -2672,7 +2681,7 @@ export default {
           console.log(_this.isOneStepPayment);
           console.log(_this.$store.state.vuexStore.walletInfo.keyStorePass);
           if(_this.isOneStepPayment && _this.$store.state.vuexStore.walletInfo.keyStorePass){       // 判断免密支付
-            _this.sendHtlcMes();                                 //发送Htlc交易,用于自动交易
+            _this.sendHtlcMes();                                 //发送Htlc交易
           } else {
             _this.isFeeInfoBoxShow = true;                       //显示Fee提醒框
           }
@@ -2707,7 +2716,7 @@ export default {
           _this.$store.state.vuexStore.txOnChannelInfo.Next = redata.RouterInfo.Next;     //Next赋值
           _this.$store.state.vuexStore.txOnChannelInfo.fee = Fee;            //fee赋值
           console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-            _this.isFeeInfoBoxShow = true;                       //显示Fee提醒框
+          _this.isFeeInfoBoxShow = true;                       //显示Fee提醒框
         } 
       }
     },
@@ -2720,22 +2729,23 @@ export default {
       if(l >= 0){          //当l为-1时,未遍历到通道
         web3.eth.getBlockNumber().then(function(blockNumber){           //获取当前块高
           console.log(blockNumber);
-          let router = _this.$store.state.vuexStore.txOnChannelInfo.Router;
-          let DelayBlock = blockNumber + (router.length - 1) * 15;
-          //let DelayBlock = blockNumber + (router.length - 1) * 4 * 60 * 24;         //1分钟4个块,一天
-          console.log(DelayBlock);
-          let channelName = _this.$store.state.vuexStore.channelList[l].ChannelName;
-          let nonce = _this.$store.state.vuexStore.channelList[l].TxNonce;
-          let founderAddress = _this.$store.state.vuexStore.walletInfo.address;
-          let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
-          let peerAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
-          let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
-          let paymentCount = Number(_this.$store.state.vuexStore.txOnChannelInfo.value) + Number(_this.$store.state.vuexStore.txOnChannelInfo.fee);
-          let assetType = _this.$store.state.vuexStore.channelList[l].assetType;
-          let NetMagic = _this.$store.state.vuexStore.NetMagic;
-          let HashR = _this.$store.state.vuexStore.txOnChannelInfo.hr;
-          let keyStorePass = _this.$store.state.vuexStore.txOnChannelInfo.keyStorePass;
-          console.log(paymentCount);
+          let router = _this.$store.state.vuexStore.txOnChannelInfo.Router,
+              delayBlock = _this.$store.state.vuexStore.delayBlock,                   //HTLC延迟块高数(每一跳)
+              DelayBlock = blockNumber + (router.length - 1) * delayBlock,            //HTLC取回块高
+              channelName = _this.$store.state.vuexStore.channelList[l].ChannelName,
+              TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
+              founderUri = _this.$store.state.vuexStore.channelList[l].SelfUri,
+              founderAddress = _this.$store.state.vuexStore.walletInfo.address,
+              founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance),
+              peerAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0],
+              peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance),
+              paymentCount = Number(_this.$store.state.vuexStore.txOnChannelInfo.value) + Number(_this.$store.state.vuexStore.txOnChannelInfo.fee),
+              assetType = _this.$store.state.vuexStore.channelList[l].assetType,
+              NetMagic = _this.$store.state.vuexStore.NetMagic,
+              HashR = _this.$store.state.vuexStore.txOnChannelInfo.hr,
+              keyStorePass = _this.$store.state.vuexStore.txOnChannelInfo.keyStorePass;
+              console.log(DelayBlock);
+              console.log(paymentCount);
 
           // if(_this.isOneStepPayment && _this.$store.state.vuexStore.walletInfo.keyStorePass){
           //   keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass;
@@ -2751,11 +2761,27 @@ export default {
           // let signedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
           // _this.$store.state.vuexStore.txOnChannelInfo.txData = signedDataResult.txData;       //用于后续签名认证
 
+          let checkResult = _this.checkHistory(channelName, TxNonce),
+              ResignBody;                                                                           //用于保存回签数据
+          if(checkResult.type == "Resign"){
+            console.log("上次交易未确认,请求回签");
+            ResignBody = checkResult.ResignBody;
+            console.log(checkResult);
+
+            let typeList = ['paymentCount'];
+            let result = _this.getTxListInfo(channelName, ResignBody.Nonce, typeList);              //查询当前nonce的状态
+            console.log(result.paymentCount);
+            founderBalance = founderBalance + result.paymentCount;
+            peerBalance = peerBalance - result.paymentCount;
+            console.log(founderBalance);
+            console.log(peerBalance);
+          }
+
           let Message = {                     //构造Htlc消息体
             "MessageType": "Htlc", 
-            "Sender": _this.$store.state.vuexStore.channelList[l].SelfUri, 
+            "Sender": founderUri,
             "Receiver": Next, 
-            "TxNonce": nonce + 1, 
+            "TxNonce": TxNonce, 
             "ChannelName": channelName,
             "AssetType": assetType, 
             "NetMagic": NetMagic,
@@ -2769,10 +2795,38 @@ export default {
               DelayBlock: DelayBlock,
               DelayCommitment: "",
               HashR: HashR,
-              RoleIndex: 0
+              RoleIndex: 0,
+              ResignBody: ResignBody
             }
           }
           _this.sendWebsocket(Next, Message);        //发送websocket消息
+
+          let txListMessage = {                           //txData
+            "state": "INIT",
+            "nonce": TxNonce,
+            "founder": founderAddress,
+            "founderBalance": founderBalance - paymentCount,
+            "peer": peerAddress,
+            "peerBalance": peerBalance,
+            "paymentCount": paymentCount,
+            "isFounder": true,
+            "txData": "",
+            "founderSignedData": "",
+            "peerSignedData": "",
+            "HashR": HashR,
+            "R": "",
+            "delayBlock": DelayBlock,
+            "delayTxData": "",
+            "founderDelayCommitment": "",
+            "peerDelayCommitment": "",
+          }
+          _this.newTxList(channelName, txListMessage);           //增加TxList信息
+          console.log(_this.$store.state.vuexStore.txList);
+          let channelInfo = _this.$store.state.vuexStore.channelList[l];
+          channelInfo.TxNonce = TxNonce;                                      //TxNoce增加1
+          Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+          console.log(_this.$store.state.vuexStore.channelList[l].TxNonce);
+
           _this.isFeeInfoBoxShow = false;                   //关闭fee提醒窗口
         })
       }
@@ -2874,20 +2928,104 @@ export default {
       if (_this.baseChain == "ETH"){
         let l = _this.getChannelSerial("ChannelName", redata.ChannelName, 'open');      //获取所需的channel在List的位置
         if(l >= 0){             //找到通道,进行交易
-          let channelName = redata.ChannelName;
-          let TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce;
-          let founderAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
-          let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
-          let peerAddress = _this.$store.state.vuexStore.walletInfo.address;
-          let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
-          let paymentCount = Number(redata.PaymentCount);
-          let HashR = redata.MessageBody.HashR;
-          let R = "0x" + addPreZero(0,64);
-          let DelayBlock = redata.MessageBody.DelayBlock;
-          let keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass;
+          let channelName = redata.ChannelName,
+              TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
+              founderAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0],
+              founderBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance),
+              peerAddress = _this.$store.state.vuexStore.walletInfo.address,
+              peerBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance),
+              paymentCount = Number(redata.MessageBody.Payment),
+              HashR = redata.MessageBody.HashR,
+              R = "0x" + addPreZero(0,64),
+              DelayBlock = redata.MessageBody.DelayBlock,
+              keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass,
+              nonce;
+          console.log(paymentCount);
+
+          let checkResult = _this.checkHistory(channelName, redata.TxNonce);          //检查历史记录
+          let ResignBody;                                                             //申明变量,用于赋值回签数据
+          if(redata.MessageBody.ResignBody){                                          //如果收到的redata含ResignBody字段
+            let ResignTxNonce = redata.MessageBody.ResignBody.Nonce;
+            checkResult = _this.checkHistory(channelName, ResignTxNonce);             //检查请求回签的Nonce历史记录
+            if (checkResult.type == "approveNonce" || redata.TxNonce - ResignTxNonce == 1){
+              //当Rmsc带有ResignBody字段,
+              //且Resign的交易状态为"INIT",
+              //且TxNonce比ResignTxNonce只大1,
+              //则同时回签1,2的签名,2-②
+              console.log("同时回签1,2的签名");
+              nonce = TxNonce;                    //将TxNonce赋值给nonce,用于回签2的签名
+              let ResignCommitment = redata.MessageBody.ResignBody.Commitment;                      //对端回签的签名,用于后续认证
+              let typeList = ['founder', 'founderBalance', 'peer', 'peerBalance', 'isFounder','nonce', 'HashR', 'R'];
+              let result = _this.getTxListInfo(channelName, ResignTxNonce, typeList);              //查询当前nonce的状态
+              let ResignFounderAddress = result.founder;
+              let ResignFounderBalance = result.founderBalance;
+              let ResignPeerAddress = result.peer;
+              let ResignPeerBalance = result.peerBalance;
+              let ResignOtherAddress = result.isFounder ? ResignPeerAddress : ResignFounderAddress;
+              let ResignHashR = result.HashR;
+              let ResignR = result.R;
+
+              let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
+              let dataList = [channelName, ResignTxNonce, ResignFounderAddress, ResignFounderBalance, ResignPeerAddress, ResignPeerBalance, ResignHashR, ResignR];
+              let ResignedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);   //签名1的数据
+              console.log(ResignOtherAddress.toLowerCase());
+              if(ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase())){    //验证对端ReSign的签名
+                let txListMessage = {                           //申明需要更新的txData
+                  "state": "confirmed",
+                  "founderSignedData": ResignCommitment
+                }
+                _this.updateTxList1(channelName, ResignTxNonce, txListMessage);                  //更新TxData
+                
+                ResignBody = {                                                      //将签名与Nonce赋值给ResignBody,用于发送回签消息
+                  Commitment: ResignedDataResult.signedData,
+                  Nonce: ResignTxNonce,
+                }
+
+                //回签部分的交易已完成,更新通道信息
+                let channelInfo = _this.$store.state.vuexStore.channelList[l];
+                channelInfo.SelfBalance = ResignFounderBalance;                                     //本端余额更新
+                channelInfo.OtherBalance = ResignPeerBalance;                                       //对端余额更新
+                Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);                  //更改通道信息
+                console.log(_this.$store.state.vuexStore.channelList[l]);
+                _this.StoreData("channelList");                                                     //保存通道信息
+                _this.getChannelBalance();                                                          //更新通道余额
+                
+                founderBalance = ResignFounderBalance + paymentCount;                               //更新交易数据中的Balance
+                peerBalance = ResignPeerBalance - paymentCount;
+              } else {
+                console.log("签名验证失败");
+              }
+            } else {
+              console.log(checkResult.type);
+            }
+          } else {                                              //收到的redata不含ResignBody字段
+            if(checkResult.type == "ResetTxNonce"){                    //请求重设TxNonce,1-①
+              console.log("nonce错误,请求重设nonce");
+              nonce = checkResult.ResetTxNonce;                        //将nonce设为请求重设的nonce,用于后续签名
+            } else if (checkResult.type == "Resign"){                   //请求回签,2-①
+              console.log("上次交易未确认,请求回签");
+              ResignBody = checkResult.ResignBody;                     
+              nonce = TxNonce;                                         //将nonce设为TxNoce,用于同时回签1,2签名
+
+              console.log(ResignBody.Nonce);
+              let typeList = ['paymentCount'];
+              let result = _this.getTxListInfo(channelName, ResignBody.Nonce, typeList);              //查询当前nonce的状态
+              founderBalance = founderBalance - result.paymentCount;   //更新当前MessageBody中的余额(在回签的基础上)
+              peerBalance = peerBalance + result.paymentCount;
+            } else if (checkResult.type == "approveNonce"){            //将对端发送的TxNonce作为nonce,1-②
+              console.log("对端发送的TxNonce作为nonce");
+              nonce = Number(redata.TxNonce);                          //将对端发送的TxNonce作为nonce
+              console.log(nonce);
+              _this.updateTxListLength(channelName, nonce);         //删除多余的nonce
+              console.log(_this.$store.state.vuexStore.txList);
+            } else if (checkResult.type == "Same"){                     //状态正常,将当前TxNonce赋值给nonce
+              console.log("检查正常");
+              nonce = TxNonce;
+            }
+          }
 
           let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
-          let dataList = [channelName, TxNonce + 1, founderAddress, founderBalance - paymentCount, peerAddress, peerBalance, "0x" + addPreZero(0,64), R];
+          let dataList = [channelName, nonce, founderAddress, founderBalance - paymentCount, peerAddress, peerBalance, "0x" + addPreZero(0,64), R];
           let signedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
 
           let dataTypeList_1 = ['bytes32','address','address','uint256','uint256','bytes32'];
@@ -2898,20 +3036,23 @@ export default {
             "MessageType": "HtlcSign", 
             "Sender": redata.Receiver,
             "Receiver": redata.Sender,
-            "TxNonce": TxNonce + 1, 
+            "TxNonce": checkResult.type == "ResetTxNonce" ? redata.TxNonce : nonce, //当type为ResetTxNonce时.TxNonce为对端发起的TxNonce
             "ChannelName": channelName,
-            "AssetType": redata.AssetType,  
+            "AssetType": redata.AssetType,
+            "ResetTxNonce": checkResult.type == "ResetTxNonce" ? nonce : undefined,  //当type不为ResetTxNonce时.不带该参数
             "NetMagic": _this.$store.state.vuexStore.NetMagic,
             "Router": redata.Router,
             "Next": redata.Sender,
             "MessageBody": { 
-                "SenderBalance": founderBalance - paymentCount, 
-                "ReceiverBalance": peerBalance,
-                "Commitment": signedDataResult.signedData,
-                "Payment": paymentCount,
-                "DelayBlock": DelayBlock, 
-                "DelayCommitment": signedDelayDataResult.signedData, 
-                "HashR": HashR
+              SenderBalance: founderBalance - paymentCount, 
+              ReceiverBalance: peerBalance,
+              Commitment: checkResult.type == "Resign" ? undefined : signedDataResult.signedData,   //当回签时,不带普通的签名
+              Payment: paymentCount,
+              DelayBlock: DelayBlock,
+              DelayCommitment: checkResult.type == "Resign" ? undefined : signedDelayDataResult.signedData,   //当回签时,不带普通的签名
+              HashR: HashR,
+              ResignBody: ResignBody,
+              RoleIndex: 0
             },
             "Comments": {},
             "Status": "RESPONSE_OK",
@@ -2919,11 +3060,14 @@ export default {
           _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
 
           let txListMessage = {                           //txData
-            "nonce": TxNonce + 1,
+            "state": "INIT",
+            "nonce": nonce,
             "founder": founderAddress,
-            "founderBalance": founderBalance,
+            "founderBalance": founderBalance - paymentCount,
             "peer": peerAddress,
             "peerBalance": peerBalance,
+            "paymentCount": paymentCount,
+            "isFounder": false,
             "txData": signedDataResult.txData,
             "founderSignedData": "",
             "peerSignedData": signedDataResult.signedData,
@@ -2931,14 +3075,18 @@ export default {
             "payment": paymentCount,
             "HashR": HashR,
             "R": R,
-            "txData": signedDelayDataResult.txData,
+            "delayTxData": signedDelayDataResult.txData,
             "founderDelayCommitment": "",
             "peerDelayCommitment": signedDelayDataResult.signedData, 
           }
           _this.newTxList(channelName, txListMessage);                       //更新TxList
 
-          //_this.isReceiptHtlcInfoBox = false;         //关闭当前窗口
-         // _this.receiptHtlcNotify.close();            //关闭Htlc消息框
+          let channelInfo = _this.$store.state.vuexStore.channelList[l];   
+          channelInfo.TxNonce = nonce;                                      //TxNoce增加1
+          Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+          console.log(_this.$store.state.vuexStore.channelList[l]);
+          _this.StoreData("channelList");                   //保存通道信息
+          _this.getChannelBalance();              //更新通道余额
         }
       } else if (_this.baseChain == "NEO"){
         let MessageBody = redata.MessageBody;
@@ -3214,184 +3362,426 @@ export default {
           let l = _this.getChannelSerial("ChannelName", redata.ChannelName);
           console.log(l);
           if(l >= 0){          //检测到通道
-            let Message;
-            let RoleIndex = redata.MessageBody.RoleIndex;
-            let channelName = _this.$store.state.vuexStore.channelList[l].ChannelName;
-            let TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce;
-            let paymentCount = redata.MessageBody.Payment;
-            let NetMagic = _this.$store.state.vuexStore.NetMagic;
-            let assetType = _this.$store.state.vuexStore.channelList[l].assetType;
-            let DelayBlock = redata.MessageBody.DelayBlock;
-            let Commitment = redata.MessageBody.Commitment;
-            let DelayCommitment = redata.MessageBody.DelayCommitment;
-            let keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass;
-            let Router = redata.Router;
-            let HashR = redata.MessageBody.HashR;
-            let R = "0x" + addPreZero(0,64);
+            let Message,
+                RoleIndex = redata.MessageBody.RoleIndex,
+                channelName = _this.$store.state.vuexStore.channelList[l].ChannelName,
+                TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce,
+                paymentCount = redata.MessageBody.Payment,
+                NetMagic = _this.$store.state.vuexStore.NetMagic,
+                assetType = _this.$store.state.vuexStore.channelList[l].assetType,
+                DelayBlock = redata.MessageBody.DelayBlock,
+                Commitment = redata.MessageBody.Commitment,
+                DelayCommitment = redata.MessageBody.DelayCommitment,
+                keyStorePass = _this.$store.state.vuexStore.walletInfo.keyStorePass,
+                Router = redata.Router,
+                HashR = redata.MessageBody.HashR,
+                R = "0x" + addPreZero(0,64),
+                isNonceChange = false;                                                    //用于标记TxNonce是否改变
 
             if(RoleIndex == 0){         //如果RoleIndex为0,本端为founder,回复HtlcSign
-              let founderAddress = _this.$store.state.vuexStore.walletInfo.address;
-              let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
-              let peerAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
-              let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
-              
-              let dataTypeList_1 = ['bytes32','address','address','uint256','uint256','bytes32'];
-              let dataList_1 = [channelName, founderAddress, peerAddress, DelayBlock, paymentCount, HashR];
-              let signedDelayDataResult = _this.ecSignForTrinityContract(dataTypeList_1, dataList_1, keyStorePass);
-              _this.$store.state.vuexStore.txOnChannelInfo.delayTxData = signedDelayDataResult.txData;       //用于后续签名认证
-
-              let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
-              let dataList = [channelName, TxNonce + 1, founderAddress, founderBalance - paymentCount, peerAddress, peerBalance, "0x" + addPreZero(0,64), R];
-              let signedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
-              _this.$store.state.vuexStore.txOnChannelInfo.txData = signedDataResult.txData;       //用于后续签名认证
-
-              if(!signedDataResult || !signedDelayDataResult){
-                console.log('签名失败');
-                return false;
+              if(redata.ResetTxNonce){                
+                //如果消息体中带有ResetTxNonce,对端申请更改nonce
+                let typeList = ['state'];
+                let result =  _this.getTxListInfo(channelName, redata.ResetTxNonce, typeList);          //查询当前nonce的状态
+                if(result.state == "INIT"){
+                  console.log("修改nonce为" + redata.ResetTxNonce);
+                  TxNonce = redata.ResetTxNonce;
+                  isNonceChange = true;
+                } else {
+                  console.log("当前nonce禁止更改");
+                }
               }
 
-              console.log(signedDataResult.txData);
-              console.log(Commitment);
-              console.log(redata.Sender.split("@")[0].toLowerCase());
-              if(ecRecover(signedDelayDataResult.txData, Commitment, peerAddress.toLowerCase()) && ecRecover(signedDelayDataResult.txData, DelayCommitment, peerAddress.toLowerCase())){          //验证签名
-                let Message = {                     //构造Htlc消息体
-                  "MessageType": "HtlcSign", 
-                  "Sender": redata.Receiver, 
-                  "Receiver": redata.Sender, 
-                  "TxNonce": TxNonce + 1, 
-                  "ChannelName": channelName,
-                  "AssetType": assetType, 
-                  "NetMagic": NetMagic,
-                  "Router": Router,
-                  "Next": redata.Sender,
-                  "MessageBody": { 
-                    "SenderBalance": founderBalance - paymentCount, 
-                    "ReceiverBalance": peerBalance, 
-                    "Commitment": signedDataResult.signedData,
-                    "Payment": paymentCount,
-                    "DelayBlock": DelayBlock,
-                    "DelayCommitment": signedDelayDataResult.signedData,
-                    "HashR": HashR,
-                    "RoleIndex": 1
+              let ResignedDataResult, 
+                  ResignTxNonce, 
+                  ResignCommitment, 
+                  ResignBody, 
+                  ResignFounderAddress,
+                  ResignFounderBalance,
+                  ResignPeerAddress, 
+                  ResignPeerBalance,
+                  ResignPaymentCount;
+              if(redata.MessageBody.ResignBody){                    
+                //如果消息体中带有ResignBody,对端请求回签,如果是,修改参数,回签上次交易
+                console.log("收到对端请求回签");
+                ResignTxNonce = redata.MessageBody.ResignBody.Nonce;
+                ResignCommitment = redata.MessageBody.ResignBody.Commitment;
+
+                let typeList = ['founder', 'founderBalance', 'peer', 'peerBalance', 'paymentCount', 'isFounder','nonce', 'HashR', 'R'];
+                let result =  _this.getTxListInfo(channelName, ResignTxNonce, typeList);              //查询当前nonce的状态
+                ResignFounderAddress = result.founder;
+                ResignFounderBalance = result.founderBalance;
+                ResignPeerAddress = result.peer;
+                ResignPeerBalance = result.peerBalance;
+                ResignPaymentCount = result.paymentCount;
+                let ResignOtherAddress = result.isFounder ? ResignPeerAddress : ResignFounderAddress;         //对端地址
+                let ResignHashR = result.HashR;
+                let ResignR = result.R;
+                let dataTypeList_resign = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
+                let dataList_resign = [channelName, ResignTxNonce, ResignFounderAddress, ResignFounderBalance, ResignPeerAddress, ResignPeerBalance, ResignHashR, ResignR];
+                ResignedDataResult = _this.ecSignForTrinityContract(dataTypeList_resign, dataList_resign, keyStorePass);     //签名方法
+
+                console.log(ResignPeerAddress.toLowerCase());
+                if(ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase())){       //验证签名
+                  ResignBody = {
+                    Commitment: ResignedDataResult.signedData,
+                    Nonce: ResignTxNonce
                   }
+
+                  let txListMessage = {                           //txData
+                    "state": "confirmed",
+                    "founderSignedData": ResignCommitment
+                  }
+                  _this.updateTxList1(channelName, ResignTxNonce, txListMessage);                  //更新TxList
+
+                  let channelInfo = _this.$store.state.vuexStore.channelList[l];
+                  channelInfo.SelfBalance = ResignFounderBalance;                                     //本端余额更新
+                  channelInfo.OtherBalance = ResignPeerBalance;                                       //对端余额更新
+                  Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+                  console.log(_this.$store.state.vuexStore.channelList[l]);
+                  _this.StoreData("channelList");           //保存通道信息
+                  _this.getChannelBalance();              //更新通道余额
+
+                  if(result.isFounder){
+                    founderBalance = founderBalance - ResignPaymentCount;
+                    peerBalance = peerBalance + ResignPaymentCount;
+                  } else {
+                    founderBalance = founderBalance + ResignPaymentCount;
+                    peerBalance = peerBalance - ResignPaymentCount;
+                  }
+                } else {
+                  console.log("对端签名验证未通过,停止交易");
                 }
-                _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
+              }
 
-                let txListMessage = {                           //txData
-                  "state": "confirmed",
-                  "founderSignedData": signedDataResult.signedData,
-                  "peerSignedData": Commitment,
-                  "founderDelayCommitment": signedDelayDataResult.signedData,
-                  "peerDelayCommitment": DelayCommitment,
+              if(Commitment){
+                console.log("进入正常签名");
+                // 用于回签机制时有些情况延迟签名
+                // 如果MessageBody中含有对端签名,则回签
+                let founderAddress = _this.$store.state.vuexStore.walletInfo.address;
+                let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
+                let peerAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
+                let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
+                
+                let dataTypeList_delay = ['bytes32','address','address','uint256','uint256','bytes32'];
+                let dataList_delay = [channelName, founderAddress, peerAddress, DelayBlock, paymentCount, HashR];
+                let signedDelayDataResult = _this.ecSignForTrinityContract(dataTypeList_delay, dataList_delay, keyStorePass);
+                _this.$store.state.vuexStore.txOnChannelInfo.delayTxData = signedDelayDataResult.txData;       //用于后续签名认证
+
+                let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
+                let dataList = [channelName, TxNonce, founderAddress, founderBalance - paymentCount, peerAddress, peerBalance, "0x" + addPreZero(0,64), R];
+                let signedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
+                _this.$store.state.vuexStore.txOnChannelInfo.txData = signedDataResult.txData;       //用于后续签名认证
+
+                if(!signedDataResult || !signedDelayDataResult){console.log('签名失败');return false;}
+
+                console.log(signedDataResult.txData);
+                console.log(Commitment);
+                console.log(redata.Sender.split("@")[0].toLowerCase());
+                console.log(signedDelayDataResult.txData);
+                console.log(DelayCommitment);
+                console.log(ecRecover(signedDataResult.txData, Commitment, peerAddress.toLowerCase()));
+                console.log(ecRecover(signedDelayDataResult.txData, DelayCommitment, peerAddress.toLowerCase()));
+                if(ecRecover(signedDataResult.txData, Commitment, peerAddress.toLowerCase()) && ecRecover(signedDelayDataResult.txData, DelayCommitment, peerAddress.toLowerCase())){          //验证签名
+                  let Message = {                     //构造Htlc消息体
+                    "MessageType": "HtlcSign", 
+                    "Sender": redata.Receiver, 
+                    "Receiver": redata.Sender, 
+                    "TxNonce": TxNonce, 
+                    "ChannelName": channelName,
+                    "AssetType": assetType, 
+                    "NetMagic": NetMagic,
+                    "Router": Router,
+                    "Next": redata.Sender,
+                    "MessageBody": { 
+                      SenderBalance: founderBalance - paymentCount, 
+                      ReceiverBalance: peerBalance, 
+                      Commitment: signedDataResult.signedData,
+                      Payment: paymentCount,
+                      DelayBlock: DelayBlock,
+                      DelayCommitment: signedDelayDataResult.signedData,
+                      HashR: HashR,
+                      RoleIndex: 1,
+                      ResignBody: ResignBody ? ResignBody : undefined,
+                    },
+                    "Comments": {},
+                    "Status": "RESPONSE_OK",
+                  }
+                  _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
+
+                  if(isNonceChange){                                                        //当对端申请修改nonce同意时,删除多余的TxList数据
+                    _this.updateTxListLength(channelName, TxNonce);
+                    let txListMessage1 = {                                                               //txData
+                      state: "confirming",
+                      nonce: TxNonce,
+                      founder: founderAddress,
+                      peer: peerAddress,
+                      paymentCount: paymentCount,                      
+                      isFounder: true,
+                      txData: signedDataResult.txData,
+                      founderSignedData: "",
+                      peerSignedData: "",
+                      HashR: HashR ? HashR : "0x" + addPreZero(0,64),
+                      R: R ? R : "0x" + addPreZero(0,64),
+                      delayBlock: DelayBlock,
+                      founderDelayCommitment: "",
+                      peerDelayCommitment: "",
+                    }
+                    _this.newTxList(channelName, txListMessage1);                                        //增加TxList信息
+                    console.log(_this.$store.state.vuexStore.txList);
+                  }
+                  let txListMessage = {                           //txData
+                    state: "confirmed",
+                    founderSignedData: signedDataResult.signedData,
+                    peerSignedData: Commitment,
+                    founderBalance: founderBalance - paymentCount,
+                    peerBalance: peerBalance,
+                    founderDelayCommitment: signedDelayDataResult.signedData,
+                    peerDelayCommitment: DelayCommitment
+                  }
+                  _this.updateTxList1(channelName, TxNonce, txListMessage);                     //更新TxList
+
+                  let channelInfo = _this.$store.state.vuexStore.channelList[l];
+                  channelInfo.SelfBalance = founderBalance - paymentCount;     //本端余额更新
+                  channelInfo.OtherBalance = peerBalance;    //对端余额更新
+                  channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
+                  Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+                  console.log(_this.$store.state.vuexStore.channelList[l]);
+                  _this.StoreData("channelList");           //保存通道信息
+                  _this.getChannelBalance();                //更新通道余额
+
+                  let date = new Date().getTime();        //获取当前时间戳
+                  let recordMessage = {                   //构造通道record消息
+                    date: date,
+                    channelName: channelName,
+                    name: redata.Sender.split("@")[0],
+                    Amount: paymentCount,
+                    assetType: assetType,
+                    isOnChannel: true,
+                    isPay: true,
+                    state: 1,
+                    isTestNet: _this.isTestNet,
+                    transactionHash : "none",
+                    blockHash: "none"
+                  }
+                  _this.$store.state.vuexStore.recordList.push(recordMessage);
+                  _this.StoreData("recordList");                //保存交易记录
+
+                  let typeList = ['founder', 'founderBalance', 'peer', 'peerBalance', 'paymentCount', 'founderDelayCommitment', 
+                    'peerDelayCommitment', 'delayBlock', 'HashR', 'R'];
+                  let result =  _this.getTxListInfo(channelName, TxNonce, typeList);              //查询当前nonce的状态
+                  let eventMessage = {                                            //构造event消息
+                    "messageType": "monitorSendUnlockAmount", 
+                    "baseChain": "ETH", 
+                    "channelName": channelName,
+                    "blockNumber": DelayBlock,
+                    "HashR": HashR,
+                    "data": result, 
+                  }
+                  _this.$store.state.vuexStore.eventList.push(eventMessage);      //加入event监控
+                  _this.StoreData("eventList");
+
+                  _this.$store.state.vuexStore.txOnChannelInfo = [];      //清空交易信息
+                  // _this.$notify({                 //消息提醒
+                  //     title: _this.$t('common.success'),
+                  //     dangerouslyUseHTMLString: true,
+                  //     message: _this.$t('common.callback-20'),
+                  //     duration: 3000,
+                  //     type: 'success'
+                  // });
+                } else {
+                  console.log("对端签名验证未通过,停止交易");
+                  _this.$notify({
+                    title: _this.$t('common.warning'),
+                    dangerouslyUseHTMLString: true,
+                    message: _this.$t('common.verifyFail'),
+                    duration: 3000,
+                    type: 'error'
+                  });
                 }
-                _this.updateTxList1(channelName, TxNonce + 1, txListMessage);                    //更新TxList
-
-                let channelInfo = _this.$store.state.vuexStore.channelList[l];
-                channelInfo.SelfBalance = founderBalance - paymentCount;     //本端余额更新
-                channelInfo.OtherBalance = peerBalance;    //对端余额更新
-                channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
-                Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
-                console.log(_this.$store.state.vuexStore.channelList[l]);
-                _this.StoreData("channelList");           //保存通道信息
-                _this.getChannelBalance();                //更新通道余额
-
-                let date = new Date().getTime();        //获取当前时间戳
-                let recordMessage = {                   //构造通道record消息
-                  date: date,
-                  name: redata.Sender.split("@")[0],
-                  Amount: paymentCount,
-                  assetType: assetType,
-                  isOnChannel: true,
-                  isPay: true,
-                  state: 1,
-                  isTestNet: _this.isTestNet,
-                  transactionHash : "none",
-                  blockHash: "none"
-                }
-                _this.$store.state.vuexStore.recordList.push(recordMessage);
-                _this.StoreData("recordList");                //保存交易记录
-
-                let eventMessage = {                                            //构造event消息
-                  "messageType": "monitorSendUnlockAmount", 
-                  "baseChain": "ETH", 
-                  "channelName": channelName,
-                  "blockNumber": DelayBlock,
-                  "HashR": HashR,
-                  "data": txListMessage, 
-                }
-                _this.$store.state.vuexStore.eventList.push(eventMessage);      //加入event监控
-                _this.StoreData("eventList");
-
-                _this.$store.state.vuexStore.txOnChannelInfo = [];      //清空交易信息
-                // _this.$notify({                 //消息提醒
-                //     title: _this.$t('common.success'),
-                //     dangerouslyUseHTMLString: true,
-                //     message: _this.$t('common.callback-20'),
-                //     duration: 3000,
-                //     type: 'success'
-                // });
               } else {
-                console.log("对端签名验证未通过,停止交易");
-                _this.$notify({
-                  title: _this.$t('common.warning'),
-                  dangerouslyUseHTMLString: true,
-                  message: _this.$t('common.verifyFail'),
-                  duration: 3000,
-                  type: 'error'
-                });
+                // 当对端不带签名,则为补签交易
+                if(ResignBody){
+                  Message = {                     //构造Htlc消息体
+                    "MessageType": "HtlcSign", 
+                    "Sender": redata.Receiver, 
+                    "Receiver": redata.Sender, 
+                    "TxNonce": TxNonce, 
+                    "ChannelName": channelName,
+                    "AssetType": assetType, 
+                    "NetMagic": NetMagic,
+                    "Router": Router,
+                    "Next": redata.Sender,
+                    "MessageBody": { 
+                      SenderBalance: founderBalance - paymentCount, 
+                      ReceiverBalance: peerBalance, 
+                      Commitment: "",
+                      Payment: paymentCount,
+                      DelayBlock: DelayBlock,
+                      DelayCommitment: "",
+                      HashR: HashR,
+                      RoleIndex: 1,
+                      ResignBody: ResignBody,
+                    },
+                    "Comments": {},
+                    "Status": "RESPONSE_OK",
+                  }
+                  _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
+                }
               }
             } else if (RoleIndex == 1){              //如果RoleIndex为1,对端为founder,结束Htlc交易
-              let founderAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
-              let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
-              let peerAddress = _this.$store.state.vuexStore.walletInfo.address;
-              let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
-              let typeList = ['txData', 'delayTxData'];
-              let result = _this.getTxListInfo(channelName, TxNonce + 1, typeList);
-              console.log(result);
+              if(redata.MessageBody.ResignBody){                    
+                //如果消息体中带有ResignBody,对端请求回签,如果是,修改参数,回签上次交易
+                console.log("收到对端回签的消息");
+                let ResignTxNonce = redata.MessageBody.ResignBody.Nonce;
+                let ResignCommitment = redata.MessageBody.ResignBody.Commitment;
+                let ResignDelayCommitment = redata.MessageBody.ResignBody.DelayCommitment;
+                let typeList = ['txData', 'delayTxData', 'founder', 'founderBalance', 'peerBalance', 'isFounder'];
+                let result =  _this.getTxListInfo(channelName, ResignTxNonce, typeList);              //查询当前nonce的状态
+                let ResignFounderBalance = result.founderBalance;
+                let ResignPeerBalance = result.peerBalance;
+                let ResignPaymentCount = result.paymentCount;
 
-              console.log(ecRecover(result.txData, Commitment, founderAddress.toLowerCase()));
-              console.log(ecRecover(result.delayTxData, DelayCommitment, peerAddress.toLowerCase()))
-              if(ecRecover(result.txData, Commitment, founderAddress.toLowerCase()) && ecRecover(result.delayTxData, DelayCommitment, peerAddress.toLowerCase())){                                            //验证签名成功时,更新交易数据
-                let channelInfo = _this.$store.state.vuexStore.channelList[l];
-                channelInfo.SelfBalance -= paymentCount;     //本端余额更新
-                channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
-                Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
-                console.log(_this.$store.state.vuexStore.channelList[l]);
-                _this.StoreData("channelList");           //保存通道信息
-                _this.getChannelBalance();              //更新通道余额
-
-                let txListMessage = {                           //txData
-                  "state": "confirmed",
-                  "founderSignedData": Commitment,
-                  "founderDelayCommitment": DelayCommitment,
-                }
-                console.log(txListMessage);
-                _this.updateTxList1(channelName, TxNonce + 1, txListMessage);                    //更新TxList
-
-                let R = "";           //获取HashR所对应的R
-                R = _this.getRByHashR(HashR);
-
-                console.log("此处回复RResponse");
-                let RRMessage = {
-                  "MessageType":"RResponse",
-                  "Sender": redata.Receiver,
-                  "Receiver": redata.Sender,
-                  "TxNonce": redata.TxNonce,
-                  "ChannelName": channelName,
-                  "AssetType": assetType,
-                  "NetMagic": NetMagic,
-                  "Router": redata.Router,
-                  "Next": redata.Next,
-                  "MessageBody": {
-                    "RoleIndex": 0,
-                    "Comments": "",
-                    "PaymentCount": paymentCount,
-                    "AssetType": assetType,
-                    "R": R,
-                    "HashR": HashR
+                console.log(result.founder.toLowerCase());
+                console.log(ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase()));
+                console.log(ecRecover(result.delayTxData, ResignDelayCommitment, result.founder.toLowerCase()));
+                if(ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase()) && ecRecover(result.delayTxData, ResignDelayCommitment, result.founder.toLowerCase())){       //验证签名
+                  let txListMessage = {                           //txData
+                    "state": "confirmed",
+                    "founderSignedData": ResignCommitment,
+                    "founderDelaySignedData": ResignDelayCommitment
                   }
+                  _this.updateTxList1(channelName, ResignTxNonce, txListMessage);                  //更新TxList
+
+                  let channelInfo = _this.$store.state.vuexStore.channelList[l];
+                  channelInfo.SelfBalance = ResignFounderBalance;                                     //本端余额更新
+                  channelInfo.OtherBalance = ResignPeerBalance;                                       //对端余额更新
+                  Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+                  console.log(_this.$store.state.vuexStore.channelList[l]);
+                  _this.StoreData("channelList");           //保存通道信息
+                  _this.getChannelBalance();              //更新通道余额
+
+                  founderBalance = Number(ResignFounderBalance);
+                  peerBalance = Number(ResignPeerBalance);
                 }
-                _this.sendWebsocket(redata.Sender, RRMessage);        //发送websocket消息
+              }
+
+              if(Commitment){
+                //let founderAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
+                // let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
+                // let peerAddress = _this.$store.state.vuexStore.walletInfo.address;
+                // let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
+                let typeList = ['founder', 'founderBalance', 'peerBalance', 'isFounder', 'txData', 'delayTxData'];
+                let result = _this.getTxListInfo(channelName, TxNonce, typeList);
+                console.log(TxNonce);
+                console.log(result);
+
+                console.log(ecRecover(result.txData, Commitment, result.founder.toLowerCase()));
+                console.log(ecRecover(result.delayTxData, DelayCommitment, result.founder.toLowerCase()))
+                if(ecRecover(result.txData, Commitment, result.founder.toLowerCase()) && ecRecover(result.delayTxData, DelayCommitment, result.founder.toLowerCase())){                                            //验证签名成功时,更新交易数据
+                  let channelInfo = _this.$store.state.vuexStore.channelList[l];
+                  console.log(result.isFounder);
+                  if(result.isFounder){
+                    channelInfo.SelfBalance = founderBalance;                          //本端余额更新
+                    channelInfo.OtherBalance = peerBalance;
+                  } else {
+                    console.log(result.founderBalance);
+                    console.log(result.peerBalance);
+                    channelInfo.SelfBalance = result.peerBalance;                          //本端余额更新
+                    channelInfo.OtherBalance = result.founderBalance;
+                  }
+                  Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+                  console.log(_this.$store.state.vuexStore.channelList[l]);
+                  _this.StoreData("channelList");           //保存通道信息
+                  _this.getChannelBalance();              //更新通道余额
+
+                  let txListMessage = {                           //txData
+                    "state": "confirmed",
+                    "founderSignedData": Commitment,
+                    "founderDelayCommitment": DelayCommitment,
+                  }
+                  console.log(txListMessage);
+                  _this.updateTxList1(channelName, TxNonce, txListMessage);                    //更新TxList
+
+                  let R = "";           //获取HashR所对应的R
+                  R = _this.getRByHashR(HashR);
+
+                  console.log("此处回复RResponse");
+                  let RRMessage = {
+                    "MessageType":"RResponse",
+                    "Sender": redata.Receiver,
+                    "Receiver": redata.Sender,
+                    "TxNonce": redata.TxNonce,
+                    "ChannelName": channelName,
+                    "AssetType": assetType,
+                    "NetMagic": NetMagic,
+                    "Router": redata.Router,
+                    "Next": redata.Next,
+                    "MessageBody": {
+                      "RoleIndex": 0,
+                      "Comments": "",
+                      "PaymentCount": paymentCount,
+                      "AssetType": assetType,
+                      "R": R,
+                      "HashR": HashR
+                    }
+                  }
+                  _this.sendWebsocket(redata.Sender, RRMessage);        //发送websocket消息
+                } else {
+                  console.log("对端签名验证未通过,停止交易");
+                }
+              } else {
+                if(redata.MessageBody.ResignBody){
+                  let R = "0x" + addPreZero(0,64);
+                  // if(HashR == "0x" + addPreZero(0,64)){
+                  //   //判断是否为HTLC - R交易,如果是则获取R
+                  //   //如果是普通的RSMC交易,则founder需要扣除金额,因为HTLC已经锁定那部分,所以不用扣除
+                  //   founderBalance = founderBalance - paymentCount;
+                  // } else {
+                  //   R = _this.getRByHashR(HashR);
+                  // }
+                  founderAddress = redata.Sender.split("@")[0];
+                  peerAddress = redata.Receiver.split("@")[0];
+                  founderBalance = founderBalance - paymentCount;
+                  peerBalance = peerBalance;
+                  console.log(keyStorePass);
+                  let dataTypeList_delay = ['bytes32','address','address','uint256','uint256','bytes32'];
+                  let dataList_delay = [channelName, founderAddress, peerAddress, DelayBlock, paymentCount, HashR];
+                  let signedDelayDataResult = _this.ecSignForTrinityContract(dataTypeList_delay, dataList_delay, keyStorePass);
+                  _this.$store.state.vuexStore.txOnChannelInfo.delayTxData = signedDelayDataResult.txData;       //用于后续签名认证
+
+                  let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
+                  let dataList = [channelName, TxNonce, founderAddress, founderBalance - paymentCount, peerAddress, peerBalance, "0x" + addPreZero(0,64), R];
+                  let signedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
+                  _this.$store.state.vuexStore.txOnChannelInfo.txData = signedDataResult.txData;       //用于后续签名认证
+
+                  if(!signedDataResult || !signedDelayDataResult){console.log('签名失败');return false;}
+
+                  Message = {                     //构造Htlc消息体
+                    "MessageType": "HtlcSign", 
+                    "Sender": redata.Receiver, 
+                    "Receiver": redata.Sender, 
+                    "TxNonce": TxNonce, 
+                    "ChannelName": channelName,
+                    "AssetType": assetType, 
+                    "NetMagic": NetMagic,
+                    "Router": Router,
+                    "Next": redata.Sender,
+                    "MessageBody": { 
+                      SenderBalance: founderBalance - paymentCount, 
+                      ReceiverBalance: peerBalance, 
+                      Commitment: signedDataResult.signedData,
+                      Payment: paymentCount,
+                      DelayBlock: DelayBlock,
+                      DelayCommitment: "",
+                      HashR: HashR,
+                      RoleIndex: 0
+                    },
+                    "Comments": {},
+                    "Status": "RESPONSE_OK",
+                  }
+                  _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
+                }
               }
             }
           }
@@ -3465,20 +3855,20 @@ export default {
                 let l = _this.getChannelSerial("ChannelName", channelName, "open");
                 if(l >= 0){              //当l为正确值时
                   console.log(l);
-
-                  let nonce = _this.$store.state.vuexStore.channelList[l].TxNonce;
-                  let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
-                  let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
-                  let paymentCount = Number(_this.$store.state.vuexStore.txOnChannelInfo.value) + Number(_this.$store.state.vuexStore.txOnChannelInfo.fee);
+                  let TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce;
+                  let founderBalance = Number(data1.founderBalance);
+                  let peerBalance = Number(data1.peerBalance);
+                  let paymentCount = Number(data1.paymentCount);
+                  let NetMagic = _this.$store.state.vuexStore.NetMagic;
 
                   console.log(_this.$store.state.vuexStore.txOnChannelInfo);
                   let Message = {                           //回复RResponseAck
                     "MessageType":"RResponseAck",
                     "Sender": redata.Receiver,
                     "Receiver": redata.Sender,
-                    "TxNonce": nonce + 1,
+                    "TxNonce": TxNonce,
                     "ChannelName": channelName,
-                    "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                    "NetMagic": NetMagic,
                     "AssetType": redata.AssetType,
                     "MessageBody": {
                       "HashR": redata.MessageBody.HashR,
@@ -3493,9 +3883,9 @@ export default {
                     "MessageType":"Rsmc",
                     "Sender": redata.Receiver,
                     "Receiver": redata.Sender,
-                    "TxNonce": nonce + 1,
+                    "TxNonce": TxNonce,
                     "ChannelName": channelName,
-                    "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                    "NetMagic": NetMagic,
                     "AssetType": redata.AssetType,
                     "MessageBody": {
                       "PaymentCount": paymentCount,
@@ -3509,8 +3899,26 @@ export default {
                   }
                   _this.sendWebsocket(redata.Sender, Message1);        //发送websocket消息
 
-                  _this.$store.state.vuexStore.txOnChannelInfo.R = redata.MessageBody.R;
-                  console.log(_this.$store.state.vuexStore.txOnChannelInfo.R);
+                  let txListMessage = {                           //txData
+                    "state": "INIT",
+                    "nonce": TxNonce,
+                    "founder": redata.Receiver.split("@")[0],
+                    "founderBalance": founderBalance,
+                    "peer": redata.Sender.split("@")[0],
+                    "peerBalance": peerBalance + paymentCount,
+                    "paymentCount": paymentCount,
+                    "isFounder": true,
+                    "founderSignedData": "",
+                    "peerSignedData": "",
+                    "HashR": redata.MessageBody.HashR,
+                    "R": redata.MessageBody.R,
+                  }
+                  _this.newTxList(channelName, txListMessage);           //增加TxList信息
+                  console.log(_this.$store.state.vuexStore.txList);
+                  let channelInfo = _this.$store.state.vuexStore.channelList[l];
+                  channelInfo.TxNonce = TxNonce;                                      //TxNoce增加1
+                  Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+                  console.log(_this.$store.state.vuexStore.channelList[l].TxNonce);
                   _this.StoreData("channelList");           //保存通道信息                                
                 }
               }
@@ -3680,11 +4088,12 @@ export default {
       if(_this.baseChain == "ETH"){
         if(redata.Status == "RESPONSE_OK"){     //当Status为OK时，上链并提交给全节点监控
           console.log(_this.$store.state.vuexStore.closeChannelInfo.txData);
+          let channelName = _this.$store.state.vuexStore.closeChannelInfo.ChannelName;
           if(ecRecover(_this.$store.state.vuexStore.closeChannelInfo.txData, redata.MessageBody.Commitment, redata.Sender.split("@")[0].toLowerCase())){       //验证签名成功时,查询对端余额和Approve情况
                 
             let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes','bytes']; 
             let dataList = [
-              _this.$store.state.vuexStore.closeChannelInfo.ChannelName, 
+              channelName, 
               0, 
               _this.$store.state.vuexStore.walletInfo.address, 
               Number(_this.$store.state.vuexStore.closeChannelInfo.SelfBalance),
@@ -3708,6 +4117,7 @@ export default {
                 });
                 let recordMessage = {           //构造链上record消息
                   date: date,
+                  channelName: channelName,
                   name: _this.$store.state.vuexStore.closeChannelInfo.OtherUri.split("@")[0],
                   Amount: _this.$store.state.vuexStore.closeChannelInfo.SelfBalance,
                   assetType: 'TNC',
@@ -4150,6 +4560,7 @@ export default {
         if(data.channelName == channelName){
           console.log("找到数据");
           console.log(data.history);
+          console.log(nonce);
           console.log(data.history[nonce]);
           for (var key in typeList) {
             result[typeList[key]] = data.history[nonce][typeList[key]];
@@ -4164,7 +4575,7 @@ export default {
       let l = _this.getChannelSerial('ChannelName', channelName);
       let localTxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce * 1;
       let result = {};
-      // let founderSignedData, TxListNonce;
+      console.log(nonce);
       _this.$store.state.vuexStore.txList.forEach(function(data, index){
         if(data.channelName == channelName){
           console.log(data.history);
@@ -4435,10 +4846,9 @@ nav .el-slider__runway {
 .el-form-item__content {    /* 表单按钮居中 */
   text-align: center;
 }
-/* .el-dialog{
-  min-width: 360px;
-  max-width: 440px;
-} */
+.el-notification {              /* 消息弹窗居中 */  
+  width: calc(100% - 32px);
+}
 .el-dialog--center .el-dialog__body {
   word-wrap: break-word;
   word-break: break-all;

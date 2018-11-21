@@ -91,7 +91,8 @@ export default {
             web3 = new Web3(new Web3.providers.HttpProvider(configData.ETH[Network].web3));
             _this.$store.state.vuexStore.NodeUriWebSocketIp = configData.ETH[Network].NodeUriWebSocketIp;               //全节点Ip
             _this.$store.state.vuexStore.NetMagic = configData.ETH[Network].NetMagic;                                   //修改网络号
-            _this.$store.state.vuexStore.spvPort = configData.ETH[Network].spvPort                                      //spv端口号
+            _this.$store.state.vuexStore.spvPort = configData.ETH[Network].spvPort;                                     //spv端口号
+            _this.$store.state.vuexStore.delayBlock = configData.ETH[Network].delayBlock;                        //sHTLC延迟块高数(每一跳)
             _this.$store.state.vuexStore.nodeWebSocketIp = configData.ETH[Network].nodeWebSocketIp;                     //当前网络稳定的节点,用于获取nodeList
             _this.$store.state.vuexStore.tncContractAddress = configData.ETH[Network].tncContractAddress;               //ERC20资产合约地址
             _this.$store.state.vuexStore.trinityDataContractAddress = configData.ETH[Network].trinityDataContractAddress; //Trinity状态通道数据合约地址

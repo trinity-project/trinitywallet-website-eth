@@ -142,19 +142,24 @@ export default {
       console.log(selfSignedData);
     },
     showPrivateKey() {
-      console.log(this.$store.state.vuexStore.txList);
+      this.$notify.error({
+        title: this.$t('common.warning'),
+        dangerouslyUseHTMLString: true,
+        message: "e",
+        duration: 0
+      });
     },
     testFun() {
-        let channelName = "0x198e936072b13ef7bce71bcd3908e69c0747d3042a283da017b88b1c48c96833";
-        let TxNonce = 2;
+        let channelName = this.$store.state.vuexStore.channelList[0].ChannelName;
+        let TxNonce = 1;
         let founderBalance = 1000000000;
         let peerBalance = 1000000000;
-        let txListMessage = {                           //txData
-            "state": "confirming",
-            "founderSignedData": "",
-            //"peerSignedData": ""
-        }
-        this.$parent.$parent.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
+        // let txListMessage = {                           //txData
+        //     "state": "INIT",
+        //     "founderSignedData": "",
+        //     "peerSignedData": ""
+        // }
+        // this.$parent.$parent.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
         this.$parent.$parent.updateTxListLength(channelName, TxNonce + 1);
         this.$parent.$parent.StoreData("txList");
 
@@ -166,6 +171,9 @@ export default {
         Vue.set(this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
         console.log(this.$store.state.vuexStore.channelList[l]);
         this.$parent.$parent.StoreData("channelList");                   //保存通道信息
+
+        this.$store.state.vuexStore.eventList = [];
+        this.$parent.$parent.StoreData("eventList");
     }
   }
 }
