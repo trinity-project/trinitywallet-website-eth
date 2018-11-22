@@ -106,7 +106,7 @@ export default {
             this.showPrivateKey();
             break;
         case "testFun":
-            this.testFun();
+            this.testFun3();
             break;
         default:
             alert("未知消息类型");
@@ -149,7 +149,85 @@ export default {
         duration: 0
       });
     },
-    testFun() {
+    testFun1() {                                 //恢复到刚建通道的状态
+        let channelName = this.$store.state.vuexStore.channelList[0].ChannelName;
+        let TxNonce = 1;
+        let founderBalance = 1000000000;
+        let peerBalance = 1000000000;
+        // let txListMessage = {                           //txData
+        //     "state": "INIT",
+        //     "founderSignedData": "",
+        //     "peerSignedData": ""
+        // }
+        // this.$parent.$parent.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
+        this.$parent.$parent.updateTxListLength(channelName, TxNonce + 1);
+        this.$parent.$parent.StoreData("txList");
+
+        let l = this.$parent.$parent.getChannelSerial("ChannelName", channelName);
+        let channelInfo = this.$store.state.vuexStore.channelList[l];
+        channelInfo.SelfBalance = founderBalance;     //本端余额更新
+        channelInfo.OtherBalance = peerBalance;    //对端余额更新
+        channelInfo.TxNonce = TxNonce;
+        Vue.set(this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+        console.log(this.$store.state.vuexStore.channelList[l]);
+        this.$parent.$parent.StoreData("channelList");                   //保存通道信息
+
+        this.$store.state.vuexStore.eventList = [];
+        this.$parent.$parent.StoreData("eventList");
+    },
+    testFun2() {                                 //恢复到"INIT"状态
+        let channelName = this.$store.state.vuexStore.channelList[0].ChannelName;
+        let TxNonce = 2;
+        let founderBalance = 1000000000;
+        let peerBalance = 1000000000;
+        let txListMessage = {                           //txData
+            "state": "INIT",
+            "founderSignedData": "",
+            "peerSignedData": ""
+        }
+        this.$parent.$parent.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
+        this.$parent.$parent.updateTxListLength(channelName, TxNonce + 1);
+        this.$parent.$parent.StoreData("txList");
+
+        let l = this.$parent.$parent.getChannelSerial("ChannelName", channelName);
+        let channelInfo = this.$store.state.vuexStore.channelList[l];
+        channelInfo.SelfBalance = founderBalance;     //本端余额更新
+        channelInfo.OtherBalance = peerBalance;    //对端余额更新
+        channelInfo.TxNonce = TxNonce;
+        Vue.set(this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+        console.log(this.$store.state.vuexStore.channelList[l]);
+        this.$parent.$parent.StoreData("channelList");                   //保存通道信息
+
+        this.$store.state.vuexStore.eventList = [];
+        this.$parent.$parent.StoreData("eventList");
+    },
+    testFun3() {                                 //恢复到"confirming"状态
+        let channelName = this.$store.state.vuexStore.channelList[0].ChannelName;
+        let TxNonce = 2;
+        let founderBalance = 1000000000;
+        let peerBalance = 1000000000;
+        let txListMessage = {                           //txData
+            "state": "confirming",
+            "founderSignedData": "",
+            // "peerSignedData": ""
+        }
+        this.$parent.$parent.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
+        this.$parent.$parent.updateTxListLength(channelName, TxNonce + 1);
+        this.$parent.$parent.StoreData("txList");
+
+        let l = this.$parent.$parent.getChannelSerial("ChannelName", channelName);
+        let channelInfo = this.$store.state.vuexStore.channelList[l];
+        channelInfo.SelfBalance = founderBalance;     //本端余额更新
+        channelInfo.OtherBalance = peerBalance;    //对端余额更新
+        channelInfo.TxNonce = TxNonce;
+        Vue.set(this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+        console.log(this.$store.state.vuexStore.channelList[l]);
+        this.$parent.$parent.StoreData("channelList");                   //保存通道信息
+
+        this.$store.state.vuexStore.eventList = [];
+        this.$parent.$parent.StoreData("eventList");
+    },
+    testFun4() {                                 //恢复到刚建通道的状态
         let channelName = this.$store.state.vuexStore.channelList[0].ChannelName;
         let TxNonce = 1;
         let founderBalance = 1000000000;
