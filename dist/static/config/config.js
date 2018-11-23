@@ -9,6 +9,7 @@ var configData = {
             "tncContractAddress": "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218",             //TNC代币合约地址
             "spvPort": 8866,                                                                //SPV端口号
             "nodeWebSocketIp": "ws://47.88.52.211",                                         //任意稳定节点IP,用于获取图的数据
+            "delayBlock": 15,                                                               //HTLC延迟块高数(每一跳)
         },
         "mainNet":{
             "web3": "https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d",        //web接口
@@ -19,6 +20,7 @@ var configData = {
             "tncContractAddress": "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac",             //TNC代币合约地址
             "spvPort": 8866,                                                                //SPV端口号
             "nodeWebSocketIp": "ws://39.105.110.25",                                        //任意稳定节点IP,用于获取图的数据
+            "delayBlock": 5760,                                                               //HTLC延迟块高数(每一跳)
         },
         "trinityContractAbi": [{                                                            //Trinity状态通道逻辑合约Abi
                 "constant": false,

@@ -1340,8 +1340,8 @@ export default {
           redata.data.delayBlock,
           redata.data.paymentCount,
           redata.data.HashR,
-          redata.data.founderDelayCommitment,
-          redata.data.peerDelayCommitment,
+          redata.data.founderDelaySignedData,
+          redata.data.peerDelaySignedData,
           redata.data.R ? redata.data.R : "0x" + addPreZero(0,64)
       ];
       let signedData = await _this.signDataForERC20Contract(_this.trinityContractAddress, "withdraw", dataTypeList, dataList, keyStorePass);               //签名
