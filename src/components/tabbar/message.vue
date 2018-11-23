@@ -106,7 +106,7 @@ export default {
             this.showPrivateKey();
             break;
         case "testFun":
-            this.testFun3();
+            this.testFun1();
             break;
         default:
             alert("未知消息类型");

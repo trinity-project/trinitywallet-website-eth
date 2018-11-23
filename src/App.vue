@@ -1916,7 +1916,7 @@ export default {
                 
                 ResignBody = {                                                      //将签名与Nonce赋值给ResignBody,用于发送回签消息
                   Commitment: ResignedDataResult.signedData,
-                  DelayCommitment: ResignedDelayDataResult.signedData,
+                  DelayCommitment: ResignDelayBlock ? ResignedDelayDataResult.signedData : undefined,
                   Nonce: ResignTxNonce,
                 }
 
@@ -1929,8 +1929,8 @@ export default {
                 _this.StoreData("channelList");                                                     //保存通道信息
                 _this.getChannelBalance();                                                          //更新通道余额
                 
-                founderBalance = ResignFounderBalance + paymentCount;                               //更新交易数据中的Balance
-                peerBalance = ResignPeerBalance - paymentCount;
+                peerBalance = ResignFounderBalance + paymentCount;                               //更新交易数据中的Balance
+                founderBalance = ResignPeerBalance - paymentCount;
               } else {
                 console.log("签名验证失败");
               }
@@ -2354,7 +2354,7 @@ export default {
                 if(verifyResult){       //验证签名
                   ResignBody = {
                     Commitment: ResignedDataResult.signedData,
-                    DelayCommitment: ResignedDelayDataResult.signedData,
+                    DelayCommitment: ResignDelayBlock ? ResignedDelayDataResult.signedData : undefined,
                     Nonce: ResignTxNonce
                   }
 
@@ -2373,12 +2373,30 @@ export default {
                   _this.StoreData("channelList");           //保存通道信息
                   _this.getChannelBalance();              //更新通道余额
 
-                  if(result.isFounder){
-                    founderBalance = founderBalance - ResignPaymentCount;
-                    peerBalance = peerBalance + ResignPaymentCount;
+                  if(ResignDelayBlock){
+                    console.log(founderBalance);
+                    console.log(peerBalance);
+                    if(result.isFounder){
+                      founderBalance = founderBalance - ResignPaymentCount;
+                      peerBalance = peerBalance;
+                    } else {
+                      founderBalance = founderBalance;
+                      peerBalance = peerBalance - ResignPaymentCount;
+                    }
+                    console.log(founderBalance);
+                    console.log(peerBalance);
                   } else {
-                    founderBalance = founderBalance + ResignPaymentCount;
-                    peerBalance = peerBalance - ResignPaymentCount;
+                    console.log(founderBalance);
+                    console.log(peerBalance);
+                    if(result.isFounder){
+                      founderBalance = founderBalance - ResignPaymentCount;
+                      peerBalance = peerBalance + ResignPaymentCount;
+                    } else {
+                      founderBalance = founderBalance + ResignPaymentCount;
+                      peerBalance = peerBalance - ResignPaymentCount;
+                    }
+                    console.log(founderBalance);
+                    console.log(peerBalance);
                   }
                   
                   if(ResignDelayBlock){
@@ -2483,7 +2501,7 @@ export default {
                   let channelInfo = _this.$store.state.vuexStore.channelList[l];
                   channelInfo.SelfBalance = founderBalance;                           //本端余额更新
                   channelInfo.OtherBalance = peerBalance;                             //对端余额更新
-                  // channelInfo.TxNonce = TxNonce;                                      //TxNoce增加1
+                  channelInfo.TxNonce = TxNonce;                                      //TxNoce增加1
                   Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
                   console.log(_this.$store.state.vuexStore.channelList[l]);
                   _this.StoreData("channelList");           //保存通道信息
@@ -2653,31 +2671,16 @@ export default {
                   });
                 } else {
                   console.log("对端签名验证未通过,停止交易");
-                  // _this.$notify({
-                  //   title: _this.$t('common.warning'),
-                  //   dangerouslyUseHTMLString: true,
-                  //   message: _this.$t('common.verifyFail'),
-                  //   duration: 3000,
-                  //   type: 'error'
-                  // });
                 }
               } else {
                 if(redata.MessageBody.ResignBody){
                   let R = "0x" + addPreZero(0,64);
-                  // if(HashR == "0x" + addPreZero(0,64)){
-                  //   //判断是否为HTLC - R交易,如果是则获取R
-                  //   //如果是普通的RSMC交易,则founder需要扣除金额,因为HTLC已经锁定那部分,所以不用扣除
-                  //   founderBalance = founderBalance - paymentCount;
-                  // } else {
-                  //   R = _this.getRByHashR(HashR);
-                  // }
                   founderAddress = redata.Sender.split("@")[0];
                   peerAddress = redata.Receiver.split("@")[0];
                   founderBalance = founderBalance - paymentCount;
                   peerBalance = peerBalance + paymentCount;
                   let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
                   let dataList = [channelName, TxNonce, founderAddress, founderBalance, peerAddress, peerBalance, HashR, R];
-                  console.log(keyStorePass);
                   let signedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
                   if(!signedDataResult){console.log('签名失败'); return false;}
 
@@ -2702,6 +2705,12 @@ export default {
                     "Status": "RESPONSE_OK",
                   }
                   _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
+
+                  let txListMessage = {                           //txData
+                    "peerSignedData": signedDataResult.signedData,
+                    "txData": signedDataResult.txData,
+                  }
+                  _this.updateTxList1(channelName, TxNonce, txListMessage);                    //更新TxList
                 }
               }
             }
@@ -3058,7 +3067,7 @@ export default {
                 
                 ResignBody = {                                                      //将签名与Nonce赋值给ResignBody,用于发送回签消息
                   Commitment: ResignedDataResult.signedData,
-                  DelayCommitment: ResignedDelayDataResult.signedData,
+                  DelayCommitment: ResignDelayBlock ? ResignedDelayDataResult.signedData : undefined,
                   Nonce: ResignTxNonce,
                 }
 
@@ -3510,10 +3519,11 @@ export default {
                 ResignPeerAddress = result.peer;
                 ResignPeerBalance = result.peerBalance;
                 ResignPaymentCount = result.paymentCount;
-                let ResignOtherAddress = result.isFounder ? ResignPeerAddress : ResignFounderAddress;         //对端地址
-                let ResignHashR = result.HashR;
-                let ResignR = result.R;
-                let ResignDelayBlock = result.delayBlock;
+                let ResignOtherAddress = result.isFounder ? ResignPeerAddress : ResignFounderAddress,         //对端地址
+                    ResignHashR = result.HashR,
+                    ResignR = result.R,
+                    ResignDelayBlock = result.delayBlock,
+                    verifyResult;
                 let dataTypeList_resign = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
                 let dataList_resign = [channelName, ResignTxNonce, ResignFounderAddress, ResignFounderBalance, ResignPeerAddress, ResignPeerBalance, "0x" + addPreZero(0,64), "0x" + addPreZero(0,64)];
                 ResignedDataResult = _this.ecSignForTrinityContract(dataTypeList_resign, dataList_resign, keyStorePass);     //签名方法
@@ -3521,17 +3531,19 @@ export default {
                   let dataTypeList_delay_resign = ['bytes32','address','address','uint256','uint256','bytes32'];
                   let dataList_delay_resign = [channelName, ResignFounderAddress, ResignPeerAddress, ResignDelayBlock, ResignPaymentCount, ResignHashR];
                   ResignedDelayDataResult = _this.ecSignForTrinityContract(dataTypeList_delay_resign, dataList_delay_resign, keyStorePass);    //签名方法
+                  console.log(ResignPeerAddress.toLowerCase());
+                  console.log(ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase()));
+                  console.log(ecRecover(ResignedDelayDataResult.txData, ResignDelayCommitment, ResignOtherAddress.toLowerCase()));
+                  verifyResult = ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase()) && ecRecover(ResignedDelayDataResult.txData, ResignDelayCommitment, ResignOtherAddress.toLowerCase());
+                } else {
+                  console.log(ResignPeerAddress.toLowerCase());
+                  verifyResult = ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase())
                 }
 
-                console.log(ResignPeerAddress.toLowerCase());
-                console.log(ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase()));
-                if(ResignDelayBlock){
-                  console.log(ecRecover(ResignedDelayDataResult.txData, ResignDelayCommitment, ResignOtherAddress.toLowerCase()));
-                }
-                if(ecRecover(ResignedDataResult.txData, ResignCommitment, ResignOtherAddress.toLowerCase())){       //验证签名
+                if(verifyResult){       //验证签名
                   ResignBody = {
                     Commitment: ResignedDataResult.signedData,
-                    DelayCommitment: ResignedDelayDataResult.signedData,
+                    DelayCommitment: ResignDelayBlock ? ResignedDelayDataResult.signedData : undefined,
                     Nonce: ResignTxNonce
                   }
 
@@ -3550,17 +3562,22 @@ export default {
                   _this.StoreData("channelList");           //保存通道信息
                   _this.getChannelBalance();              //更新通道余额
                   
-                  // if(result.isFounder){
-                  //   founderBalance = founderBalance - ResignPaymentCount;
-                  //   if(!ResignDelayBlock){                                             //RSMC
-                  //     peerBalance = peerBalance + ResignPaymentCount;
-                  //   }
-                  // } else {
-                  //   peerBalance = peerBalance - ResignPaymentCount;
-                  //   if(!ResignDelayBlock){                                             //RSMC
-                  //     founderBalance = founderBalance + ResignPaymentCount;
-                  //   }
-                  // }
+                  if(!ResignDelayBlock){ 
+                    if(result.isFounder){
+                      founderBalance = founderBalance - ResignPaymentCount;
+                      peerBalance = peerBalance + ResignPaymentCount;
+                    } else {
+                      peerBalance = peerBalance - ResignPaymentCount;
+                      founderBalance = founderBalance + ResignPaymentCount;
+                    }
+                    let txListMessage = {                           //txData
+                      "founderBalance": founderBalance,
+                      "peerBalance": peerBalance
+                    }
+                    console.log(txListMessage);
+                    console.log("修改余额");
+                    _this.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
+                  }
 
                   if(ResignDelayBlock){
                     let eventMessage = {                                            //构造event消息
@@ -3583,20 +3600,21 @@ export default {
                 console.log("进入正常签名");
                 // 用于回签机制时有些情况延迟签名
                 // 如果MessageBody中含有对端签名,则回签
-                // let founderAddress = _this.$store.state.vuexStore.walletInfo.address;
-                // let founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance);
-                // let peerAddress = _this.$store.state.vuexStore.channelList[l].OtherUri.split("@")[0];
-                // let peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
+                let typeList = ['founderBalance', 'peerBalance'];
+                let result =  _this.getTxListInfo(channelName, TxNonce, typeList);              //查询当前nonce的状态
+                console.log(result);
+                founderBalance = Number(result.founderBalance);
+                peerBalance = Number(result.peerBalance);
                 
-                let dataTypeList_delay = ['bytes32','address','address','uint256','uint256','bytes32'];
-                let dataList_delay = [channelName, founderAddress, peerAddress, DelayBlock, paymentCount, HashR];
-                let signedDelayDataResult = _this.ecSignForTrinityContract(dataTypeList_delay, dataList_delay, keyStorePass);
-                _this.$store.state.vuexStore.txOnChannelInfo.delayTxData = signedDelayDataResult.txData;       //用于后续签名认证
-
                 let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
                 let dataList = [channelName, TxNonce, founderAddress, founderBalance, peerAddress, peerBalance, "0x" + addPreZero(0,64), R];
                 let signedDataResult = _this.ecSignForTrinityContract(dataTypeList, dataList, keyStorePass);     //签名方法
                 _this.$store.state.vuexStore.txOnChannelInfo.txData = signedDataResult.txData;       //用于后续签名认证
+
+                let dataTypeList_delay = ['bytes32','address','address','uint256','uint256','bytes32'];
+                let dataList_delay = [channelName, founderAddress, peerAddress, DelayBlock, paymentCount, HashR];
+                let signedDelayDataResult = _this.ecSignForTrinityContract(dataTypeList_delay, dataList_delay, keyStorePass);
+                _this.$store.state.vuexStore.txOnChannelInfo.delayTxData = signedDelayDataResult.txData;       //用于后续签名认证
 
                 if(!signedDataResult || !signedDelayDataResult){console.log('签名失败');return false;}
 
@@ -3669,7 +3687,7 @@ export default {
                   let channelInfo = _this.$store.state.vuexStore.channelList[l];
                   channelInfo.SelfBalance = founderBalance;     //本端余额更新
                   channelInfo.OtherBalance = peerBalance;    //对端余额更新
-                  //channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
+                  channelInfo.TxNonce = TxNonce ;                                      //TxNoce增加1
                   Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
                   console.log(_this.$store.state.vuexStore.channelList[l]);
                   _this.StoreData("channelList");           //保存通道信息
@@ -3763,16 +3781,25 @@ export default {
                 let ResignTxNonce = redata.MessageBody.ResignBody.Nonce;
                 let ResignCommitment = redata.MessageBody.ResignBody.Commitment;
                 let ResignDelayCommitment = redata.MessageBody.ResignBody.DelayCommitment;
-                let typeList = ['txData', 'delayTxData', 'founder', 'founderBalance', 'peerBalance', 'isFounder'];
+                let typeList = ['txData', 'delayTxData', 'founder', 'founderBalance', 'peerBalance', 'isFounder', 'delayBlock'];
                 let result =  _this.getTxListInfo(channelName, ResignTxNonce, typeList);              //查询当前nonce的状态
-                let ResignFounderBalance = result.founderBalance;
-                let ResignPeerBalance = result.peerBalance;
-                let ResignPaymentCount = result.paymentCount;
+                let ResignFounderBalance = result.founderBalance,
+                    ResignPeerBalance = result.peerBalance,
+                    ResignPaymentCount = result.paymentCount,
+                    ResignDelayBlock = result.delayBlock,
+                    verifyResult;
 
                 console.log(result.founder.toLowerCase());
-                console.log(ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase()));
-                console.log(ecRecover(result.delayTxData, ResignDelayCommitment, result.founder.toLowerCase()));
-                if(ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase()) && ecRecover(result.delayTxData, ResignDelayCommitment, result.founder.toLowerCase())){       //验证签名
+                if(ResignDelayBlock){
+                  console.log(ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase()));
+                  console.log(ecRecover(result.delayTxData, ResignDelayCommitment, result.founder.toLowerCase()));
+                  verifyResult = ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase()) && ecRecover(result.delayTxData, ResignDelayCommitment, result.founder.toLowerCase());
+                } else {
+                  console.log(ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase()));
+                  verifyResult = ecRecover(result.txData, ResignCommitment, result.founder.toLowerCase());
+                }
+                
+                if(verifyResult){       //验证签名
                   let txListMessage = {                           //txData
                     "state": "confirmed",
                     "founderSignedData": ResignCommitment,

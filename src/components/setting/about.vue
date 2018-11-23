@@ -119,7 +119,7 @@ export default {
         var random = Math.floor(Math.random() * ( m - n + 1) + n);
         return random;
       },
-      htlcCycle: function() {                //循环获取余额
+      htlcCycle: function() {                //循环HTLC
         this.transCycle = setInterval(this.autoHtlc, 10000);
       },
       autoHtlc() {

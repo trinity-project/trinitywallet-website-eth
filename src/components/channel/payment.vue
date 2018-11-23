@@ -356,10 +356,15 @@ export default {
             ResignBody = checkResult.ResignBody;
             console.log(checkResult);
 
-            let typeList = ['paymentCount'];
+            let typeList = ['paymentCount', 'delayBlock'];
             let result = _this.$parent.$parent.getTxListInfo(channelName, ResignBody.Nonce, typeList);              //查询当前nonce的状态
-            founderBalance = founderBalance + result.paymentCount;
-            peerBalance = peerBalance - result.paymentCount;
+            if(result.delayBlock){
+              founderBalance = founderBalance;
+              peerBalance = peerBalance - result.paymentCount;
+            } else {
+              founderBalance = founderBalance + result.paymentCount;
+              peerBalance = peerBalance - result.paymentCount;
+            }
           } else if (checkResult.type == "Same"){
             console.log("检查正常");
           }
