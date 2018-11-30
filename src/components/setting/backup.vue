@@ -40,7 +40,7 @@
                 <el-input v-model="unlockWalletForm.keyStorePass" :placeholder="$t('common.inputPassword')" type="password" auto-complete="off"></el-input>
               </el-form-item>
               <el-form-item style="text-align:center;margin-left: -80px;">
-                <el-button @click="backup()" type="primary">{{ $t('common.continue') }}</el-button>
+                <el-button @click="backup()" type="primary" :disabled="isDisable">{{ $t('common.continue') }}</el-button>
                 <el-button @click="isUnlockWalletBox = false;">{{ $t('common.cancel') }}</el-button>
               </el-form-item>
             </el-form>            
@@ -81,6 +81,7 @@ export default {
       }
     };
     return {
+        isDisable: false,       //用于禁用快速导致多次提交
         buttonBoxData:[                                     //按钮组数据
           {
             name: "备份keyStore",
@@ -127,6 +128,11 @@ export default {
 
     },
     backup() {
+      let _this = this;
+      _this.isDisable = true;
+      setTimeout(() => {
+        _this.isDisable = false;
+      }, 2000)
       this.$refs['unlockWalletForm'].validate((valid) => {
         if (valid) {
           let keyStorePass = this.unlockWalletForm.keyStorePass;

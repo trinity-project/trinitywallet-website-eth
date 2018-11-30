@@ -26,8 +26,8 @@
         <div class="contentBox">
             <h2 class="title_h2" style="margin: 0 30px;">{{ $t('record.title') }}</h2>
             <hr style="margin-bottom: 0;" />
-            <div v-if="formatRecordList(recordData).length" style="overflow-x: hidden;height: 100%;">
-                <ul>
+            <div v-if="formatRecordList(recordData).length" style="overflow-x: hidden;height: calc(100% - 50px);">
+                <ul class="listUl">
                     <li @click="showRecordInfo(data,index)" v-for="(data,index) in formatRecordList(recordData)" :key="index">
                         <h4>{{ data.isOnChannel | formatIsOnChannel }} - {{ data.name | formatAddress }}
                             <span style="float:right;">{{ data.isPay | formatIsPay }}{{ data.Amount / 10e7 }}{{ data.assetType }}</span>

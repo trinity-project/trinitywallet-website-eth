@@ -361,40 +361,49 @@ export default {
     async forcedCloseChannelFun() {             //用于element表单认证里使用await报错
         let _this = this;
         
-        let selfSignedData,otherSignedData,HashR,R;
-        _this.$store.state.vuexStore.txList.forEach(function(data,index){
-            console.log(data.channelName == _this.Data.ChannelName);
-            console.log(data.history[data.history.length - 1].founderSignedData);
-            console.log(data.history[data.history.length - 1].peerSignedData);
-            if(data.channelName == _this.Data.ChannelName && data.history[data.history.length - 1].founderSignedData && data.history[data.history.length - 1].peerSignedData){
-                console.log(data.history[data.history.length - 1].founder);
-                console.log(_this.$store.state.vuexStore.walletInfo.address);
-                if(data.history[data.history.length - 1].founder == _this.$store.state.vuexStore.walletInfo.address){
-                    console.log("本端为founder");
-                    selfSignedData = data.history[data.history.length - 1].founderSignedData;
-                    otherSignedData = data.history[data.history.length - 1].peerSignedData;
-                } else {
-                    console.log("对端为founder");
-                    otherSignedData = data.history[data.history.length - 1].founderSignedData;
-                    selfSignedData = data.history[data.history.length - 1].peerSignedData;
+        let channelName = _this.Data.ChannelName,
+            TxNonce = _this.Data.TxNonce,
+            founder,
+            founderBalance,
+            peer,
+            peerBalance,
+            founderSignedData, 
+            peerSignedData, 
+            HashR, 
+            R;
+        _this.$store.state.vuexStore.txList.forEach(function(data, index){
+            if(data.channelName == channelName){
+                let listData = data.history;
+                for(var a = listData.length - 1; a > 0; a--){
+                    console.log(listData);
+                    console.log(listData[a]);
+                    if(listData[a].state == "confirmed" && !listData[a].delayTxData){
+                        founder = listData[a].founder;
+                        founderBalance = listData[a].founderBalance;
+                        peer = listData[a].peer;
+                        peerBalance = listData[a].peerBalance;
+                        founderSignedData = listData[a].founderSignedData;
+                        peerSignedData = listData[a].peerSignedData;
+                        HashR = listData[a].HashR;
+                        R = listData[a].R;
+                        break;
+                    }
                 }
-                HashR = data.history[data.history.length - 1].HashR;
-                R = data.history[data.history.length - 1].R;
             }
         })
 
         let dataTypeList = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32','bytes','bytes']; 
         let dataList = [
-            _this.Data.ChannelName, 
-            _this.Data.TxNonce, 
-            _this.$store.state.vuexStore.walletInfo.address, 
-            _this.Data.SelfBalance, 
-            _this.Data.OtherUri.split("@")[0], 
-            _this.Data.OtherBalance, 
+            channelName, 
+            TxNonce, 
+            founder, 
+            founderBalance, 
+            peer, 
+            peerBalance, 
             HashR ? HashR : "0x" + addPreZero(0 ,64), 
             R ? R : "0x" + addPreZero(0 ,64),
-            selfSignedData, 
-            otherSignedData
+            founderSignedData, 
+            peerSignedData
         ];
         let signedData = await _this.$parent.$parent.signDataForERC20Contract(_this.$store.state.vuexStore.trinityContractAddress, "closeChannel", dataTypeList, dataList, _this.channelInfo.keyStorePass);               //签名
         console.log(signedData);
@@ -435,7 +444,7 @@ export default {
 <style scoped>
 .channelInfoForm{
     float: left;
-    height: calc(100% - 55px);
+    height: 100%;
     width: 100%;
     overflow: hidden;
     position: relative;

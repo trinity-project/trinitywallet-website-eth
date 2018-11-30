@@ -2,7 +2,7 @@
   <div class="rankingForm">
     <div class="headBox">
         <div class="header-button is-left">
-        <i @click="$router.go(-1)" class="el-icon-ETH-fanhui"></i>
+        <i @click="back()" class="el-icon-ETH-fanhui"></i>
         </div>
         <h1>{{ $router.name }}</h1>
         <div class="header-button is-right" style="text-align:right;">
@@ -61,6 +61,7 @@
 </template>
 
 <script>
+import Vue from 'Vue'
 import headBox from './../common/headBoxForChild'
 export default {
   name: 'rankingForm',
@@ -82,7 +83,7 @@ export default {
         ],
         tabPaneSelected: 0,
         dataOrderBy: "payment",
-        DataList: []
+        DataList: [],
     }
   },
   components: {
@@ -128,87 +129,101 @@ export default {
   },
   methods: {
     selectPane(func, index){                                 //切换Nav事件
-      this.tabPaneSelected = index;                  //Nav选中之后设置store里的值为当前的index。
-      this.dataOrderBy = func;
+        this.tabPaneSelected = index;                  //Nav选中之后设置store里的值为当前的index。
+        this.dataOrderBy = func;
     },
     getnodeList() {
-      let _this = this;
-      let wsuri = _this.nodeWebSocketIp + ":" + _this.spvPort;               //建立websocket连接
-      _this.testWebSocket = new WebSocket(wsuri);
-      _this.testWebSocket.onmessage = _this.websocketOnMessage;
-      _this.testWebSocket.onclose = _this.websocketClose;
-      let Message = {
-        AssetType: "TNC",
-        MessageBody: {},
-        MessageType: "GetNodeList",
-        NetMagic: "527465737419990331",
-        Sender: "0x4E801062608188F5d6815ddC3e98B766088784CE@47.98.228.81:8866"
-      }
-      setInterval(_this.testWebSocket.send(JSON.stringify(Message)), 30000);      //循环获取
+        let _this = this;
+        let wsuri = "ws://47.98.228.81:8866";               //建立websocket连接
+        _this.testWebSocket = new WebSocket(wsuri);
+        _this.testWebSocket.onmessage = _this.websocketOnMessage;
+        _this.testWebSocket.onclose = _this.websocketClose;
+        let Message = {
+            AssetType: "TNC",
+            MessageBody: {},
+            MessageType: "GetNodeList",
+            NetMagic: "527465737419990331",
+            Sender: "0x4E801062608188F5d6815ddC3e98B766088784CE@47.98.228.81:8866"
+        }
+        setTimeout(function(){
+            _this.testWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+        },1000);
     },
     websocketOnMessage(e) {
-      let redata = JSON.parse(e.data);
-      let nodeList = [];
-      redata.Nodes.nodes.forEach(function(data, index){
-        nodeList.push(data.Publickey + "@" + data.Ip.split(":")[0] + ":21556");
-      });
-      this.$store.state.vuexStore.nodeList = nodeList;
-      console.log(this.$store.state.vuexStore.nodeList);
+        let redata = JSON.parse(e.data);
+        let nodeList = [];
+        redata.Nodes.nodes.forEach(function(data, index){
+            nodeList.push(data.Publickey + "@" + data.Ip.split(":")[0] + ":21556");
+        });
+        this.$store.state.vuexStore.nodeList = nodeList;
+        console.log(this.$store.state.vuexStore.nodeList);
 
-      this.getRankingData();                        //立即获取排行榜数据
-      setInterval(this.getRankingData, 10000);      //循环获取
+        this.getRankingData();                        //立即获取排行榜数据
+        this.cycleGetData = setInterval(this.getRankingData, 10000);      //循环获取
     },
     websocketClose() {
-      console.log("关闭");
+        console.log("关闭");
     },
     getRankingData() {
       let _this = this;
       let list = this.$store.state.vuexStore.nodeList;
       for(var i = 0; i < list.length; i++){
-      axios({
-        method: 'post',
-        url: "http://" + list[i].split("@")[1],
-        headers: {
-          'Content-Type': 'application/json;charset=UTF-8'
-        },
-        data: JSON.stringify({
-          "jsonrpc": "2.0",
-          "method": "GetWalletStatistics",
-          "params": [list[i].split("@")[0]],
-          "id": 1
+        axios({
+            method: 'post',
+            url: "http://" + list[i].split("@")[1],
+            headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+            },
+            data: JSON.stringify({
+            "jsonrpc": "2.0",
+            "method": "GetWalletStatistics",
+            "params": [list[i].split("@")[0]],
+            "id": 1
+            })
+        }).then(function(res){
+            if(res.data.result.MessageType == "GetWalletStatisticsAck"){
+                console.log(res.data.result.MessageBody);
+                let data = res.data.result.MessageBody;
+
+                let rsmc_successed = data.rsmc_successed || 0;
+                let htlc_successed = data.htlc_successed || 0;
+                let total_rsmc_transaction = data.total_rsmc_transaction || 0;
+                let total_htlc_transaction = data.total_htlc_transaction || 0;
+
+                let Message = {
+                    address: data.address,
+                    assetType: "TNC",
+                    income: data.income || 0,
+                    rsmc_successed: rsmc_successed,
+                    total_rsmc_transaction: total_rsmc_transaction,
+                    htlc_successed: htlc_successed,
+                    total_htlc_transaction: total_htlc_transaction,
+                    total_free: data.total_free || 0,
+                    payment: data.payment || 0,
+                    nonce_successed: rsmc_successed + htlc_successed,
+                    nonce: total_rsmc_transaction + total_htlc_transaction,
+                }
+                console.log(Message);
+                let isNewData = true;
+                _this.DataList.forEach(function(val, index){
+                    if(val.address == data.address){
+                        console.log("更新数据");
+                        Vue.set(_this.DataList, index, Message);
+                        isNewData = false;
+                        return;
+                    }
+                })
+                if(isNewData){
+                    _this.DataList.push(Message);
+                }
+            }
         })
-      }).then(function(res){
-        if(res.data.result.MessageType == "GetWalletStatisticsAck"){
-          console.log(res.data.result.MessageBody);
-          let data = res.data.result.MessageBody;
-          let Message = {
-            address: data.address,
-            assetType: "TNC",
-            income: data.income || 0,
-            rsmc_successed: data.rsmc_successed || 0,
-            total_rsmc_transaction: data.total_rsmc_transaction || 0,
-            htlc_successed: data.htlc_successed || 0,
-            total_htlc_transaction: data.total_htlc_transaction || 0,
-            total_free: data.total_free || 0,
-            payment: data.payment || 0,
-            nonce: (data.rsmc_successed + data.htlc_successed) || 0,
-          }
-          console.log(Message);
-          let isNewData = true;
-          _this.DataList.forEach(function(val, index){
-              if(val.address == data.address){
-                  val = Message;
-                  isNewData = false;
-                  return;
-              }
-          })
-          if(isNewData){
-              _this.DataList.push(Message);
-          }
-        }
-      })
       }
     },
+    back() {
+        clearInterval(this.cycleGetData);
+        this.$router.go(-1);
+    }
   }
 }
 </script>

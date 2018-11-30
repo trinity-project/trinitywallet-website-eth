@@ -23,6 +23,7 @@
 </template>
 
 <script>
+import Vue from 'Vue'
 import headBox from './../common/headBoxForChild'
 export default {
   name: 'aboutForm',
@@ -120,7 +121,7 @@ export default {
         return random;
       },
       htlcCycle: function() {                //循环HTLC
-        this.transCycle = setInterval(this.autoHtlc, 10000);
+        this.transCycle = setInterval(this.autoHtlc, 15000);
       },
       autoHtlc() {
         let _this = this;
@@ -175,30 +176,82 @@ export default {
                 if(l >= 0){
                     if(Number(_this.$store.state.vuexStore.channelList[l].SelfBalance) >= Number(_this.txOnChannelInfo.value)){
                         console.log("RSMC");
-                        _this.txOnChannelInfo.sendUri = _this.$store.state.vuexStore.channelList[l].SelfUri;      //赋值sendUri
-                        _this.txOnChannelInfo.ChannelName = _this.$store.state.vuexStore.channelList[l].ChannelName;    //赋值ChannelName
+
+                        let channelName = _this.$store.state.vuexStore.channelList[l].ChannelName,
+                            TxNonce = _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
+                            founderUri = _this.$store.state.vuexStore.channelList[l].SelfUri,
+                            peerUri = _this.$store.state.vuexStore.channelList[l].OtherUri,
+                            paymentCount = Number(LinkDataList[4]),
+                            founderBalance = Number(_this.$store.state.vuexStore.channelList[l].SelfBalance),
+                            peerBalance = Number(_this.$store.state.vuexStore.channelList[l].OtherBalance);
+                        let checkResult = _this.$parent.$parent.checkHistory(channelName, TxNonce);
+                        let ResignBody;
+                        if(checkResult.type == "Resign"){
+                            console.log("上次交易未确认,请求回签");
+                            ResignBody = checkResult.ResignBody;
+                            console.log(checkResult);
+
+                            let typeList = ['paymentCount', 'delayBlock'];
+                            let result = _this.$parent.$parent.getTxListInfo(channelName, ResignBody.Nonce, typeList);              //查询当前nonce的状态
+                            if(result.delayBlock){
+                            founderBalance = founderBalance;
+                            peerBalance = peerBalance - result.paymentCount;
+                            } else {
+                            founderBalance = founderBalance + result.paymentCount;
+                            peerBalance = peerBalance - result.paymentCount;
+                            }
+                        } else if (checkResult.type == "Same"){
+                            console.log("检查正常");
+                        }
+
                         console.log(l);
                         let Message = {                       //构造Rsmc消息体
-                        "MessageType":"Rsmc",
-                        "Sender": _this.txOnChannelInfo.sendUri,
-                        "Receiver": _this.txOnChannelInfo.receiverUri,
-                        "TxNonce": _this.$store.state.vuexStore.channelList[l].TxNonce + 1,
-                        "ChannelName": _this.$store.state.vuexStore.channelList[l].ChannelName,
-                        "NetMagic": _this.$store.state.vuexStore.NetMagic,
-                        "AssetType": _this.txOnChannelInfo.assetType,
-                        "MessageBody": {
-                            "PaymentCount": _this.txOnChannelInfo.value,
-                            "SenderBalance": Number(_this.$store.state.vuexStore.channelList[l].SelfBalance) - Number(_this.txOnChannelInfo.value),
-                            "ReceiverBalance": Number(_this.$store.state.vuexStore.channelList[l].OtherBalance) + Number(_this.txOnChannelInfo.value),
-                            //"HashR": 0x0,
-                            "Commitment": "",
-                            "RoleIndex": 0
-                        },
-                        "Comments": {}
+                            "MessageType":"Rsmc",
+                            "Sender": founderUri,
+                            "Receiver": peerUri,
+                            "TxNonce": TxNonce,
+                            "ChannelName": channelName,
+                            "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                            "AssetType": _this.txOnChannelInfo.assetType,
+                            "MessageBody": {
+                                "PaymentCount": paymentCount,
+                                "SenderBalance": founderBalance - paymentCount,
+                                "ReceiverBalance": peerBalance + paymentCount,
+                                "RoleIndex": 0,
+                                //"HashR": 0x0,
+                                "Commitment": "",
+                                "ResignBody": ResignBody
+                            },
+                            "Comments": LinkDataList[2]
                         }
                         _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
                         console.log(_this.$store.state.vuexStore.txOnChannelInfo);
                         _this.$parent.$parent.sendWebsocket(_this.txOnChannelInfo.receiverUri, Message);        //发送websocket消息
+
+                        let txListMessage = {                           //txData
+                            "state": "INIT",
+                            "nonce": TxNonce,
+                            "founder": founderUri.split("@")[0],
+                            "founderBalance": founderBalance - paymentCount,
+                            "peer": peerUri.split("@")[0],
+                            "peerBalance": peerBalance + paymentCount,
+                            "paymentCount": paymentCount,
+                            "isFounder": true,
+                            "founderSignedData": "",
+                            "peerSignedData": "",
+                            "HashR": "0x" + addPreZero(0,64),
+                            "R": "0x" + addPreZero(0,64),
+                            // "delayBlock":,
+                            // "payment": ,
+                            // "delayCommitment": ,
+                        }
+                        _this.$parent.$parent.newTxList(channelName, txListMessage);           //增加TxList信息
+                        console.log(_this.$store.state.vuexStore.txList);
+                        let channelInfo = _this.$store.state.vuexStore.channelList[l];
+                        channelInfo.TxNonce = TxNonce;                                      //TxNoce增加1
+                        Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+                        console.log(_this.$store.state.vuexStore.channelList[l].TxNonce);
+                        _this.$parent.$parent.StoreData("channelList");           //保存通道信息
                     }  else {
                         console.log("余额不足,停止交易");
                         clearInterval(_this.transCycle);

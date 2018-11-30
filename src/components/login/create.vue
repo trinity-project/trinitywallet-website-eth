@@ -73,7 +73,10 @@ export default {
       this.$refs['createForm'].validate((valid) => {
         if (valid) {
           if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
-            let privateKey = web3.eth.accounts.create().privateKey.slice(2);
+            let mnemonic = createMnemonic();
+            let privateKey = mnemonic2privateKey(mnemonic);
+            
+            //privateKey = web3.eth.accounts.create().privateKey.slice(2);
             console.log(privateKey);
             let keyStore = web3.eth.accounts.encrypt('0x' + privateKey, this.createForm.pass);
             console.log(keyStore);
@@ -87,19 +90,20 @@ export default {
               this.$store.state.vuexStore.walletInfo.address = address;       //存入地址
               // console.log(this.$store.state.vuexStore.walletInfo.address);
               this.$store.state.vuexStore.isLogin = true;
-              this.$notify({
-                title: this.$t('create.callback-4'),
-                dangerouslyUseHTMLString: true,
-                message: this.$t('create.callback-5'),
-                duration: 3000,
-                type: 'success'
-              });
+              // this.$notify({
+              //   title: this.$t('create.callback-4'),
+              //   dangerouslyUseHTMLString: true,
+              //   message: this.$t('create.callback-5'),
+              //   duration: 3000,
+              //   type: 'success'
+              // });
               console.log(JSON.stringify(this.$store.state.vuexStore.walletInfo));
               Bus.$emit('getAddressInfo', true);
               this.$parent.$parent.saveAsString("isLogin", this.$store.state.vuexStore.isLogin);                      // 存储wallet信息
               this.$parent.$parent.saveAsArray("walletInfo", this.$store.state.vuexStore.walletInfo);                 // 存储wallet信息
             }
-            this.$router.push('/setting/backup');
+            this.$router.push({name: 'firstBackupForm', params: {mnemonic: mnemonic}});
+            // this.$router.push('/setting/backup');
           } else if(this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
             let privateKey = ab2hexstring(generatePrivateKey());
             console.log(privateKey);
@@ -113,13 +117,13 @@ export default {
                 this.$store.state.vuexStore.NEOwalletInfo.address = address;       //存入地址
                 // console.log(this.$store.state.vuexStore.NEOwalletInfo);
                 this.$store.state.vuexStore.isLogin = true;
-                this.$notify({
-                    title: this.$t('create.callback-4'),
-                    dangerouslyUseHTMLString: true,
-                    message: this.$t('create.callback-5'),
-                    duration: 3000,
-                    type: 'success'
-                });
+                // this.$notify({
+                //     title: this.$t('create.callback-4'),
+                //     dangerouslyUseHTMLString: true,
+                //     message: this.$t('create.callback-5'),
+                //     duration: 3000,
+                //     type: 'success'
+                // });
             }
             Bus.$emit('getAddressInfo', true);
             this.$parent.$parent.saveAsString("isLogin", this.$store.state.vuexStore.isLogin);                      // 存储wallet信息

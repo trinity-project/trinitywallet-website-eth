@@ -70,7 +70,9 @@ export default {
   },
   mounted() {
     this.$nextTick(function(){
-        
+        var bottomEl = document.querySelector('.tabbar');
+        // 可见区域高度减去元素的高度
+        bottomEl.style.top = document.documentElement.clientHeight - 48 + 'px';
     })
   },
   computed: {
@@ -91,7 +93,7 @@ export default {
     },
     showTabbar() {
         let route = this.$route.path;
-        if(route =='/start' || route =='/create' || route =='/loginByPrivateKey' || route =='/loginByKeyStore' || route =='/scan' || route =='/setting/language' || route =='/discover/ranking' || route =='/back'){
+        if(route =='/start' || route =='/create' || route =='/loginByPrivateKey' || route =='/loginByKeyStore' || route =='/scan' || route =='/setting/language' || route =='/discover/ranking' || route =='/back' || route == '/setting/firstBackup' || route == '/loginByMnemonic'){
             this.isTabbarShow = false;
         } else {
             this.isTabbarShow = true;

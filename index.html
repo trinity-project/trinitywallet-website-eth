@@ -19,13 +19,13 @@
       #Loading img{
         width: 84px;
         transform: rotate(0);
-        animation: rotating 9s linear infinite;
+        /* animation: rotating 9s linear infinite; */
         transform-origin: 50.7% 55.7%;
       }
       #Loading h1{
         font-size: 24px;
       }
-      @keyframes rotating{
+      /* @keyframes rotating{
       0% {transform:rotate(0);}
       16% {transform:rotate(120deg);}
       33% {transform:rotate(120deg);}
@@ -33,7 +33,7 @@
       66% {transform:rotate(240deg);}
       83% {transform:rotate(360deg);}
       100% {transform:rotate(360deg);}
-      }
+      } */
 
     </style>
   </head>
@@ -57,13 +57,13 @@
     <script src="./static/js/ranking/iconfont.js"></script>  <!-- 排行榜图形文字 -->
     <script src="./static/config/config.js"></script>         <!-- 用于读取本地json文件 -->
     <script>
-        // if (typeof web3 !== 'undefined') {
-        //     web3 = new Web3(web3.currentProvider);
-        // } else {
-        //     web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
-           var web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); //ropsten
-            // web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); //mainnet
-        // }
+      if ('addEventListener' in document) {
+        document.addEventListener('DOMContentLoaded', function() {
+          FastClick.attach(document.body);
+        }, false);
+      }
+      
+      var web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d")); 
       
       var clipboard;            // 申明全局变量用于复制功能
       var loading;              // 申明全局变量用于加载功能 

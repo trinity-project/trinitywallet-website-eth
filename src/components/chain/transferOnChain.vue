@@ -5,10 +5,10 @@
       <h2 class="title_h2">{{ $t('transferOnChian.title1') }}{{ assetType }}{{ $t('transferOnChian.title2') }}</h2>
       <hr/>
       <div class="buttonBox clearfloat">
-        <router-link to="/channel/createPayment" class="button-item">
+        <a class="button-item">
           <i class="el-icon-ETH-lianxiren"></i>
           <p>{{ $t('setting.contact') }}</p>
-        </router-link>
+        </a>
         <router-link to="/scan" class="button-item">
           <i class="el-icon-ETH-saoyisao"></i>
           <p>{{ $t('common.scan') }}</p>
@@ -36,7 +36,7 @@
           </el-form-item>
       </el-form>
       <div style="text-align:center;margin-top: 10%;">
-          <el-button type="primary" @click="txOnChain()" class="transferBtn">{{ $t('index.transfer') }}</el-button>
+          <el-button type="primary" @click="txOnChain()" class="transferBtn" :disabled="isDisable">{{ $t('index.transfer') }}</el-button>
       </div>
     </div>
   </div>
@@ -123,6 +123,7 @@ export default {
       }
     };
     return {
+      isDisable: false,       //用于禁用快速导致多次提交
       txOnChainInfo: {        //链上转账信息
         "address": '',
         "assetType": '',
@@ -196,6 +197,10 @@ export default {
     },
     txOnChain() {     //链上转账方法 总
       let _this = this;
+      _this.isDisable = true;
+      setTimeout(() => {
+        _this.isDisable = false
+      }, 2000);
       _this.$refs['txOnChainInfo'].validate((valid) => {
         if (valid) {
           if(_this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
@@ -283,7 +288,7 @@ export default {
           _this.$store.state.vuexStore.recordList.push(recordMessage);
           _this.$parent.$parent.StoreData("recordList");         //保存交易记录
           _this.$parent.$parent.cycleGetTransactionReceipt(hash);           //循环查询交易hash
-          _this.$router.go(-1);                                      //清空交易数据
+          _this.$router.push('/chain/asset');                                      //清空交易数据
         } else {
           _this.$notify({
               title: _this.$t('common.warning'),
@@ -292,7 +297,7 @@ export default {
               duration: 3000,
               type: 'error'
           });
-          _this.$router.go(-1);                                      //清空交易数据
+          _this.$router.push('/chain/asset');                                      //清空交易数据
         }
       })
     },

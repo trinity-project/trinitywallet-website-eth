@@ -29,6 +29,7 @@ import createPaymentForm from '@/components/channel/createPayment'
 
 import ranking from '@/components/discover/ranking'
 
+import firstBackupForm from '@/components/setting/firstBackup'
 import BackupForm from '@/components/setting/backup'
 import contactForm from '@/components/setting/contact'
 import changePasswordForm from '@/components/setting/changePassword'
@@ -175,6 +176,9 @@ export default new Router({
       meta: {
         index: 0
       },
+      params: {
+        Uri: ""
+      }
     },
     {
       path: '/channel/channelList',
@@ -191,6 +195,9 @@ export default new Router({
       meta: {
         index: 0
       },
+      params: {
+        paymentCode: ""
+      }
     },
     {
       path: '/channel/createPayment',
@@ -231,12 +238,23 @@ export default new Router({
       }
     },
     {
+      path: '/setting/firstBackup',
+      name: 'firstBackupForm',
+      component: firstBackupForm,
+      meta: {
+        index: 1
+      },
+      params: {
+        mnemonic: ""
+      }
+    },
+    {
       path: '/setting/backup',
       name: 'BackupForm',
       component: BackupForm,
       meta: {
         index: 1
-      },
+      }
     },
     {
       path: '/setting/changePassword',

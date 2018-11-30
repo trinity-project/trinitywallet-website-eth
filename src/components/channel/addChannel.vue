@@ -207,6 +207,13 @@ export default {
       return this.$store.state.vuexStore.isTestNet;
     }
   },
+  mounted() {
+    this.$nextTick(function(){
+      if(this.$route.params.Uri){         //检测路由是否带参数，用于联系人页面直接转账
+        this.addChannelForm.uri = this.$route.params.Uri;
+      }
+    })
+  },
   methods: {
     addChannel() {
       let _this = this;
@@ -297,7 +304,6 @@ export default {
 
           _this.$parent.$parent.StoreData("channelList");         //储存通道信息
           _this.$router.push('/channel/channelList');       //跳转到channelList页面
-          
          } else if (_this.baseChain == "NEO"){                 //当前为NEO钱包时
             let Ip = _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri, _this.$store.state.vuexStore.spvPort);    //截取对端Uri的Ip
             const wsuri = "ws://" + Ip + "/";               //建立websocket连接
@@ -383,6 +389,9 @@ export default {
     float: left;
     height: 100%;
     width: 100%;
+    overflow: hidden;
+    background: #FFFFFF;
+    z-index: 2;
 }
 .contentBox{
     height: calc(100% - 44px);

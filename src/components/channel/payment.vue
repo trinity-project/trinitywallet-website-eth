@@ -9,10 +9,10 @@
             <i class="el-icon-ETH-shoukuan"></i>
             <p>收款</p>
           </router-link>
-          <a class="button-item">
+          <router-link to="/scan" class="button-item">
             <i class="el-icon-ETH-saoyisao"></i>
             <p>扫一扫</p>
-          </a>
+          </router-link>
         </div>
         <el-form class="indexForm" ref="form">
           <label style="line-height: 28px;font-size: 16px;">{{ $t('index.paymentCode') }}:</label>
@@ -33,7 +33,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="confirmTx()">{{ $t('index.transfer') }}</el-button>
+        <el-button type="primary" @click="confirmTx()" :disabled="isDisable">{{ $t('index.transfer') }}</el-button>
         <el-button @click="ShowTxOnChannelBox = false">{{ $t('index.cancel') }}</el-button>
       </span>
     </el-dialog>
@@ -70,6 +70,7 @@ export default {
       }
     };
     return {
+        isDisable: false,       //用于禁用快速导致多次提交
         paymentCode: '',        //PaymentCode
         txOnChannelInfo: {      //通道转账
           "sendUri": '',
@@ -120,8 +121,8 @@ export default {
     this.$nextTick(function(){
       // this.getEthBalance();
       // this.getTncBalance();
-      if(this.$route.params.address){         //检测路由是否带参数，用于联系人页面直接转账
-        this.paymentCode = this.$route.params.address;
+      if(this.$route.params.paymentCode){         //检测路由是否带参数，用于联系人页面直接转账
+        this.paymentCode = this.$route.params.paymentCode;
       }
     })
   },
@@ -309,6 +310,10 @@ export default {
     },
     confirmTx() {
       let _this = this;
+      _this.isDisable = true;
+      setTimeout(() => {
+        _this.isDisable = false;
+      }, 2000)
       _this.$refs['txOnChannelInfo'].validate((valid) => {
         if (valid) {
           if(_this.baseChain == "ETH"){                  //当前为ETH钱包时

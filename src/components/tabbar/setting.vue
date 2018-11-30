@@ -29,7 +29,7 @@
                 </div>
             </div>
         </router-link>
-        <router-link to="/setting/contact" class="cell cell-hover">
+        <router-link to="/setting/contact" class="cell cell-hover" style="display:none;">
             <div class="cell-wrapper">
                 <div class="cell-title">
                     <span class="cell-text">{{ $t('setting.contact') }}( Test )</span>

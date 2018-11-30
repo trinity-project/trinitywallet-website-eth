@@ -22,7 +22,9 @@ export default {
     }
   },
   computed: {
-
+    baseChain() {                       //获取vuex中的baseChain赋值给baseChain
+        return this.$store.state.vuexStore.baseChain;
+    },
   },
   filters:{
 
@@ -62,10 +64,28 @@ export default {
           text = 'EAN8';
           break;
       }
-      console.log(4);
       console.log(text + ": " + result);
       _this.closeScan();
-      _this.$router.go(-1);
+      if(result.startsWith('TN')){
+        alert("付款码");
+        _this.$router.push({name: 'payment', params: {paymentCode: result}});
+      } else {
+        if(result.includes('@') && result.includes(':')){
+          alert("创建通道");
+          _this.$router.push({name: 'addChannelForm', params: {Uri: result}});
+        } else {
+          if(_this.baseChain == "ETH" && web3.utils.checkAddressChecksum(result)){
+            alert("ETH钱包地址");
+            _this.$router.push({name: 'transferOnChain', params: {address: result}});
+          } else if(_this.baseChain == "NEO" && result.length == 34){
+            alert("NEO钱包地址");
+            _this.$router.push({name: 'transferOnChain', params: {address: result}});
+          } else {
+            alert("无效二维码");
+            _this.$router.go(-1);
+          }
+        }
+      }
 	  },
     startScan () {
         scan.start();

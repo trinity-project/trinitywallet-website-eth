@@ -12,12 +12,12 @@
     <div class="contentBox">
         <h2 @click="test()" class="title_h2">恢复钱包</h2>
         <hr/>
-        <el-form :model="backForm" status-icon :rules="backRules" ref="backForm" label-position="top" class="demo-ruleForm">
+        <el-form :model="backForm" status-icon ref="backForm" label-position="top" class="demo-ruleForm">
             <el-form-item :label="$t('create.password')" prop="pass">
               <el-input type="password" v-model="backForm.pass" auto-complete="off"></el-input>
             </el-form-item>
             <div style="text-align:center;margin:10% 0 22px;">
-                <el-button type="primary" @click="toLoginForm()" style="width: 80%;">恢复</el-button>
+                <el-button type="primary" @click="toLoginForm()" :disabled="isDisable" style="width: 80%;">恢复</el-button>
             </div>
         </el-form>
         <a @click="$parent.$parent.backToStart()" class="backToStartBtn">{{ $t('loginByPrivateKey.backToStart') }}</a>
@@ -30,42 +30,28 @@ import Bus from './../bus.js'
 export default {
   name: 'createForm',
   data () {
-    var validatePass = (rule, value, callback) => {         //create 密码输入规则
-      if (!value) {
-        return callback(new Error('钱包密码不能为空，否则将无法交易'));
-      } else {
-        let PrivateKey;
-        if(this.$store.state.vuexStore.baseChain == "ETH"){                  //当前为ETH钱包时
-          PrivateKey = this.$parent.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
-        } else if (this.$store.state.vuexStore.baseChain == "NEO"){                  //当前为ETH钱包时
-          PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
-              'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
-              'password': value,
-              'address': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
-          });
-        }
-        setTimeout(() => {
-            if(PrivateKey){
-              callback();
-            } else {
-              return callback(new Error(this.$t('index.callback-8')));
-            }
-        }, 300);
-      }
-    };
     return {
+        isDisable: false,       //用于禁用快速导致多次提交
         backForm: {
           pass: ''
         },
-        backRules: {          //back 输入规则
-          pass: [
-            { validator: validatePass, trigger: 'blur' }
-          ]
-        }
     }
   },
   components: {
 
+  },
+  computed: {
+    baseChain(){                                    //底层链
+      return this.$store.state.vuexStore.baseChain;
+    },
+    keyStore(){                                    //底层链
+      if(this.baseChain == "ETH"){
+        return this.$store.state.vuexStore.walletInfo.keyStore;
+      } else if(this.baseChain == "NEO"){
+        return this.$store.state.vuexStore.NEOwalletInfo.keyStore;
+      
+      }
+    }
   },
   mounted() {
     this.$nextTick(function(){
@@ -74,31 +60,35 @@ export default {
   },
   methods: {
     toLoginForm() {       //切换到登录窗口
-      this.$refs['backForm'].validate((valid) => {
-        if (valid) {
-          if(this.$store.state.vuexStore.baseChain == "ETH"){                 //当前为ETH钱包时
-            let decryptPK;
-            try {
-              decryptPK = web3.eth.accounts.decrypt(this.$store.state.vuexStore.walletInfo.keyStore, this.backForm.pass);
-            } catch (e) {
-              if(e.message == 'Key derivation failed - possibly wrong password'){
-                this.$notify.error({
-                  title: this.$t('loginByKeyStore.callback-7'),
-                  dangerouslyUseHTMLString: true,
-                  message: this.$t('loginByKeyStore.callback-8'),
-                  duration: 3000
-                });
-                return false;
-              } else {
-                this.$notify.error({
-                  title: this.$t('loginByKeyStore.callback-9'),
-                  dangerouslyUseHTMLString: true,
-                  message: e.message,
-                  duration: 3000
-                });
-                return false;
-              }
-            }
+      let _this = this;
+      _this.isDisable = true;
+      setTimeout(() => {
+        _this.isDisable = false;
+      }, 2000);
+      let keyStorePass = _this.backForm.pass;
+      let decryptPK;
+      console.log(!keyStorePass);
+      if(!keyStorePass){
+        alert("钱包密码不能为空，否则将无法恢复");
+      } else {
+        try {
+          if(_this.baseChain == "ETH"){                  //当前为ETH钱包时
+            console.log()
+            decryptPK = web3.eth.accounts.decrypt(this.keyStore, keyStorePass);
+          } else if (_this.baseChain == "NEO"){                  //当前为ETH钱包时
+            decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
+              'WalletScript': this.keyStore.accounts[0].key,
+              'password': keyStorePass,
+              'address': this.keyStore.accounts[0].address
+            });
+          }
+        } catch (e) {
+          // alert("钱包解锁失败,可能是密码错误");
+        }
+      
+
+        if(decryptPK){
+          if(this.baseChain == "ETH"){                 //当前为ETH钱包时
 
             let privateKey1 = new Buffer(decryptPK.privateKey.substring(2),'hex');
             let privateKey = privateKey1.toString('hex');
@@ -110,7 +100,7 @@ export default {
 
             if(web3.utils.checkAddressChecksum(address)){
               this.$store.state.vuexStore.isLogin = true;
-              this.$store.state.vuexStore.walletInfo.keyStorePass = this.backForm.pass;
+              this.$store.state.vuexStore.walletInfo.keyStorePass = keyStorePass;
               this.$notify({
                 title: this.$t('loginByKeyStore.callback-10'),
                 dangerouslyUseHTMLString: true,
@@ -120,8 +110,6 @@ export default {
               });
               Bus.$emit('getAddressInfo', true);
               
-              this.keyStoreContent = '';      //清空数据
-              this.keyStorePass = '';
               this.$router.push('/wallet');         //跳转到首页
             } else {
               this.$notify.error({
@@ -131,28 +119,7 @@ export default {
                 duration: 3000
               });
             }
-            this.keyStoreContent = '';      //清空数据
-            this.keyStorePass = '';
-          } else if (this.$store.state.vuexStore.baseChain == "NEO"){                 //当前为NEO钱包时
-            console.log(this.keyStoreContent);
-            let decryptPK;
-            try {
-              decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
-                'WalletScript':this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
-                'password': this.keyStorePass,
-                'address': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
-              });
-              console.log(decryptPK);
-            } catch (e) {
-              this.$notify.error({
-                title: this.$t('loginByKeyStore.callback-9'),
-                dangerouslyUseHTMLString: true,
-                message: e.message,
-                duration: 3000
-              });
-              return false;
-            }
-
+          } else if (this.baseChain == "NEO"){                 //当前为NEO钱包时
             //this.$store.state.vuexStore.NEOwalletInfo.keyStore = this.keyStoreContent;                        //存入KeyStore
             //this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(decryptPK, 0)));   //存入publicKey
             //console.log(this.$store.state.vuexStore.NEOwalletInfo.publicKey);
@@ -170,11 +137,10 @@ export default {
             this.$router.push('/wallet');         //跳转到首页
           }
         } else {
-          console.log('error submit!!');
-          return false;
+          alert("钱包解锁失败,可能是密码错误");
         }
-        this.backForm.pass = '';
-      });
+      }
+      this.backForm.pass = '';
     },
     test() {
       console.log(1);

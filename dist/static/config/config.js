@@ -8,7 +8,7 @@ var configData = {
             "trinityDataContractAddress": "0xD634eFCA91cA716A46C3C603e29200b3907e4524",     //Trinity状态通道数据合约地址
             "tncContractAddress": "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218",             //TNC代币合约地址
             "spvPort": 8866,                                                                //SPV端口号
-            "nodeWebSocketIp": "ws://47.88.52.211",                                         //任意稳定节点IP,用于获取图的数据
+            "nodeWebSocketIp": "ws://47.98.228.81",                                         //任意稳定节点IP,用于获取图的数据
             "delayBlock": 15,                                                               //HTLC延迟块高数(每一跳)
         },
         "mainNet":{
