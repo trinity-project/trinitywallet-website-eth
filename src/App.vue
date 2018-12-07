@@ -66,7 +66,7 @@ export default {
     })
   },
   created() {           //加载完成去除加载动画  
-    document.body.removeChild(document.getElementById('Loading'))
+    // document.body.removeChild(document.getElementById('Loading'))
   },
   computed: {
     baseChain(){                                    //底层链
@@ -1445,7 +1445,7 @@ export default {
               _this.$notify.error({
                   title: _this.$t('common.warning'),
                   dangerouslyUseHTMLString: true,
-                  message: error,
+                  message: res.data.result,
                   duration: 3000
               });
             }
@@ -2747,7 +2747,7 @@ export default {
             "founderSignedData": "",
             "peerSignedData": "",
             "HashR": HashR,
-            "R": "",
+            "R": "0x" + addPreZero(0,64),
             "delayBlock": DelayBlock,
             "delayTxData": "",
             "founderDelaySignedData": "",
@@ -3379,6 +3379,7 @@ export default {
 
                 let typeList = ['founder', 'founderBalance', 'peer', 'peerBalance', 'paymentCount', 'isFounder', 'nonce', 'HashR', 'R', 'delayBlock'];
                 let result =  _this.getTxListInfo(channelName, ResignTxNonce, typeList);              //查询当前nonce的状态
+                console.log(result);
                 ResignFounderAddress = result.founder;
                 ResignFounderBalance = result.founderBalance;
                 ResignPeerAddress = result.peer;
@@ -3386,11 +3387,11 @@ export default {
                 ResignPaymentCount = result.paymentCount;
                 let ResignOtherAddress = result.isFounder ? ResignPeerAddress : ResignFounderAddress,         //对端地址
                     ResignHashR = result.HashR,
-                    ResignR = result.R,
+                    ResignR = result.R,     //"0x" + addPreZero(0,64)
                     ResignDelayBlock = result.delayBlock,
                     verifyResult;
                 let dataTypeList_resign = ['bytes32','uint256','address','uint256','address','uint256','bytes32','bytes32'];
-                let dataList_resign = [channelName, ResignTxNonce, ResignFounderAddress, ResignFounderBalance, ResignPeerAddress, ResignPeerBalance, "0x" + addPreZero(0,64), "0x" + addPreZero(0,64)];
+                let dataList_resign = [channelName, ResignTxNonce, ResignFounderAddress, ResignFounderBalance, ResignPeerAddress, ResignPeerBalance, ResignHashR, ResignR];
                 ResignedDataResult = _this.ecSignForTrinityContract(dataTypeList_resign, dataList_resign, keyStorePass);     //签名方法
                 if(ResignDelayBlock){
                   let dataTypeList_delay_resign = ['bytes32','address','address','uint256','uint256','bytes32'];
@@ -3447,12 +3448,30 @@ export default {
                       founderBalance = founderBalance;
                     }
                   } else {
-                    if(result.isFounder){
-                    founderBalance = founderBalance - ResignPaymentCount;
-                    peerBalance = peerBalance + ResignPaymentCount;
-                    } else {
-                      peerBalance = peerBalance - ResignPaymentCount;
-                      founderBalance = founderBalance + ResignPaymentCount;
+                    console.log(ResignHashR);
+                    if(ResignHashR == "0x" + addPreZero(0,64)){     //当为RSMC回签时,更新双方balance 
+                      if(result.isFounder){
+                      founderBalance = founderBalance - ResignPaymentCount;
+                      peerBalance = peerBalance + ResignPaymentCount;
+                      } else {
+                        peerBalance = peerBalance - ResignPaymentCount;
+                        founderBalance = founderBalance + ResignPaymentCount;
+                      }
+                    } else {                            //当为HTLC-R回签时,更新对端balance,停止H-Lock监控
+                      if(result.isFounder){
+                        founderBalance = founderBalance - ResignPaymentCount;
+                        peerBalance = peerBalance;
+                      } else {
+                        peerBalance = peerBalance - ResignPaymentCount;
+                        founderBalance = founderBalance;
+                      }
+                      _this.$store.state.vuexStore.eventList.forEach(function(data, index){
+                        if(data.HashR == ResignHashR){
+                          console.log("H交易已完成,停止监听");
+                          _this.$store.state.vuexStore.eventList.splice(index,1);
+                          _this.StoreData("eventList");
+                        }
+                      })
                     }
                   }
                   let txListMessage_normalTx = {                           //txData
@@ -4324,6 +4343,7 @@ export default {
       var _this = this;
       let l = _this.getChannelSerial("ChannelName", redata.ChannelName);      //获取所需的channel在List的位置
       console.log(_this.$store.state.vuexStore.addChannelInfo);
+      console.log(l);
       if(l >= 0){
         let decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
           'WalletScript': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
@@ -4358,6 +4378,7 @@ export default {
             "RoleIndex": redata.MessageBody.RoleIndex
           }
         }
+        console.log(Message);
         _this.sendWebsocket(redata.Sender, Message);        //发送websocket消息
         axios({
           method: 'post',
@@ -4513,7 +4534,7 @@ export default {
         let Message = {
           MessageType: "GetChannelInfo", 
           Sender: _this.$store.state.vuexStore.channelList[l].SelfUri,
-          Magic: _this.$store.state.vuexStore.NetMagic,
+          NetMagic: _this.$store.state.vuexStore.NetMagic,
           MessageBody:{
             "AssetType": "TNC"
           }

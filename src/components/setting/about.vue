@@ -9,7 +9,7 @@
             <h4>Trinity Wallet for ETH</h4>
             <p v-if="$store.state.vuexStore.isTestNet" style="color:red;">Test Network</p>
             <p>Version: V{{ $store.state.vuexStore.version }}</p>
-            <template v-if="$store.state.vuexStore.isOneStepPayment">
+            <template v-if="$store.state.vuexStore.isOneStepPayment && $store.state.vuexStore.isTestNet">
                 <p>当前交易笔数: {{ transNum }}笔,其中RSMC笔数: {{ $store.state.vuexStore.RSMCNum }}笔</p>
                 <p>HTLC笔数: {{ $store.state.vuexStore.HTLCNum }}笔, HTLC - R: {{ $store.state.vuexStore.HTLCRNum }}笔</p>
             </template>
@@ -121,7 +121,7 @@ export default {
         return random;
       },
       htlcCycle: function() {                //循环HTLC
-        this.transCycle = setInterval(this.autoHtlc, 15000);
+        this.transCycle = setInterval(this.autoHtlc, 25000);
       },
       autoHtlc() {
         let _this = this;

@@ -10,7 +10,7 @@
     <div class="contentBox">
         <div>
             <div class="chainIconBox">
-                <p>切换主链: </p>
+                <p>{{ $t('start.Chain') }}: </p>
                 <i @click="switchNet('ETH')" :class="{ active: $store.state.vuexStore.baseChain == 'ETH' }" class="el-icon-ETH-ETH"></i>
                 <i @click="switchNet('NEO')" :class="{ active: $store.state.vuexStore.baseChain == 'NEO' }" class="el-icon-ETH-NEO"></i>
             </div>
@@ -26,8 +26,8 @@
             <p>{{ $t('start.loginByPrivateKeyTxt') }}</p>
         </div>
         <div v-if="$store.state.vuexStore.isMobile" @click="toOtherForm('./loginByMnemonic')" class="clooseLoginBox clooseLoginBox-yellow">
-            <h3>从助记词恢复</h3>
-            <p>{{ $t('start.loginByPrivateKeyTxt') }}</p>
+            <h3>{{ $t('start.loginByMnemonic') }}</h3>
+            <p>{{ $t('start.loginByMnemonicTxt') }}</p>
         </div>
         <div v-else @click="toOtherForm('./loginByKeyStore')" class="clooseLoginBox clooseLoginBox-gray">
             <h3>{{ $t('start.loginByKeystore') }}</h3>

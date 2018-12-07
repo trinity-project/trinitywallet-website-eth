@@ -4,7 +4,7 @@ var configData = {
             "web3": "https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d",        //web接口
             "NodeUriWebSocketIp": "ws://47.104.81.20:9000",                                 //全节点IP
             "NetMagic":"527465737419990331",                                                //网络号
-            "trinityContractAddress": "0x8A1956591FF19Aa4AdA437AF158404acfA40876C",         //Trinity状态通道逻辑合约地址
+            "trinityContractAddress": "0x5eC045d849539688e6Ab70946c94834AEED84d74",         //Trinity状态通道逻辑合约地址
             "trinityDataContractAddress": "0xD634eFCA91cA716A46C3C603e29200b3907e4524",     //Trinity状态通道数据合约地址
             "tncContractAddress": "0x65096f2B7A8dc1592479F1911cd2B98dae4d2218",             //TNC代币合约地址
             "spvPort": 8866,                                                                //SPV端口号
@@ -1188,7 +1188,7 @@ var configData = {
     },
     "NEO":{
         "testNet": {
-            "NodeRpcUri": "http://47.96.175.193:21332",
+            "NodeRpcUri": "http://neoapi-testnet.trinity.ink:21332",
             "NetMagic": "195378745719990331",
             "spvPort": 8766
         },

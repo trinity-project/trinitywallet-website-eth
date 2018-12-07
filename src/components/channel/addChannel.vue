@@ -337,7 +337,7 @@ export default {
               "Sender": SelfUri,
               "Receiver": _this.addChannelForm.uri,
               "ChannelName": _this.addChannelForm.channelName,
-              "Magic": _this.$store.state.vuexStore.NetMagic,
+              "NetMagic": _this.$store.state.vuexStore.NetMagic,
               "MessageBody": {
                   "AssetType" : _this.addChannelForm.assetType,
                   "Deposit": parseFloat(_this.addChannelForm.selfDeposit)
@@ -365,6 +365,7 @@ export default {
               date: date,                                                     //时间戳
               Ip: _this.$parent.$parent.uri2Ip(_this.addChannelForm.uri,null),//IP
             }
+            _this.$store.state.vuexStore.channelList[l] = channelInfo;
 
             _this.$parent.$parent.StoreData("channelList");         //储存通道信息
             _this.$router.push('/channel/channelList');       //跳转到channelList页面

@@ -2,11 +2,11 @@
   <div class="loginByMnemonicForm">
     <headBox/>
     <div class="contentBox">
-        <h2 class="title_h2">助记词导入</h2>
+        <h2 class="title_h2">{{ $t('loginByMnemonic.title') }}</h2>
         <hr/>
         <el-form :model="loginByMnemonicForm" status-icon :rules="loginByMnemonicRules" label-position="top" ref="loginByMnemonicForm" label-width="80px" class="demo-ruleForm">
-            <el-form-item label="助记词" prop="mnemonic" placeholder="请输入12个单词,以空格隔开">
-              <el-input type="textarea" rows="2" v-model="loginByMnemonicForm.mnemonic" placeholder="请输入12个单词,以空格隔开"></el-input>
+            <el-form-item :label="$t('loginByMnemonic.mnemonic')" prop="mnemonic">
+              <el-input type="textarea" rows="2" v-model="loginByMnemonicForm.mnemonic" :placeholder="$t('loginByMnemonic.mnemonic-txt')"></el-input>
             </el-form-item>
             <el-form-item :label="$t('loginByPrivateKey.password')" prop="pass">
               <el-input type="password" v-model="loginByMnemonicForm.pass" auto-complete="off"></el-input>
@@ -30,18 +30,18 @@ export default {
   data () {
     var checkMnemonic = (rule, value, callback) => {      //loginByPrivateKey  私钥规则
       if (!value) {
-        return callback(new Error("助记词不能为空"));
+        return callback(new Error(this.$t('loginByMnemonic.callback-4')));
       }
       console.log(validateMnemonic(value));
       if (validateMnemonic(value)) {
         callback();
       } else {
-        callback(new Error("助记词验证失败"));
+        callback(new Error(this.$t('loginByMnemonic.callback-2')));
       }
     };
     var validatePass = (rule, value, callback) => {         //loginByPrivateKey  密码规则
       if (value === '') {
-        callback(new Error(this.$t('loginByPrivateKey.callback-3')));
+        callback(new Error(this.$t('loginByMnemonic.callback-3')));
       } else {
         if (this.loginByMnemonicForm.checkPass !== '') {
           this.$refs.loginByMnemonicForm.validateField('checkPass');
@@ -51,9 +51,9 @@ export default {
     };
     var validatePass2 = (rule, value, callback) => {        //loginByPrivateKey  重复密码规则
       if (value === '') {
-        callback(new Error(this.$t('loginByPrivateKey.callback-4')));
+        callback(new Error(this.$t('loginByMnemonic.callback-4')));
       } else if (value !== this.loginByMnemonicForm.pass) {
-        callback(new Error(this.$t('loginByPrivateKey.callback-5')));
+        callback(new Error(this.$t('loginByMnemonic.callback-5')));
       } else {
         callback();
       }

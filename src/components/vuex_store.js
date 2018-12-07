@@ -1,6 +1,6 @@
 export default {
   state: {
-    version: '0.0.1',               //版本号
+    version: '0.3.0',               //版本号
     baseChain: 'ETH',               //底层主链
     isTestNet: true,                //是否为测试网
     isLogin: false,                 //登录标志

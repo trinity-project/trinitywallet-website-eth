@@ -6,7 +6,7 @@
       </div>
       <h1>消息中心</h1>
       <div class="header-button is-right" style="text-align:right;">
-        <p v-if="messageList1.length" @click="clearAll()">清空全部</p>
+        <p v-if="messageList.length" @click="clearAll()">清空全部</p>
       </div>
     </div>
     <div class="contentBox">
@@ -106,7 +106,7 @@ export default {
             this.showPrivateKey();
             break;
         case "testFun":
-            this.testFun1();
+            this.testFun6();
             break;
         default:
             alert("未知消息类型");
@@ -228,6 +228,36 @@ export default {
         this.$parent.$parent.StoreData("eventList");
     },
     testFun4() {                                 //恢复到刚建通道的状态
+        this.$store.state.vuexStore.eventList = [];
+        this.$parent.$parent.StoreData("eventList");
+    },
+    testFun5() {                                 //将HTLC-R恢复到"confirming"状态
+        let channelName = this.$store.state.vuexStore.channelList[0].ChannelName;
+        let TxNonce = 3;
+        let founderBalance = 899000000;
+        let peerBalance = 1000000000;
+        let txListMessage = {                           //txData
+            "state": "init",
+            "founderSignedData": "",
+            "peerSignedData": ""
+        }
+        this.$parent.$parent.updateTxList1(channelName, TxNonce, txListMessage);                  //更新TxList
+        this.$parent.$parent.updateTxListLength(channelName, TxNonce + 1);
+        this.$parent.$parent.StoreData("txList");
+
+        let l = this.$parent.$parent.getChannelSerial("ChannelName", channelName);
+        let channelInfo = this.$store.state.vuexStore.channelList[l];
+        channelInfo.SelfBalance = founderBalance;     //本端余额更新
+        channelInfo.OtherBalance = peerBalance;    //对端余额更新
+        channelInfo.TxNonce = TxNonce;
+        Vue.set(this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
+        console.log(this.$store.state.vuexStore.channelList[l]);
+        this.$parent.$parent.StoreData("channelList");                   //保存通道信息
+
+        this.$store.state.vuexStore.eventList = [];
+        this.$parent.$parent.StoreData("eventList");
+    },
+    testFun6() {
         this.$store.state.vuexStore.eventList = [];
         this.$parent.$parent.StoreData("eventList");
     }

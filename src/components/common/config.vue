@@ -45,10 +45,14 @@ export default {
         console.log(isLogin);
         isLogin === "true" ? _this.$store.state.vuexStore.isLogin = true : _this.$store.state.vuexStore.isLogin = false;
         console.log(_this.$store.state.vuexStore.isLogin);
-                
-        _this.$store.state.vuexStore.isTestNet = _this.$parent.fetchAsString("isTestNet") || true;                  //获取网络
-        _this.isTestNet ? _this.$store.state.vuexStore.isTestNet = true : _this.$store.state.vuexStore.isTestNet = false
-        console.log(_this.isTestNet);
+        
+        let isTestNet = _this.$parent.fetchAsString("isTestNet");                     //获取登录标记
+        console.log(isTestNet);
+        isTestNet === "true" ? _this.$store.state.vuexStore.isTestNet = true : _this.$store.state.vuexStore.isTestNet = false;
+        console.log(_this.$store.state.vuexStore.isTestNet);
+        // _this.$store.state.vuexStore.isTestNet = _this.$parent.fetchAsString("isTestNet") || false;                  //获取网络
+        // _this.isTestNet ? _this.$store.state.vuexStore.isTestNet = true : _this.$store.state.vuexStore.isTestNet = false
+        // console.log(_this.isTestNet);
         _this.$store.state.vuexStore.baseChain = _this.$parent.fetchAsString("baseChain") || "ETH";                  //获取底层链
         console.log(_this.baseChain);
 
@@ -68,13 +72,14 @@ export default {
             _this.$store.state.vuexStore.NEOwalletInfo = _this.$parent.fetchAsArray("walletInfo") || nullWalletInfo;        //获取钱包信息
             console.log(_this.$store.state.vuexStore.NEOwalletInfo);
         }
-        console.log(_this.$store.state.vuexStore.isLogin?1:2);
         _this.$store.state.vuexStore.isLogin ? _this.$router.push('/back') : _this.$router.push('/start'); 
 
-        if(_this.isTestNet != "" && _this.baseChain != ""){
-            console.log("更新当前参数");
+        // console.log(_this.isTestNet != undefined);
+        // console.log(_this.baseChain != "");
+        // if(_this.isTestNet != undefined && _this.baseChain != ""){
+        //     console.log("更新当前参数");
             _this.getConfig();                              //更新配置文件信息
-        }
+        // }
     }),
     Bus.$on('getAddressInfo', (e) => {
         this.getAddressInfo();
@@ -86,6 +91,7 @@ export default {
       if(configData){
         let Network;
         _this.$store.state.vuexStore.isTestNet ? Network = "testNet" : Network = "mainNet";
+        console.log(Network);
         if(_this.baseChain == "ETH"){                  //当底层链为ETH时
             console.log("切换到ETH");
             web3 = new Web3(new Web3.providers.HttpProvider(configData.ETH[Network].web3));
@@ -107,6 +113,7 @@ export default {
         }
         setTimeout(function (){                                           //连接全节点
             _this.$parent.connectWebSocketForNodeUri(); 
+            _this.getAddressInfo();
         },1500);
 
         // if(_this.baseChain == "ETH"){                //当ETH时连接全节点websocket
@@ -162,12 +169,11 @@ export default {
         
         _this.getBalance();                          //获取总的余额
 
-        if(_this.baseChain == "ETH"){                  //当前为ETH钱包时
+        if(_this.baseChain == "ETH" && _this.address){                  //当前为ETH钱包时
             let Message = {
                 "messageType": "init", 
                 "walletAddress": _this.address
             }
-            _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
             let Message1 = {
                 "messageType": "monitorAddress",
                 "walletAddress": _this.address,
@@ -175,8 +181,10 @@ export default {
                 "chainType": "ETH",
                 "comments": {}
             }
-            _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //向全节点请求监听到账信息
-           
+            setTimeout(function (){                                           //连接全节点
+                _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message));        //向发送全节点发送初始化信息
+                _this.$store.state.vuexStore.NodeUriWebSocket.send(JSON.stringify(Message1));        //向全节点请求监听到账信息
+            }, 1500);
             _this.$parent.blockHeightCycle();                    //循环查询块高
         }
         _this.BalanceCycle();                        //反复获取钱包余额
