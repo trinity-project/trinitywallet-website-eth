@@ -205,7 +205,9 @@ export default {
       return result;
     },
     sendWebsocket(uri, message) {           //与gateway通用发送消息方法
+      console.log(1);
       let ip = this.uri2Ip(uri);
+      console.log(this.$store.state.vuexStore.webSocketList);
       this.$store.state.vuexStore.webSocketList.every(function(data,index){   //遍历
         if(data.Ip == ip && data.websock != ""){
             data.websock.send(JSON.stringify(message));
@@ -1898,6 +1900,8 @@ export default {
       } else if (_this.baseChain == "NEO"){
         console.log("NEO  RSMC");
         let MessageBody = redata.MessageBody;
+        console.log(_this.$store.state.vuexStore.NEOwalletInfo);
+        let keyStorePass = _this.$store.state.vuexStore.NEOwalletInfo.keyStorePass;
         if(MessageBody.RoleIndex == 0){
           if(l >= 0){ 
             
@@ -4447,6 +4451,7 @@ export default {
         channelInfo.TxNonce += 1 ;                                      //TxNoce增加1
         Vue.set(_this.$store.state.vuexStore.channelList, l, channelInfo);            //更改通道信息
         console.log(_this.$store.state.vuexStore.channelList[l]);
+        _this.StoreData("channelList");                   //保存通道信息
 
         _this.$notify({                 //消息提醒
           title: _this.$t('common.success'),

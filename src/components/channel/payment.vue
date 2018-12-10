@@ -630,15 +630,15 @@ export default {
                 "MessageType":"GetRouterInfo",
                 "Sender": _this.txOnChannelInfo.sendUri,
                 "Receiver": _this.txOnChannelInfo.receiverUri,
-                "Magic": _this.$store.state.vuexStore.NetMagic,
+                "NetMagic": _this.$store.state.vuexStore.NetMagic,
+                "AssetType": _this.txOnChannelInfo.assetType,
                 "MessageBody":{
                     "NodeList": UriList,
-                    "AssetType": _this.txOnChannelInfo.assetType,
                 }
             }
             _this.$store.state.vuexStore.txOnChannelInfo = _this.txOnChannelInfo;           //保存通道转账信息
             console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-            _this.$store.state.vuexStore.channelList[i].websock.send(JSON.stringify(Message));        //发送websocket消息
+            _this.$parent.$parent.sendWebsocket(_this.txOnChannelInfo.sendUri, Message);        //发送websocket消息
             _this.ShowTxOnChannelBox = false;           //关闭当前窗口
             _this.clearTxData();                        //清空当前数据  
           }

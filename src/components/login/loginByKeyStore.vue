@@ -128,6 +128,7 @@ export default {
 
             if(web3.utils.checkAddressChecksum(address)){
                 this.$store.state.vuexStore.walletInfo.keyStore = this.keyStoreContent;
+                this.$store.state.vuexStore.walletInfo.keyStorePass = this.keyStorePass;
                 // this.$store.state.vuexStore.walletInfo.publicKey = privateKey2PublicKey(privateKey).toString('hex');   //存入publicKey
                 // console.log(this.$store.state.vuexStore.walletInfo.publicKey);
                 this.$store.state.vuexStore.walletInfo.address = address;       //存入地址
@@ -176,6 +177,7 @@ export default {
             this.$store.state.vuexStore.NEOwalletInfo.publicKey = getPublicKeyEncoded(ab2hexstring(getPublicKey(decryptPK, 0)));   //存入publicKey
             console.log(this.$store.state.vuexStore.NEOwalletInfo.publicKey);
             this.$store.state.vuexStore.NEOwalletInfo.address = this.keyStoreContent.accounts[0].address;       //存入地址
+            this.$store.state.vuexStore.NEOwalletInfo.keyStorePass = this.keyStorePass;
             this.$store.state.vuexStore.isLogin = true;                     //登录标志
             this.$notify({
                 title: this.$t('loginByKeyStore.callback-10'),
