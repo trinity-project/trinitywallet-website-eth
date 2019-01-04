@@ -291,7 +291,7 @@ export default {
             State: 2,                                                       //通道初始状态
             isConnect: true,                                                //是否连接上websocket
             SelfBalance: founderDeposit,                                    //本端余额
-            OtherBalance: peerDeposit,                                      //对端余额
+            OtherBalance: peerDeposit,                                   //对端余额
             assetType : assetType,                                          //资产类型
             isTestNet: _this.isTestNet,                                     //是否为测试网
             SelfUri: founderUri,                                            //本端Uri
@@ -356,7 +356,7 @@ export default {
               State: 2,                                                       //通道初始状态
               isConnect: true,                                                //是否连接上websocket
               SelfBalance: _this.addChannelForm.selfDeposit.mul(10e7),        //本端余额
-              OtherBalance: _this.addChannelForm.otherDeposit.mul(10e7),      //对端余额
+              OtherBalance: _this.addChannelForm.selfDeposit.mul(10e7),      //对端余额
               assetType : _this.addChannelForm.assetType,                     //资产类型
               isTestNet: _this.$store.state.vuexStore.isTestNet,              //是否为测试网
               SelfUri: SelfUri,                                               //本端Uri

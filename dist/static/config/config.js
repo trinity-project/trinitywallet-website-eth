@@ -1190,12 +1190,14 @@ var configData = {
         "testNet": {
             "NodeRpcUri": "http://neoapi-testnet.trinity.ink:21332",
             "NetMagic": "195378745719990331",
-            "spvPort": 8766
+            "spvPort": 8766,
+            "nodeWebSocketIp": "ws://47.254.39.10"                                         //任意稳定节点IP,用于获取图的数据
         },
         "mainNet": {
             "NodeRpcUri": "https://neoapi.trinity.ink",
             "NetMagic": "763040120030515",
-            "spvPort": 8766
+            "spvPort": 8766,
+            "nodeWebSocketIp": "ws://39.105.110.25"                                         //任意稳定节点IP,用于获取图的数据
         }
     }
 } 

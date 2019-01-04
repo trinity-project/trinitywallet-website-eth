@@ -110,6 +110,7 @@ export default {
             _this.$store.state.vuexStore.NetMagic = configData.NEO[Network].NetMagic;                                    //修改网络号
             _this.$store.state.vuexStore.NodeRpcUri = configData.NEO[Network].NodeRpcUri;                                //全节点通用Uri 
             _this.$store.state.vuexStore.spvPort = configData.NEO[Network].spvPort;                                      //spv端口号
+            _this.$store.state.vuexStore.nodeWebSocketIp = configData.ETH[Network].nodeWebSocketIp;                     //当前网络稳定的节点,用于获取nodeList
         }
         setTimeout(function (){                                           //连接全节点
             _this.$parent.connectWebSocketForNodeUri(); 

@@ -91,8 +91,13 @@ export default {
     },
     confirm() {
       this.$refs['activeInfo'].validate((valid) => {
-        this.$store.state.vuexStore.walletInfo.keyStorePass = this.activeInfo.keyStorePass;                     //储存keystore密码
-        console.log(this.$store.state.vuexStore.walletInfo.keyStorePass);
+        if(this.$store.state.vuexStore.baseChain == "ETH"){
+            this.$store.state.vuexStore.walletInfo.keyStorePass = this.activeInfo.keyStorePass;                     //储存keystore密码
+            console.log(this.$store.state.vuexStore.walletInfo.keyStorePass);
+        } else if(this.$store.state.vuexStore.baseChain == "NEO"){
+            this.$store.state.vuexStore.NEOwalletInfo.keyStorePass = this.activeInfo.keyStorePass;                     //储存keystore密码
+            console.log(this.$store.state.vuexStore.NEOwalletInfo.keyStorePass);
+        }
         this.$parent.$parent.saveAsString(this.$store.state.vuexStore.walletInfo.address + "@isOneStepPayment", this.$store.state.vuexStore.isOneStepPayment);         // 存储免密支付信息
         this.isComfirmOneStepPaymentShow = false;
       })

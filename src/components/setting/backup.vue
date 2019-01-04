@@ -64,7 +64,6 @@ export default {
           console.log(value);
           PrivateKey = this.$parent.$parent.verifyPassword(this.$store.state.vuexStore.walletInfo.keyStore, value);
         } else if (this.baseChain == "NEO"){                  //当前为ETH钱包时
-          console.log(1);
           PrivateKey = scrypt_module_factory(DecryptWalletByPassword, {}, {
               'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
               'password': value,
@@ -173,8 +172,17 @@ export default {
             }
           } else if(this.backupType == "backupPrivateKey"){
             this.keyStore = "";
-            let decryptPK = this.$parent.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, keyStorePass);
-            this.privateKey = decryptPK.privateKey;
+            if(this.$store.state.vuexStore.baseChain == "ETH"){
+              let decryptPK = this.$parent.$parent.decryptPrivateKey(this.$store.state.vuexStore.walletInfo.keyStore, keyStorePass);
+              this.privateKey = decryptPK.privateKey;
+            } else if(this.$store.state.vuexStore.baseChain == "NEO"){
+              let decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
+                'WalletScript': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
+                'password': keyStorePass,
+                'address': this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
+              });
+              this.privateKey = decryptPK;
+            }
           }
           this.isUnlockWalletBox = false;
           this.unlockWalletForm.keyStorePass = "";

@@ -137,6 +137,7 @@ export default {
   width: 100%;
   overflow: hidden;
   background: #FFFFFF;
+  z-index: 1;
 }
 /* p{
   font-size: 10px;

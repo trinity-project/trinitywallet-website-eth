@@ -456,6 +456,7 @@ export default {
     width: 100%;
     padding: 30px;
     box-sizing: border-box;
+    overflow-x: hidden;
 }
 h4{
     font-size: 16px;

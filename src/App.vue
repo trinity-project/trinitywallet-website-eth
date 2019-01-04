@@ -87,6 +87,13 @@ export default {
     isOneStepPayment() {                            //获取vuex中的isOneStepPayment赋值给isOneStepPayment
       return this.$store.state.vuexStore.isOneStepPayment;
     },
+    keyStorePass() {
+      if(this.baseChain == "ETH"){
+        return this.$store.state.vuexStore.walletInfo.keyStorePass;
+      } else if(this.baseChain == "NEO"){
+        return this.$store.state.vuexStore.NEOwalletInfo.keyStorePass;
+      }
+    }
   },
   watch: {//使用watch 监听$router的变化
     $route(to, from) {
@@ -1286,7 +1293,7 @@ export default {
       let _this = this;
       let redata = JSON.parse(e.data);
       let type = redata.MessageType;
-      console.log(redata);
+      //console.log(redata);
 
       switch(type)
       {
@@ -2033,7 +2040,7 @@ export default {
         try {
           decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
               'WalletScript': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
-              'password': _this.$store.state.vuexStore.txOnChannelInfo.keyStorePass,
+              'password': _this.keyStorePass,
               'address': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
           });
         } catch (e) {
@@ -2101,6 +2108,9 @@ export default {
           }
           _this.sendWebsocket(redata.Sender, Message1);        //发送websocket消息
           console.log(Message1);
+        }
+        if(MessageBody.RoleIndex == 3){
+          _this.$store.state.vuexStore.RSMCNum += 1;
         }
       }
     },
@@ -2658,7 +2668,11 @@ export default {
           _this.$store.state.vuexStore.txOnChannelInfo.Next = redata.RouterInfo.Next;     //Next赋值
           _this.$store.state.vuexStore.txOnChannelInfo.fee = Fee;            //fee赋值
           console.log(_this.$store.state.vuexStore.txOnChannelInfo);
-          _this.isFeeInfoBoxShow = true;                       //显示Fee提醒框
+          if(_this.isOneStepPayment && _this.$store.state.vuexStore.NEOwalletInfo.keyStorePass){       // 判断免密支付
+            _this.sendHtlcMes();                                 //发送Htlc交易
+          } else {
+            _this.isFeeInfoBoxShow = true;                       //显示Fee提醒框
+          }
         } 
       }
     },
@@ -3064,7 +3078,7 @@ export default {
           try {
             decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
                 'WalletScript': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
-                'password': keyStorePass,
+                'password': _this.keyStorePass,
                 'address': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
             });
           } catch (e) {
@@ -3220,13 +3234,13 @@ export default {
           // Router: [["0205a56b5d84614808280bf29f42d4cb17fbf410dac322530eeeeb50dbd75a3b03@10.211.55.3:8766", 0],…]
           // Sender: "02f6b9c6fa0bb4bf6c7f7cf8e3c49c867c76ac7990616dbcfa71b6866b2e6b8200@10.211.55.3:8089"
           // TxNonce: 0
-          console.log(_this.$store.state.vuexStore.txOnChannelInfo.keyStorePass);
+          console.log(_this.keyStorePass);
           
           let decryptPK;                                    //解锁钱包获得私钥
           try {
             decryptPK = scrypt_module_factory(DecryptWalletByPassword, {}, {
                 'WalletScript': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].key,
-                'password': _this.$store.state.vuexStore.txOnChannelInfo.keyStorePass,
+                'password': _this.keyStorePass,
                 'address': _this.$store.state.vuexStore.NEOwalletInfo.keyStore.accounts[0].address
             });
           } catch (e) {
