@@ -2,7 +2,7 @@ var configData = {
     "ETH":{
         "testNet":{
             "web3": "https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d",        //web接口
-            "NodeUriWebSocketIp": "ws://47.104.81.20:9000",                                 //全节点IP
+            "NodeUriWebSocketIp": "ws://47.254.66.224:9000", //全节点IP
             "NetMagic":"527465737419990331",                                                //网络号
             "trinityContractAddress": "0x5eC045d849539688e6Ab70946c94834AEED84d74",         //Trinity状态通道逻辑合约地址
             "trinityDataContractAddress": "0xD634eFCA91cA716A46C3C603e29200b3907e4524",     //Trinity状态通道数据合约地址
@@ -17,7 +17,7 @@ var configData = {
             "NetMagic": "4061696020030515",                                                 //网络号
             "trinityContractAddress": "0x7A332beF593d6bd6B9d314959295239c46D5C127",         //Trinity状态通道逻辑合约地址
             "trinityDataContractAddress": "0xF8ac6d07e825338720bC7D3ee119B3C88560FaF5",     //Trinity状态通道数据合约地址
-            "tncContractAddress": "0xc9ad73d11d272c95b5a2c48780a55b6b3c726cac",             //TNC代币合约地址
+            "tncContractAddress": "0x67fbA6D5eed1f20F8454Ab93Aed3a010F36F549d",             //TNC代币合约地址
             "spvPort": 8866,                                                                //SPV端口号
             "nodeWebSocketIp": "ws://39.105.110.25",                                        //任意稳定节点IP,用于获取图的数据
             "delayBlock": 5760,                                                               //HTLC延迟块高数(每一跳)

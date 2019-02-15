@@ -2,7 +2,7 @@ var configData = {
     "ETH":{
         "testNet":{
             "web3": "https://ropsten.infura.io/v3/5a89dae544414c24951c3144d47dc84d",        //web接口
-            "NodeUriWebSocketIp": "ws://47.104.81.20:9000",                                 //全节点IP
+            "NodeUriWebSocketIp": "ws://47.254.66.224:9000", //全节点IP
             "NetMagic":"527465737419990331",                                                //网络号
             "trinityContractAddress": "0x5eC045d849539688e6Ab70946c94834AEED84d74",         //Trinity状态通道逻辑合约地址
             "trinityDataContractAddress": "0xD634eFCA91cA716A46C3C603e29200b3907e4524",     //Trinity状态通道数据合约地址
